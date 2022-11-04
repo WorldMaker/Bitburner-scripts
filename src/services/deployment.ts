@@ -1,3 +1,4 @@
+import { Server } from '../models/server'
 import { HackerService } from './hacker'
 import { PayloadService } from './payload'
 import { ScannerService } from './scanner'
@@ -17,12 +18,12 @@ export class DeploymentService {
 		const servers = this.scannerService.scan()
 
 		// hack the planet
-		let rooted = new Set<string>()
+		let rooted = new Set<Server>()
 		let payloads = 0
 
 		for (const server of servers) {
 			if (this.hackerService.hack(server)) {
-				rooted.add(server)
+				rooted.add(new Server(this.ns, server))
 			}
 		}
 
@@ -35,7 +36,7 @@ export class DeploymentService {
 
 		// deliver the payload
 		for (const server of rooted) {
-			if (this.payloadService.deliver(server, target)) {
+			if (this.payloadService.deliver(server.getName(), target)) {
 				payloads += 1
 			}
 		}

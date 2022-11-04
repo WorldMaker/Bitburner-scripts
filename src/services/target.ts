@@ -1,51 +1,47 @@
+import { Server } from '../models/server'
+
 const targetHackingLevelMultiplier = 0.333
 
 export class TargetService {
-	private currentTarget: string
-	private currentTargetLevel: number
-	private currentTargetWorth: number
+	private currentTarget: Server
 
-	constructor(private ns: NS, startingTarget: string) {
+	constructor(private ns: NS, startingTarget: Server) {
 		this.currentTarget = startingTarget
-		this.currentTargetLevel = this.ns.getServerRequiredHackingLevel(
-			this.currentTarget
-		)
-		this.currentTargetWorth = this.ns.getServerMaxMoney(this.currentTarget)
 	}
 
 	getCurrentTarget() {
 		return this.currentTarget
 	}
 
-	findTarget(rootedServers: Iterable<string>) {
+	findTarget(rootedServers: Iterable<Server>) {
 		const hackingLevel = this.ns.getHackingLevel()
 		const targetHackingLevel = hackingLevel * targetHackingLevelMultiplier
-		if (hackingLevel == 1 && this.currentTarget !== 'n00dles') {
+		if (hackingLevel == 1 && this.currentTarget.getName() !== 'n00dles') {
 			// always starting with n00dles
-			this.currentTarget = 'n00dles'
-			this.currentTargetLevel = 1
-			this.currentTargetWorth = this.ns.getServerMaxMoney(this.currentTarget)
+			this.currentTarget = new Server(this.ns, 'n00dles')
 			return [true, this.currentTarget]
 		}
 		let newTarget = false
 		for (const server of rootedServers) {
-			if (server === this.currentTarget) {
+			if (server.getName() === this.currentTarget.getName()) {
 				continue
 			}
-			const serverHackingLevel = this.ns.getServerRequiredHackingLevel(server)
-			if (serverHackingLevel < this.currentTargetLevel) {
+			if (server.getPurchased()) {
+				// no need to target our own servers, presumably
+				continue
+			}
+			const serverHackingLevel = server.getHackingLevel()
+			if (serverHackingLevel < this.currentTarget.getHackingLevel()) {
 				continue
 			}
 			if (serverHackingLevel > targetHackingLevel) {
 				continue
 			}
-			const worth = this.ns.getServerMaxMoney(server)
-			if (worth < this.currentTargetWorth) {
+			const worth = server.getWorth()
+			if (worth < this.currentTarget.getWorth()) {
 				continue
 			}
 			this.currentTarget = server
-			this.currentTargetLevel = serverHackingLevel
-			this.currentTargetWorth = worth
 			newTarget = true
 		}
 		return [newTarget, this.currentTarget]

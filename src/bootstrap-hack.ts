@@ -1,3 +1,4 @@
+import { Server } from './models/server'
 import { DeploymentService } from './services/deployment'
 import { HackerService } from './services/hacker'
 import { PayloadService } from './services/payload'
@@ -14,7 +15,7 @@ export async function main(ns: NS) {
 	// How much RAM each purchased server will have. Default to 8 GBs
 	const ram = Number(ns.args[1]) || 8
 	const hacknetNodes = Number(ns.args[2]) || 5
-	const suggestedTarget = ns.args[3]?.toString() ?? 'n00dles'
+	const suggestedTarget = new Server(ns, ns.args[3]?.toString() ?? 'n00dles')
 
 	if (running) {
 		return
