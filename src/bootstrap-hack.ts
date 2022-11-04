@@ -23,6 +23,12 @@ function hackServer(ns: NS, server: string) {
 		// hack
 		const ports = ns.getServerNumPortsRequired(server)
 		switch (ports) {
+			case 2:
+				if (!ns.fileExists('FTPCrack.exe', 'home')) {
+					return
+				}
+				ns.ftpcrack(server)
+			// continue to case 1
 			case 1:
 				if (!ns.fileExists('BruteSSH.exe', 'home')) {
 					return
