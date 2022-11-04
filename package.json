@@ -4,7 +4,7 @@
 	"description": "Bitburner scripts",
 	"main": "index.js",
 	"scripts": {
-    "build": "tsc -p tsconfig.json",
+		"build": "tsc -p tsconfig.json",
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"prettier": "prettier --write .",
 		"prettier:check": "prettier --check ."
@@ -12,6 +12,7 @@
 	"author": "",
 	"license": "MIT",
 	"devDependencies": {
+		"esbuild": "^0.15.13",
 		"prettier": "^2.7.1",
 		"typescript": "^4.8.4"
 	}
