@@ -19,7 +19,7 @@ function hackServer(ns: NS, server: string) {
 
 	const hackingLevel = ns.getHackingLevel()
 	const serverLevel = ns.getServerRequiredHackingLevel(server)
-	if (serverLevel < hackingLevel) {
+	if (serverLevel <= hackingLevel) {
 		// hack
 		const ports = ns.getServerNumPortsRequired(server)
 		switch (ports) {
