@@ -1,12 +1,9 @@
 {
-    "compilerOptions": {
-        "target": "es2017",
-        "outDir": "dist",
-        "strict": true,
-        "forceConsistentCasingInFileNames": true,
-    },
-    "include": [
-        "lib.d.ts",
-        "src/**/*.ts"
-    ]
+	"compilerOptions": {
+		"target": "es2017",
+		"outDir": "dist",
+		"strict": true,
+		"forceConsistentCasingInFileNames": true
+	},
+	"include": ["lib.d.ts", "src/**/*.ts"]
 }

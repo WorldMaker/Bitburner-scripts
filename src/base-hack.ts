@@ -8,13 +8,18 @@ export async function main(ns: NS) {
 	nextTarget = ns.args[0].toString() ?? nextTarget
 	let target = nextTarget
 	while (true) {
-		const moneyThreshold = ns.getServerMaxMoney(target) * moneyThresholdMultiplier
-		const securityThreshold = ns.getServerMinSecurityLevel(target) + securityThresholdOverage
+		const moneyThreshold =
+			ns.getServerMaxMoney(target) * moneyThresholdMultiplier
+		const securityThreshold =
+			ns.getServerMinSecurityLevel(target) + securityThresholdOverage
 
 		let hacked = false
 		let action = 0
 
-		while (target === nextTarget && (action < currentTargetActions || !hacked)) {
+		while (
+			target === nextTarget &&
+			(action < currentTargetActions || !hacked)
+		) {
 			if (ns.getServerSecurityLevel(target) > securityThreshold) {
 				await ns.weaken(target)
 			} else if (ns.getServerMoneyAvailable(target) < moneyThreshold) {
