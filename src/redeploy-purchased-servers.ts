@@ -1,10 +1,9 @@
 const app = 'base-hack.js'
 const appRamCost = 2.4
-let target = 'harakiri-sushi'
+let target: string = 'harakiri-sushi'
 
-/** @param {NS} ns */
-export async function main(ns) {
-	target = ns.args[0] ?? target
+export async function main(ns: NS) {
+	target = ns.args[0].toString() ?? target
 	const servers = ns.getPurchasedServers()
 	for (const server of servers) {
 		const ram = ns.getServerMaxRam(server)

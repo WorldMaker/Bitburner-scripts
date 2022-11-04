@@ -2,11 +2,10 @@ const moneyThresholdMultiplier = 0.75
 const securityThresholdOverage = 5
 const currentTargetActions = 10
 
-let nextTarget = 'n00dles'
+let nextTarget: string = 'n00dles'
 
-/** @param {NS} ns */
-export async function main(ns) {
-	nextTarget = ns.args[0] ?? nextTarget
+export async function main(ns: NS) {
+	nextTarget = ns.args[0].toString() ?? nextTarget
 	let target = nextTarget
 	while (true) {
 		const moneyThreshold = ns.getServerMaxMoney(target) * moneyThresholdMultiplier

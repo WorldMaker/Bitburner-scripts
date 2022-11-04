@@ -2,10 +2,9 @@ const app = 'base-hack.js'
 const appRamCost = 2.4
 const target = 'harakiri-sushi'
 
-/** @param {NS} ns */
-export async function main(ns) {
+export async function main(ns: NS) {
 	// How much RAM each purchased server will have. Default to 8 GBs
-	const ram = ns.args[0] ?? 8
+	const ram = Number(ns.args[0]) ?? 8
 	const threads = Math.floor(ram / appRamCost)
 	
 	// Iterator we'll use for our loop
