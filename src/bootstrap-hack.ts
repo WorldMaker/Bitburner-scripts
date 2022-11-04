@@ -1,5 +1,6 @@
 const app = 'base-hack.js'
 const appRamCost = 2.4
+const defaultBlacklist = ['home'] // don't hack home
 let maxDepth = 2
 let target: string = 'n00dles'
 
@@ -40,12 +41,15 @@ function hackServer(ns: NS, server: string) {
 	}
 }
 
-function scanServers(ns: NS, server = 'home', depth = 0) {
+function scanServers(ns: NS, hacked: Set<string>, server = 'home', depth = 0) {
 	const servers = ns.scan(server)
 	for (const server of servers) {
-		hackServer(ns, server)
+		if (!hacked.has(server)) {
+			hackServer(ns, server)
+			hacked.add(server)
+		}
 		if (depth < maxDepth) {
-			scanServers(ns, server, depth + 1)
+			scanServers(ns, hacked, server, depth + 1)
 		}
 	}
 }
@@ -56,5 +60,6 @@ export async function main(ns: NS) {
 	// hack current target first
 	hackServer(ns, target)
 	// hack the planet
-	scanServers(ns)
+	const hacked = new Set([...defaultBlacklist, target])
+	scanServers(ns, hacked)
 }
