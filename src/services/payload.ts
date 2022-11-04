@@ -16,7 +16,7 @@ export class PayloadService {
 		}
 		const ram = server.getMaxRam()
 		if (ram < this.appRamCost) {
-			this.ns.tprint(`WARN ${server.getName()} only has ${ram} memory`)
+			this.ns.print(`WARN ${server.getName()} only has ${ram} memory`)
 			return false
 		}
 		this.ns.scp(this.app, server.getName())
