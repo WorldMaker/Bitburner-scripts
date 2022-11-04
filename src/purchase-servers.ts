@@ -4,7 +4,7 @@ const target = 'harakiri-sushi'
 
 export async function main(ns: NS) {
 	// How much RAM each purchased server will have. Default to 8 GBs
-	const ram = Number(ns.args[0]) ?? 8
+	const ram = Number(ns.args[0]) || 8
 	const threads = Math.floor(ram / appRamCost)
 
 	// Iterator we'll use for our loop
