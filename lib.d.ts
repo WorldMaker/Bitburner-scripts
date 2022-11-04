@@ -6908,7 +6908,7 @@ declare interface NS {
 }
 
 /** @public */
-declare const enums = {
+declare const enums: {
   toast: {
     SUCCESS: "success",
     WARNING: "warning",
