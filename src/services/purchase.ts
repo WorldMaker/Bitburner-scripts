@@ -1,7 +1,7 @@
-import { Server } from '../models/server'
-import { PayloadService } from './payload'
-import { ServerCacheService } from './server-cache'
-import { TargetService } from './target'
+import { Server } from '../models/server.js'
+import { PayloadService } from './payload.js'
+import { ServerCacheService } from './server-cache.js'
+import { TargetService } from './target.js'
 
 export class PurchaseService {
 	private purchasedServerCount: number

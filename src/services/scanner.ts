@@ -1,5 +1,5 @@
-import { Server } from '../models/server'
-import { ServerCacheService } from './server-cache'
+import { Server } from '../models/server.js'
+import { ServerCacheService } from './server-cache.js'
 
 const blacklist = new Set(['home'])
 

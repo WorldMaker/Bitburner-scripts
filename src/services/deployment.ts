@@ -1,8 +1,8 @@
-import { Server } from '../models/server'
-import { HackerService } from './hacker'
-import { PayloadService } from './payload'
-import { ScannerService } from './scanner'
-import { TargetService } from './target'
+import { Server } from '../models/server.js'
+import { HackerService } from './hacker.js'
+import { PayloadService } from './payload.js'
+import { ScannerService } from './scanner.js'
+import { TargetService } from './target.js'
 
 export class DeploymentService {
 	constructor(

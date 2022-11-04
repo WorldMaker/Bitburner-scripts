@@ -1,4 +1,4 @@
-import { Server } from '../models/server'
+import { Server } from '../models/server.js'
 
 export class HackerService {
 	private hackingLevel: number

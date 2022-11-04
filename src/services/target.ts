@@ -1,4 +1,4 @@
-import { Server } from '../models/server'
+import { Server } from '../models/server.js'
 
 const targetHackingLevelMultiplier = 0.333
 
