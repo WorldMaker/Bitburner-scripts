@@ -1,6 +1,6 @@
 const app = 'base-hack.js'
 const appRamCost = 2.4
-const target = 'harakiri-sushi'
+const target = 'n00dles'
 
 export async function main(ns: NS) {
 	// How much RAM each purchased server will have. Default to 8 GBs
