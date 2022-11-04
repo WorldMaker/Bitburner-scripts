@@ -1,27 +1,46 @@
-import { HackerService } from "./hacker";
-import { PayloadService } from "./payload";
-import { ScannerService } from "./scanner";
+import { HackerService } from './hacker'
+import { PayloadService } from './payload'
+import { ScannerService } from './scanner'
+import { TargetService } from './target'
 
 export class DeploymentService {
-    constructor(private ns: NS, private hackerService: HackerService, private payloadService: PayloadService, private scannerService: ScannerService) {}
+	constructor(
+		private ns: NS,
+		private hackerService: HackerService,
+		private payloadService: PayloadService,
+		private scannerService: ScannerService,
+		private targetService: TargetService
+	) {}
 
-    deploy(target: string) {
-        this.hackerService.hack(target)
-        // scan the planet
-        const servers = this.scannerService.scan()
-        // hack the planet
-        let rooted = 0
-        let payloads = 0
-        for (const server of servers) {
-            if (this.hackerService.hack(server)) {
-                rooted += 1
-            }
-            if (this.payloadService.deliver(server, target)) {
-                payloads += 1
-            }
-        }
-        this.ns.tprint(
-            `INFO ${servers.length} servers hacked; ${rooted} rooted, ${payloads} payloads`
-        )
-    }
+	deploy() {
+		// scan the planet
+		const servers = this.scannerService.scan()
+
+		// hack the planet
+		let rooted = new Set<string>()
+		let payloads = 0
+
+		for (const server of servers) {
+			if (this.hackerService.hack(server)) {
+				rooted.add(server)
+			}
+		}
+
+		// pick a target
+		const [newTarget, target] = this.targetService.findTarget(rooted)
+
+		if (newTarget) {
+			this.ns.print(`INFO Target changed to ${target}`)
+		}
+
+		// deliver the payload
+		for (const server of rooted) {
+			if (this.payloadService.deliver(server, target)) {
+				payloads += 1
+			}
+		}
+		this.ns.tprint(
+			`INFO ${servers.length} servers hacked; ${rooted.size} rooted, ${payloads} payloads`
+		)
+	}
 }
