@@ -39,12 +39,12 @@ function hackServer(ns: NS, server: string) {
 				ns.nuke(server)
 				break
 			default:
-				ns.print(`WARN ${server} needs ${ports} ports`)
+				ns.tprint(`WARN ${server} needs ${ports} ports`)
 				return
 		}
 		deliverPayload(ns, server)
 	} else {
-		ns.print(
+		ns.tprint(
 			`WARN ${server} hacking level ${serverLevel} above ${hackingLevel}`
 		)
 	}
@@ -72,4 +72,5 @@ export async function main(ns: NS) {
 	// hack the planet
 	const hacked = new Set([...defaultBlacklist, target])
 	scanServers(ns, hacked)
+	ns.tprint(`INFO ${hacked.size} servers hacked`)
 }
