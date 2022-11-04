@@ -1,9 +1,14 @@
+import { Server } from '../models/server'
+import { ServerCacheService } from './server-cache'
+
 const blacklist = new Set(['home'])
 
 export class ScannerService {
-	private servers = new Set<string>()
-
-	constructor(private ns: NS, private maxDepth = 2) {}
+	constructor(
+		private ns: NS,
+		private servers: ServerCacheService,
+		private maxDepth = 2
+	) {}
 
 	private scanServer(
 		currentServer: string,
@@ -15,7 +20,9 @@ export class ScannerService {
 			if (blacklist.has(server)) {
 				continue
 			}
-			this.servers.add(server)
+			if (!this.servers.has(server)) {
+				this.servers.set(new Server(this.ns, server))
+			}
 			if (!visited.has(server) && depth < this.maxDepth) {
 				visited.add(server)
 				this.scanServer(server, visited, depth + 1)
@@ -25,6 +32,6 @@ export class ScannerService {
 
 	scan(server = 'home') {
 		this.scanServer(server, new Set(), 0)
-		return [...this.servers]
+		return [...this.servers.values()]
 	}
 }

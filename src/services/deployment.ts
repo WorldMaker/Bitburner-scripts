@@ -23,7 +23,7 @@ export class DeploymentService {
 
 		for (const server of servers) {
 			if (this.hackerService.hack(server)) {
-				rooted.add(new Server(this.ns, server))
+				rooted.add(server)
 			}
 		}
 
@@ -36,7 +36,7 @@ export class DeploymentService {
 
 		// deliver the payload
 		for (const server of rooted) {
-			if (this.payloadService.deliver(server.getName(), target)) {
+			if (this.payloadService.deliver(server, target)) {
 				payloads += 1
 			}
 		}

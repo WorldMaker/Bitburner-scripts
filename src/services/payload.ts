@@ -1,3 +1,5 @@
+import { Server } from '../models/server'
+
 export class PayloadService {
 	private appRamCost: number
 
@@ -5,21 +7,26 @@ export class PayloadService {
 		this.appRamCost = this.ns.getScriptRam(app)
 	}
 
-	deliver(server: string, ...args: any[]) {
-		if (!this.ns.hasRootAccess(server)) {
+	deliver(server: Server, ...args: any[]) {
+		if (server.checkRooted()) {
 			return false
 		}
-		if (this.ns.isRunning(this.app, server, ...args)) {
+		if (this.ns.isRunning(this.app, server.getName(), ...args)) {
 			return true
 		}
-		const ram = this.ns.getServerMaxRam(server)
+		const ram = server.getMaxRam()
 		if (ram < this.appRamCost) {
-			this.ns.tprint(`WARN ${server} only has ${ram} memory`)
+			this.ns.tprint(`WARN ${server.getName()} only has ${ram} memory`)
 			return false
 		}
-		this.ns.scp(this.app, server)
-		this.ns.killall(server)
-		this.ns.exec(this.app, server, Math.floor(ram / this.appRamCost), ...args)
+		this.ns.scp(this.app, server.getName())
+		this.ns.killall(server.getName())
+		this.ns.exec(
+			this.app,
+			server.getName(),
+			Math.floor(ram / this.appRamCost),
+			...args
+		)
 		return true
 	}
 }

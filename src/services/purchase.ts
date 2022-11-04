@@ -1,4 +1,6 @@
+import { Server } from '../models/server'
 import { PayloadService } from './payload'
+import { ServerCacheService } from './server-cache'
 import { TargetService } from './target'
 
 export class PurchaseService {
@@ -11,6 +13,7 @@ export class PurchaseService {
 	constructor(
 		private ns: NS,
 		private payloadService: PayloadService,
+		private servers: ServerCacheService,
 		private targetService: TargetService,
 		private ram: number,
 		private hacknetNodesToBuy = 0
@@ -40,10 +43,9 @@ export class PurchaseService {
 				'pserv-' + this.purchasedServerCount,
 				this.ram
 			)
-			this.payloadService.deliver(
-				hostname,
-				this.targetService.getCurrentTarget()
-			)
+			const host = new Server(this.ns, hostname, true)
+			this.servers.set(host)
+			this.payloadService.deliver(host, this.targetService.getCurrentTarget())
 			this.purchasedServerCount++
 			this.nextServerPurchaseCost = this.ns.getPurchasedServerCost(this.ram)
 			return true

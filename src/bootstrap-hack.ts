@@ -4,6 +4,7 @@ import { HackerService } from './services/hacker'
 import { PayloadService } from './services/payload'
 import { PurchaseService } from './services/purchase'
 import { ScannerService } from './services/scanner'
+import { ServerCacheService } from './services/server-cache'
 import { TargetService } from './services/target'
 
 const app = 'base-hack.js'
@@ -25,9 +26,11 @@ export async function main(ns: NS) {
 
 	const targetService = new TargetService(ns, suggestedTarget)
 	const payloadService = new PayloadService(ns, app)
+	const servers = new ServerCacheService(ns)
 	const purchaseService = new PurchaseService(
 		ns,
 		payloadService,
+		servers,
 		targetService,
 		ram,
 		hacknetNodes
@@ -40,7 +43,7 @@ export async function main(ns: NS) {
 	while (running) {
 		// *** hacking and deploying payloads ***
 		const hackerService = new HackerService(ns)
-		const scannerService = new ScannerService(ns, maxDepth)
+		const scannerService = new ScannerService(ns, servers, maxDepth)
 		const deploymentService = new DeploymentService(
 			ns,
 			hackerService,
