@@ -42,11 +42,11 @@ export class HackerService {
 					this.ns.nuke(server)
 					return true
 				default:
-					this.ns.tprint(`WARN ${server} needs ${ports} ports`)
+					this.ns.print(`WARN ${server} needs ${ports} ports`)
 					return false
 			}
 		} else {
-			this.ns.tprint(
+			this.ns.print(
 				`WARN ${server} hacking level ${serverLevel} above ${this.hackingLevel}`
 			)
 		}

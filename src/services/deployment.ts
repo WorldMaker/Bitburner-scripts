@@ -4,6 +4,10 @@ import { ScannerService } from './scanner'
 import { TargetService } from './target'
 
 export class DeploymentService {
+	private lastServersCount = 0
+	private lastRootedCount = 0
+	private lastPayloadCount = 0
+
 	constructor(
 		private ns: NS,
 		private hackerService: HackerService,
@@ -39,8 +43,18 @@ export class DeploymentService {
 				payloads += 1
 			}
 		}
-		this.ns.tprint(
-			`INFO ${servers.length} servers hacked; ${rooted.size} rooted, ${payloads} payloads`
-		)
+
+		if (
+			servers.length !== this.lastServersCount ||
+			rooted.size !== this.lastRootedCount ||
+			payloads !== this.lastPayloadCount
+		) {
+			this.ns.tprint(
+				`INFO ${servers.length} servers hacked; ${rooted.size} rooted, ${payloads} payloads`
+			)
+			this.lastServersCount = servers.length
+			this.lastRootedCount = rooted.size
+			this.lastPayloadCount = payloads
+		}
 	}
 }

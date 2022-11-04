@@ -22,7 +22,6 @@ export async function main(ns: NS) {
 
 	running = true
 
-	const scannerService = new ScannerService(ns, maxDepth)
 	const targetService = new TargetService(ns, suggestedTarget)
 	const payloadService = new PayloadService(ns, app)
 	const purchaseService = new PurchaseService(
@@ -36,6 +35,7 @@ export async function main(ns: NS) {
 	while (running) {
 		// *** hacking and deploying payloads ***
 		const hackerService = new HackerService(ns)
+		const scannerService = new ScannerService(ns, maxDepth)
 		const deploymentService = new DeploymentService(
 			ns,
 			hackerService,
