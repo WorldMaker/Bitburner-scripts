@@ -1,4 +1,5 @@
 import { PayloadService } from './services/payload'
+import { PurchaseService } from './services/purchase'
 
 const app = 'base-hack.js'
 const target = 'n00dles'
@@ -6,26 +7,20 @@ const target = 'n00dles'
 export async function main(ns: NS) {
 	// How much RAM each purchased server will have. Default to 8 GBs
 	const ram = Number(ns.args[0]) || 8
-
-	// Iterator we'll use for our loop
-	let i = 0
+	const hacknetNodes = Number(ns.args[1]) || 5
 
 	// Continuously try to purchase servers until we've reached the maximum
 	// amount of servers
 	const payloadService = new PayloadService(ns, app)
+	const purchaseService = new PurchaseService(
+		ns,
+		payloadService,
+		ram,
+		hacknetNodes
+	)
 
-	while (i < ns.getPurchasedServerLimit()) {
-		// Check if we have enough money to purchase a server
-		if (ns.getServerMoneyAvailable('home') > ns.getPurchasedServerCost(ram)) {
-			// If we have enough money, then:
-			//  1. Purchase the server
-			//  2. Copy our hacking script onto the newly-purchased server
-			//  3. Run our hacking script on the newly-purchased server with 3 threads
-			//  4. Increment our iterator to indicate that we've bought a new server
-			const hostname = ns.purchaseServer('pserv-' + i, ram)
-			payloadService.deliver(hostname, target)
-			++i
-		}
+	while (purchaseService.wantsToPurchase()) {
+		purchaseService.purchase(target)
 		await ns.sleep(1 /* s */ * 1000 /* ms */)
 	}
 }
