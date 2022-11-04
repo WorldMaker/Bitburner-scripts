@@ -19,7 +19,7 @@ function deliverPayload(ns: NS, server: string) {
 }
 
 function hackServer(ns: NS, server: string) {
-	if (!ns.hasRootAccess(server)) {
+	if (ns.hasRootAccess(server)) {
 		return 1
 	}
 	const hackingLevel = ns.getHackingLevel()
