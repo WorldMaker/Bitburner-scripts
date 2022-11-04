@@ -12,11 +12,14 @@ function deliverPayload(ns: NS, server: string) {
 }
 
 function hackServer(ns: NS, server: string) {
-	const hackingLevel = ns.getHackingLevel()
-	const serverLevel = ns.getServerRequiredHackingLevel(server)
 	if (ns.hasRootAccess(server)) {
 		deliverPayload(ns, server)
-	} else if (serverLevel < hackingLevel) {
+		return
+	}
+
+	const hackingLevel = ns.getHackingLevel()
+	const serverLevel = ns.getServerRequiredHackingLevel(server)
+	if (serverLevel < hackingLevel) {
 		// hack
 		const ports = ns.getServerNumPortsRequired(server)
 		switch (ports) {
