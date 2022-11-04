@@ -47,9 +47,10 @@ function scanServers(ns: NS, hacked: Set<string>, server = 'home', depth = 0) {
 		if (!hacked.has(server)) {
 			hackServer(ns, server)
 			hacked.add(server)
-		}
-		if (depth < maxDepth) {
-			scanServers(ns, hacked, server, depth + 1)
+
+			if (depth < maxDepth) {
+				scanServers(ns, hacked, server, depth + 1)
+			}
 		}
 	}
 }
