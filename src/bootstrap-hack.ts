@@ -32,6 +32,10 @@ export async function main(ns: NS) {
 		hacknetNodes
 	)
 
+	let lastServersCount = 0
+	let lastRootedCount = 0
+	let lastPayloadsCount = 0
+
 	while (running) {
 		// *** hacking and deploying payloads ***
 		const hackerService = new HackerService(ns)
@@ -43,7 +47,20 @@ export async function main(ns: NS) {
 			scannerService,
 			targetService
 		)
-		deploymentService.deploy()
+		const counts = deploymentService.deploy()
+
+		if (
+			counts.servers !== lastServersCount ||
+			counts.rooted !== lastRootedCount ||
+			counts.payloads !== lastPayloadsCount
+		) {
+			ns.tprint(
+				`INFO ${counts.servers} servers hacked; ${counts.rooted} rooted, ${counts.payloads} payloads`
+			)
+			lastServersCount = counts.servers
+			lastRootedCount = counts.rooted
+			lastPayloadsCount = counts.payloads
+		}
 
 		// *** purchasing servers ***
 		if (purchaseService.wantsToPurchase()) {
