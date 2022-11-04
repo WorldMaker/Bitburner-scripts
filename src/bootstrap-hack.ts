@@ -32,6 +32,12 @@ function hackServer(ns: NS, server: string) {
 		// hack
 		const ports = ns.getServerNumPortsRequired(server)
 		switch (ports) {
+			case 3:
+				if (!ns.fileExists('relaySMTP.exe', 'home')) {
+					return 0
+				}
+				ns.relaysmtp(server)
+			// continue to case 2
 			case 2:
 				if (!ns.fileExists('FTPCrack.exe', 'home')) {
 					return 0
