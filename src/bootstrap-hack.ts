@@ -43,5 +43,8 @@ async function scanServers(ns: NS, server = 'home', depth = 0) {
 
 export async function main(ns: NS) {
 	target = ns.args[0].toString() ?? target
+	// hack current target first
+	hackServer(ns, target)
+	// hack the planet
 	scanServers(ns)
 }
