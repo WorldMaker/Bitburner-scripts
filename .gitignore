@@ -1,0 +1,2 @@
+# Bitburner extension currently stores auth token secret in VSCode workspace settings
+/.vscode/settings.json
