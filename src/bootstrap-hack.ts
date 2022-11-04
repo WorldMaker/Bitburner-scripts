@@ -9,7 +9,7 @@ function deliverPayload(ns: NS, server: string) {
 		return 0
 	}
 	if (ns.isRunning(app, server, target)) {
-		return 0
+		return 1
 	}
 	const ram = ns.getServerMaxRam(server)
 	ns.scp(app, server)
@@ -19,6 +19,9 @@ function deliverPayload(ns: NS, server: string) {
 }
 
 function hackServer(ns: NS, server: string) {
+	if (!ns.hasRootAccess(server)) {
+		return 1
+	}
 	const hackingLevel = ns.getHackingLevel()
 	const serverLevel = ns.getServerRequiredHackingLevel(server)
 	if (serverLevel <= hackingLevel) {
