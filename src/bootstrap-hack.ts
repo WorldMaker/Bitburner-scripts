@@ -10,11 +10,11 @@ let running = false
 let maxDepth = 2
 
 export async function main(ns: NS) {
-	const suggestedTarget = ns.args[0]?.toString() ?? 'n00dles'
-	maxDepth = Number(ns.args[1]) ?? maxDepth
+	maxDepth = Number(ns.args[0]) ?? maxDepth
 	// How much RAM each purchased server will have. Default to 8 GBs
-	const ram = Number(ns.args[0]) || 8
-	const hacknetNodes = Number(ns.args[1]) || 5
+	const ram = Number(ns.args[1]) || 8
+	const hacknetNodes = Number(ns.args[2]) || 5
+	const suggestedTarget = ns.args[3]?.toString() ?? 'n00dles'
 
 	if (running) {
 		return
