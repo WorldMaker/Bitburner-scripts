@@ -1,26 +1,9 @@
+import { PayloadService } from './services/payload'
+
 const app = 'base-hack.js'
-const appRamCost = 2.4
 const defaultBlacklist = new Set(['home']) // don't hack home
 let maxDepth = 2
 let target: string = 'n00dles'
-
-function deliverPayload(ns: NS, server: string) {
-	if (!ns.hasRootAccess(server)) {
-		return 0
-	}
-	if (ns.isRunning(app, server, target)) {
-		return 1
-	}
-	const ram = ns.getServerMaxRam(server)
-	if (ram < appRamCost) {
-		ns.tprint(`WARN ${server} only has ${ram} memory`)
-		return 0
-	}
-	ns.scp(app, server)
-	ns.killall(server)
-	ns.exec(app, server, Math.floor(ram / appRamCost), target)
-	return 1
-}
 
 function hackServer(ns: NS, server: string) {
 	if (ns.hasRootAccess(server)) {
@@ -90,10 +73,13 @@ export async function main(ns: NS) {
 	const hacked = new Set([...defaultBlacklist, target])
 	const rooted = scanServers(ns, hacked)
 	// deliver payloads to hacked machines
+	const payloadService = new PayloadService(ns, app)
 	let payloads = 0
 	for (const server of hacked) {
 		if (!defaultBlacklist.has(server)) {
-			payloads += deliverPayload(ns, server)
+			if (payloadService.deliver(server, target)) {
+				payloads += 1
+			}
 		}
 	}
 	ns.tprint(
