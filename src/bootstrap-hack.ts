@@ -1,6 +1,6 @@
 const app = 'base-hack.js'
 const appRamCost = 2.4
-const defaultBlacklist = ['home'] // don't hack home
+const defaultBlacklist = new Set(['home']) // don't hack home
 let maxDepth = 2
 let target: string = 'n00dles'
 
@@ -92,7 +92,9 @@ export async function main(ns: NS) {
 	// deliver payloads to hacked machines
 	let payloads = 0
 	for (const server of hacked) {
-		payloads += deliverPayload(ns, server)
+		if (!defaultBlacklist.has(server)) {
+			payloads += deliverPayload(ns, server)
+		}
 	}
 	ns.tprint(
 		`INFO ${hacked.size} servers hacked; ${rooted} rooted, ${payloads} payloads`
