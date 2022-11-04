@@ -5,6 +5,9 @@ let maxDepth = 2
 let target: string = 'n00dles'
 
 function deliverPayload(ns: NS, server: string) {
+	if (ns.isRunning(app, server, target)) {
+		return
+	}
 	const ram = ns.getServerMaxRam(server)
 	ns.scp(app, server)
 	ns.killall(server)
