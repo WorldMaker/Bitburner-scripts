@@ -49,13 +49,19 @@ export async function main(ns: NS) {
 		)
 		const counts = deploymentService.deploy()
 
+		// general logs
+		ns.print(
+			`SUCCESS ${counts.servers} servers scanned; ${counts.rooted} rooted, ${counts.payloads} payloads`
+		)
+
+		// terminal notifications
 		if (
 			counts.servers !== lastServersCount ||
 			counts.rooted !== lastRootedCount ||
 			counts.payloads !== lastPayloadsCount
 		) {
 			ns.tprint(
-				`INFO ${counts.servers} servers hacked; ${counts.rooted} rooted, ${counts.payloads} payloads`
+				`INFO ${counts.servers} servers scanned; ${counts.rooted} rooted, ${counts.payloads} payloads`
 			)
 			lastServersCount = counts.servers
 			lastRootedCount = counts.rooted
