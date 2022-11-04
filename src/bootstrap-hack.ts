@@ -5,21 +5,20 @@ let maxDepth = 2
 let target: string = 'n00dles'
 
 function deliverPayload(ns: NS, server: string) {
+	if (!ns.hasRootAccess(server)) {
+		return 0
+	}
 	if (ns.isRunning(app, server, target)) {
-		return
+		return 0
 	}
 	const ram = ns.getServerMaxRam(server)
 	ns.scp(app, server)
 	ns.killall(server)
 	ns.exec(app, server, Math.floor(ram / appRamCost), target)
+	return 1
 }
 
 function hackServer(ns: NS, server: string) {
-	if (ns.hasRootAccess(server)) {
-		deliverPayload(ns, server)
-		return
-	}
-
 	const hackingLevel = ns.getHackingLevel()
 	const serverLevel = ns.getServerRequiredHackingLevel(server)
 	if (serverLevel <= hackingLevel) {
@@ -28,13 +27,13 @@ function hackServer(ns: NS, server: string) {
 		switch (ports) {
 			case 2:
 				if (!ns.fileExists('FTPCrack.exe', 'home')) {
-					return
+					return 0
 				}
 				ns.ftpcrack(server)
 			// continue to case 1
 			case 1:
 				if (!ns.fileExists('BruteSSH.exe', 'home')) {
-					return
+					return 0
 				}
 				ns.brutessh(server)
 			// continue to case 0
@@ -43,28 +42,30 @@ function hackServer(ns: NS, server: string) {
 				break
 			default:
 				ns.tprint(`WARN ${server} needs ${ports} ports`)
-				return
+				return 1
 		}
-		deliverPayload(ns, server)
 	} else {
 		ns.tprint(
 			`WARN ${server} hacking level ${serverLevel} above ${hackingLevel}`
 		)
 	}
+	return 0
 }
 
 function scanServers(ns: NS, hacked: Set<string>, server = 'home', depth = 0) {
 	const servers = ns.scan(server)
+	let count = 0
 	for (const server of servers) {
 		if (!hacked.has(server)) {
-			hackServer(ns, server)
+			count += hackServer(ns, server)
 			hacked.add(server)
 
 			if (depth < maxDepth) {
-				scanServers(ns, hacked, server, depth + 1)
+				count += scanServers(ns, hacked, server, depth + 1)
 			}
 		}
 	}
+	return count
 }
 
 export async function main(ns: NS) {
@@ -74,6 +75,13 @@ export async function main(ns: NS) {
 	hackServer(ns, target)
 	// hack the planet
 	const hacked = new Set([...defaultBlacklist, target])
-	scanServers(ns, hacked)
-	ns.tprint(`INFO ${hacked.size} servers hacked`)
+	const rooted = scanServers(ns, hacked)
+	// deliver payloads to hacked machines
+	let payloads = 0
+	for (const server of hacked) {
+		payloads += deliverPayload(ns, server)
+	}
+	ns.tprint(
+		`INFO ${hacked.size} servers hacked; ${rooted} rooted, ${payloads} payloads`
+	)
 }
