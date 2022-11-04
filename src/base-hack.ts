@@ -5,7 +5,7 @@ const currentTargetActions = 10
 let nextTarget: string = 'n00dles'
 
 export async function main(ns: NS) {
-	nextTarget = ns.args[0].toString() ?? nextTarget
+	nextTarget = ns.args[0]?.toString() ?? nextTarget
 	let target = nextTarget
 	while (true) {
 		const moneyThreshold =

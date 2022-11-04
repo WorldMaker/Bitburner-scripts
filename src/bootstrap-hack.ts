@@ -65,7 +65,7 @@ function scanServers(ns: NS, hacked: Set<string>, server = 'home', depth = 0) {
 }
 
 export async function main(ns: NS) {
-	target = ns.args[0].toString() ?? target
+	target = ns.args[0]?.toString() ?? target
 	maxDepth = Number(ns.args[1]) ?? maxDepth
 	// hack current target first
 	hackServer(ns, target)
