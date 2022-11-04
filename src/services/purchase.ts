@@ -1,4 +1,5 @@
 import { PayloadService } from './payload'
+import { TargetService } from './target'
 
 export class PurchaseService {
 	private purchasedServerCount: number
@@ -10,6 +11,7 @@ export class PurchaseService {
 	constructor(
 		private ns: NS,
 		private payloadService: PayloadService,
+		private targetService: TargetService,
 		private ram: number,
 		private hacknetNodesToBuy = 0
 	) {
@@ -27,7 +29,7 @@ export class PurchaseService {
 		)
 	}
 
-	purchase(target: string) {
+	purchase() {
 		const money = this.ns.getServerMoneyAvailable('home')
 		// Focus on active income over passive (purchased servers over hacknet nodes)
 		if (
@@ -38,7 +40,10 @@ export class PurchaseService {
 				'pserv-' + this.purchasedServerCount,
 				this.ram
 			)
-			this.payloadService.deliver(hostname, target)
+			this.payloadService.deliver(
+				hostname,
+				this.targetService.getCurrentTarget()
+			)
 			this.purchasedServerCount++
 			this.nextServerPurchaseCost = this.ns.getPurchasedServerCost(this.ram)
 			return true

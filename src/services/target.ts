@@ -13,6 +13,10 @@ export class TargetService {
 		this.currentTargetWorth = this.ns.getServerMaxMoney(this.currentTarget)
 	}
 
+	getCurrentTarget() {
+		return this.currentTarget
+	}
+
 	findTarget(rootedServers: Iterable<string>) {
 		const hackingLevel = this.ns.getHackingLevel()
 		const targetHackingLevel = hackingLevel * targetHackingLevelMultiplier
