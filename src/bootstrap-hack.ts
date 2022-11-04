@@ -12,6 +12,10 @@ function deliverPayload(ns: NS, server: string) {
 		return 1
 	}
 	const ram = ns.getServerMaxRam(server)
+	if (ram < appRamCost) {
+		ns.tprint(`WARN ${server} only has ${ram} memory`)
+		return 0
+	}
 	ns.scp(app, server)
 	ns.killall(server)
 	ns.exec(app, server, Math.floor(ram / appRamCost), target)
