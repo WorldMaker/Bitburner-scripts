@@ -6,6 +6,7 @@ buildSync({
 	target: 'es2018',
 	format: 'esm',
 	outfile: './dist/service.js',
+	logLevel: 'info',
 })
 
 buildSync({
@@ -14,4 +15,5 @@ buildSync({
 	target: 'es2018',
 	format: 'esm',
 	outfile: './dist/hack-service.js',
+	logLevel: 'info',
 })
