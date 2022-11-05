@@ -1,8 +1,8 @@
 {
 	"compilerOptions": {
 		"target": "es2017",
-		"outDir": "dist",
 		"strict": true,
+		"noEmit": true,
 		"forceConsistentCasingInFileNames": true
 	},
 	"include": ["lib.d.ts", "src/**/*.ts"]

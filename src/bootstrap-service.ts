@@ -7,7 +7,7 @@ import { ScannerService } from './services/scanner.js'
 import { ServerCacheService } from './services/server-cache.js'
 import { TargetService } from './services/target.js'
 
-const app = 'base-hack.js'
+const app = 'hack-service.js'
 let running = false
 let maxDepth = 2
 
