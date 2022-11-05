@@ -32,6 +32,7 @@ export class DeploymentService {
 
 		if (newTarget) {
 			this.ns.print(`INFO Target changed to ${target}`)
+			this.ns.tprint(`INFO Target changed to ${target}`)
 		}
 
 		// deliver the payload
