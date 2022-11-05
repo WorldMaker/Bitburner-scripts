@@ -8,7 +8,7 @@ export class PayloadService {
 	}
 
 	deliver(server: Server, ...args: any[]) {
-		if (server.checkRooted()) {
+		if (!server.checkRooted()) {
 			return false
 		}
 		if (this.ns.isRunning(this.app, server.getName(), ...args)) {
