@@ -5,7 +5,7 @@
 	"main": "index.js",
 	"scripts": {
 		"build": "tsc -p tsconfig.json",
-		"bundle": "esbuild ./src/bootstrap-hack.ts --bundle --outfile=dist/service.js --target=es2018",
+		"bundle": "esbuild ./src/bootstrap-hack.ts --bundle --outfile=dist/service.js --target=es2020 --format=esm",
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"prettier": "prettier --write .",
 		"prettier:check": "prettier --check ."
