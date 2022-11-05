@@ -12,12 +12,35 @@ let running = false
 let maxDepth = 2
 
 export async function main(ns: NS) {
-	maxDepth = Number(ns.args[0]) ?? maxDepth
-	running = typeof ns.args[1] === 'boolean' ? ns.args[1] : undefined ?? running
+	const command = ns.args[0]?.toString()
 	// How much RAM each purchased server will have. Default to 8 GBs
-	const ram = Number(ns.args[2]) || 8
-	const hacknetNodes = Number(ns.args[3]) || 5
-	const suggestedTarget = new Server(ns, ns.args[4]?.toString() ?? 'n00dles')
+	let ram = 8
+	let hacknetNodes = 5
+	let suggestedTarget = new Server(ns, 'n00dles')
+
+	if (command) {
+		switch (command) {
+			case 'stop':
+				running = false
+				return
+
+			case 'start':
+				running = false
+				maxDepth = Number(ns.args[1]) ?? maxDepth
+				ram = Number(ns.args[2]) || ram
+				hacknetNodes = Number(ns.args[3]) || hacknetNodes
+				suggestedTarget = new Server(ns, ns.args[4]?.toString() ?? 'n00dles')
+				break
+
+			case 'maxdepth':
+				maxDepth = Number(ns.args[1]) ?? maxDepth
+				break
+
+			default:
+				ns.tprint(`WARN Unknown command ${command}`)
+				break
+		}
+	}
 
 	if (running) {
 		return
