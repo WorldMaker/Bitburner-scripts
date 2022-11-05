@@ -5,12 +5,16 @@ export class HackerService {
 	private bruteSshExists: boolean
 	private ftpCrackExists: boolean
 	private relaySmtpExists: boolean
+	private httpWormExists: boolean
+	private sqlInjectExists: boolean
 
 	constructor(private ns: NS) {
 		this.hackingLevel = this.ns.getHackingLevel()
 		this.bruteSshExists = this.ns.fileExists('BruteSSH.exe')
 		this.ftpCrackExists = this.ns.fileExists('FTPCrack.exe')
 		this.relaySmtpExists = this.ns.fileExists('relaySMTP.exe')
+		this.httpWormExists = this.ns.fileExists('HTTPWorm.exe')
+		this.sqlInjectExists = this.ns.fileExists('SQLInject.exe')
 	}
 
 	hack(server: Server) {
@@ -22,6 +26,18 @@ export class HackerService {
 			// hack
 			const ports = server.getHackingPorts()
 			switch (ports) {
+				case 5:
+					if (!this.sqlInjectExists) {
+						return false
+					}
+					this.ns.sqlinject(server.getName())
+				// continue to case 4
+				case 4:
+					if (!this.httpWormExists) {
+						return false
+					}
+					this.ns.httpworm(server.getName())
+				// continue to case 3
 				case 3:
 					if (!this.relaySmtpExists) {
 						return false
