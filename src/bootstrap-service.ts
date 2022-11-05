@@ -9,7 +9,7 @@ import { TargetService } from './services/target.js'
 
 const app = 'hack-service.js'
 let running = false
-let maxDepth = 2
+let maxDepth = 3
 
 export async function main(ns: NS) {
 	const command = ns.args[0]?.toString()
