@@ -13,8 +13,6 @@ let maxDepth = 3
 
 export async function main(ns: NS) {
 	const command = ns.args[0]?.toString()
-	// How much RAM each purchased server will have. Default to 8 GBs
-	let ram = 8
 	let hacknetNodes = 5
 	let suggestedTarget = new Server(ns, 'n00dles')
 
@@ -27,8 +25,7 @@ export async function main(ns: NS) {
 			case 'start':
 				running = false
 				maxDepth = Number(ns.args[1]) ?? maxDepth
-				ram = Number(ns.args[2]) || ram
-				hacknetNodes = Number(ns.args[3]) || hacknetNodes
+				hacknetNodes = Number(ns.args[2]) || hacknetNodes
 				suggestedTarget = new Server(ns, ns.args[4]?.toString() ?? 'n00dles')
 				break
 
@@ -56,7 +53,6 @@ export async function main(ns: NS) {
 		payloadService,
 		servers,
 		targetService,
-		ram,
 		hacknetNodes
 	)
 

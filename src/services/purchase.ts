@@ -3,25 +3,29 @@ import { PayloadService } from './payload.js'
 import { ServerCacheService } from './server-cache.js'
 import { TargetService } from './target.js'
 
+const PurchasedServerRamMultiplier = 0.125
+
 export class PurchaseService {
 	private purchasedServerCount: number
 	private purchasedServerLimit: number
 	private hacknetNodesCount: number
 	private nextServerPurchaseCost: number
 	private nextHacknetNodePurchaseCost: number
+	private ram: number
 
 	constructor(
 		private ns: NS,
 		private payloadService: PayloadService,
 		private servers: ServerCacheService,
 		private targetService: TargetService,
-		private ram: number,
 		private hacknetNodesToBuy = 0
 	) {
 		this.purchasedServerCount = this.ns.getPurchasedServers().length
 		this.purchasedServerLimit = this.ns.getPurchasedServerLimit()
 		this.hacknetNodesCount = this.ns.hacknet.numNodes()
 		this.nextHacknetNodePurchaseCost = this.ns.hacknet.getPurchaseNodeCost()
+		const homeRam = this.ns.getServerMaxRam('home')
+		this.ram = Math.min(8, Math.floor(homeRam * PurchasedServerRamMultiplier))
 		this.nextServerPurchaseCost = this.ns.getPurchasedServerCost(this.ram)
 	}
 
