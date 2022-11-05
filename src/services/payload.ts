@@ -12,7 +12,13 @@ export class PayloadService {
 			return false
 		}
 		if (
-			this.ns.isRunning(this.app, server.getName(), target.getName(), ...args)
+			this.ns.isRunning(
+				this.app,
+				server.getName(),
+				'target',
+				target.getName(),
+				...args
+			)
 		) {
 			return true
 		}
@@ -27,6 +33,7 @@ export class PayloadService {
 			this.app,
 			server.getName(),
 			Math.floor(ram / this.appRamCost),
+			'target',
 			target.getName(),
 			...args
 		)
