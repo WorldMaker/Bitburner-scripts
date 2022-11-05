@@ -13,5 +13,5 @@ buildSync({
 	bundle: true,
 	target: 'es2018',
 	format: 'esm',
-	outfile: './dist/service.js',
+	outfile: './dist/hack-service.js',
 })
