@@ -1,6 +1,6 @@
 export class Server {
 	private hackingLevel: number | null = null
-    private hackingPorts: number | null = null
+	private hackingPorts: number | null = null
 	private maxRam: number | null = null
 	private worth: number | null = null
 	private isRooted: boolean
@@ -24,12 +24,12 @@ export class Server {
 		return this.hackingLevel
 	}
 
-    getHackingPorts() {
-        if (this.hackingPorts === null) {
-            this.hackingPorts = this.ns.getServerNumPortsRequired(this.name)
-        }
-        return this.hackingPorts
-    }
+	getHackingPorts() {
+		if (this.hackingPorts === null) {
+			this.hackingPorts = this.ns.getServerNumPortsRequired(this.name)
+		}
+		return this.hackingPorts
+	}
 
 	getMaxRam() {
 		if (this.maxRam === null) {
