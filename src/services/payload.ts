@@ -15,7 +15,7 @@ export class PayloadService {
 			this.ns.isRunning(
 				this.app,
 				server.getName(),
-				'target',
+				'start',
 				target.getName(),
 				...args
 			)
@@ -33,7 +33,7 @@ export class PayloadService {
 			this.app,
 			server.getName(),
 			Math.floor(ram / this.appRamCost),
-			'target',
+			'start',
 			target.getName(),
 			...args
 		)
