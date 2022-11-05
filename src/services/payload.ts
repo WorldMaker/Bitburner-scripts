@@ -11,7 +11,9 @@ export class PayloadService {
 		if (!server.checkRooted()) {
 			return false
 		}
-		if (this.ns.scriptRunning(this.app, server.getName())) {
+		if (
+			this.ns.isRunning(this.app, server.getName(), target.getName(), ...args)
+		) {
 			return true
 		}
 		const ram = server.getMaxRam()
@@ -20,11 +22,11 @@ export class PayloadService {
 			return false
 		}
 		this.ns.scp(this.app, server.getName())
+		this.ns.killall(server.getName())
 		this.ns.exec(
 			this.app,
 			server.getName(),
 			Math.floor(ram / this.appRamCost),
-			'target',
 			target.getName(),
 			...args
 		)
