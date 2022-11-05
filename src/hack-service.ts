@@ -32,6 +32,8 @@ export async function main(ns: NS) {
 		return
 	}
 
+	isRunning = true
+
 	let target = nextTarget
 	while (isRunning) {
 		const moneyThreshold =
