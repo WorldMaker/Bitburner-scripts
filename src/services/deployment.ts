@@ -31,8 +31,9 @@ export class DeploymentService {
 		const [newTarget, target] = this.targetService.findTarget(rooted)
 
 		if (newTarget) {
-			this.ns.print(`INFO Target changed to ${target}`)
-			this.ns.tprint(`INFO Target changed to ${target}`)
+			const newTargetMessage = `INFO Target changed to ${target.getName()}`
+			this.ns.print(newTargetMessage)
+			this.ns.tprint(newTargetMessage)
 		}
 
 		// deliver the payload
