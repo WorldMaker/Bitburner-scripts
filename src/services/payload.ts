@@ -7,11 +7,13 @@ export class PayloadService {
 		this.appRamCost = this.ns.getScriptRam(app)
 	}
 
-	deliver(server: Server, ...args: any[]) {
+	deliver(server: Server, target: Server, ...args: any[]) {
 		if (!server.checkRooted()) {
 			return false
 		}
-		if (this.ns.isRunning(this.app, server.getName(), ...args)) {
+		if (
+			this.ns.isRunning(this.app, server.getName(), target.getName(), ...args)
+		) {
 			return true
 		}
 		const ram = server.getMaxRam()

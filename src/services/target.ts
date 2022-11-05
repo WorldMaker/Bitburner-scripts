@@ -19,7 +19,7 @@ export class TargetService {
 		if (hackingLevel == 1 && this.currentTarget.getName() !== 'n00dles') {
 			// always starting with n00dles
 			this.currentTarget = new Server(this.ns, 'n00dles')
-			return [true, this.currentTarget]
+			return [true, this.currentTarget] as const
 		}
 		let newTarget = false
 		for (const server of rootedServers) {
@@ -44,6 +44,6 @@ export class TargetService {
 			this.currentTarget = server
 			newTarget = true
 		}
-		return [newTarget, this.currentTarget]
+		return [newTarget, this.currentTarget] as const
 	}
 }
