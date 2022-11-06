@@ -99,6 +99,6 @@ export async function main(ns: NS) {
 			}
 		}
 
-		await ns.sleep(6 /* s */ * 1000 /* ms */)
+		await ns.sleep(1 /* s */ * 1000 /* ms */)
 	}
 }
