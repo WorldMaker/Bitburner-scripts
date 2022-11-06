@@ -120,7 +120,15 @@ export class MultiPayloadService extends PayloadService {
 		this.currentServerMoneyAvailable = this.ns.getServerMoneyAvailable(
 			target.name
 		)
-		return super.deliverAll(servers, target, ...args)
+		const payloads = super.deliverAll(servers, target, ...args)
+		this.ns.print(
+			`INFO ${target.name} is at ${
+				this.currentServerSecurityLevel
+			}/${target.getSecurityThreshold()} ${
+				this.currentServerMoneyAvailable
+			}/${target.getMoneyThreshold()}`
+		)
+		return payloads
 	}
 
 	deliver(server: Server, target: Server, ...args: any[]): boolean {
