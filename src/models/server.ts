@@ -1,8 +1,13 @@
+const moneyThresholdMultiplier = 0.75
+const securityThresholdOverage = 5
+
 export class Server {
 	private hackingLevel: number | null = null
 	private hackingPorts: number | null = null
 	private maxRam: number | null = null
 	private worth: number | null = null
+	private moneyThreshold: number | null = null
+	private securityThreshold: number | null = null
 	private isRooted: boolean
 
 	constructor(private ns: NS, private name: string, private purchased = false) {
@@ -55,5 +60,21 @@ export class Server {
 		}
 		this.isRooted = this.ns.hasRootAccess(this.name)
 		return this.isRooted
+	}
+
+	getMoneyThreshold() {
+		if (this.moneyThreshold === null) {
+			this.moneyThreshold =
+				this.ns.getServerMaxMoney(this.name) * moneyThresholdMultiplier
+		}
+		return this.moneyThreshold
+	}
+
+	getSecurityThreshold() {
+		if (this.securityThreshold === null) {
+			this.securityThreshold =
+				this.ns.getServerMinSecurityLevel(this.name) + securityThresholdOverage
+		}
+		return this.securityThreshold
 	}
 }

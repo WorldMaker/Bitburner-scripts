@@ -19,7 +19,6 @@ export class DeploymentService {
 
 		// hack the planet
 		let rooted = new Set<Server>()
-		let payloads = 0
 
 		for (const server of servers) {
 			if (this.hackerService.hack(server)) {
@@ -37,11 +36,7 @@ export class DeploymentService {
 		}
 
 		// deliver the payload
-		for (const server of rooted) {
-			if (this.payloadService.deliver(server, target)) {
-				payloads += 1
-			}
-		}
+		const payloads = this.payloadService.deliverAll(rooted, target)
 
 		return {
 			servers: servers.length,

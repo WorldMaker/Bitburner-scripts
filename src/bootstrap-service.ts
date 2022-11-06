@@ -1,13 +1,12 @@
 import { Server } from './models/server.js'
 import { DeploymentService } from './services/deployment.js'
 import { HackerService } from './services/hacker.js'
-import { PayloadService } from './services/payload.js'
+import { TriplePayloadService } from './services/payload.js'
 import { PurchaseService } from './services/purchase.js'
 import { ScannerService } from './services/scanner.js'
 import { ServerCacheService } from './services/server-cache.js'
 import { TargetService } from './services/target.js'
 
-const app = 'hack-service.js'
 let running = false
 let maxDepth = 3
 
@@ -46,7 +45,7 @@ export async function main(ns: NS) {
 	running = true
 
 	const targetService = new TargetService(ns, suggestedTarget)
-	const payloadService = new PayloadService(ns, app)
+	const payloadService = new TriplePayloadService(ns)
 	const servers = new ServerCacheService(ns)
 	const purchaseService = new PurchaseService(
 		ns,
