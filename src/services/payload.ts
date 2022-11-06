@@ -132,7 +132,7 @@ export class MultiPayloadService extends PayloadService {
 
 	deliver(server: Server, target: Server, ...args: any[]): boolean {
 		if (server.isSlow) {
-			this.payloadAll.deliver(server, target, ...args)
+			return this.payloadAll.deliver(server, target, ...args)
 		}
 		if (this.currentTarget?.getName() !== target.getName()) {
 			this.currentTarget = null
