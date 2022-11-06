@@ -103,6 +103,6 @@ export async function main(ns: NS) {
 			logger.log(statusMessage)
 		}
 
-		await ns.sleep(1 /* s */ * 1000 /* ms */)
+		await ns.sleep(10 /* s */ * 1000 /* ms */)
 	}
 }
