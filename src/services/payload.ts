@@ -4,7 +4,7 @@ const PayloadAll = 'payload-all.js'
 const PayloadG = 'payload-g.js'
 const PayloadH = 'payload-h.js'
 const PayloadW = 'payload-w.js'
-const PurchasedServerPayloads = ['weaken', 'weaken', 'grow', 'grow', 'hack']
+const PurchasedServerPayloads = ['weaken', 'weaken', 'grow', 'grow', null]
 
 export class PayloadService {
 	private appRamCost: number
