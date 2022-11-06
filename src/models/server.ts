@@ -6,6 +6,8 @@ const slowlist = new Set([
 	'catalyst',
 	'rothman-uni',
 	'silver-helix',
+	'I.I.I.I',
+	'netlink',
 ])
 
 export class Server {
