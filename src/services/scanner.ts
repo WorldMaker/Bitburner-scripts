@@ -4,11 +4,19 @@ import { ServerCacheService } from './server-cache.js'
 const ignorelist = new Set(['home'])
 
 export class ScannerService {
-	constructor(
-		private ns: NS,
-		private servers: ServerCacheService,
-		private maxDepth = 2
-	) {}
+	private readonly maxDepth
+
+	constructor(private ns: NS, private servers: ServerCacheService) {
+		const deepScanV1 = this.ns.fileExists('DeepscanV1.exe')
+		const deepScanV2 = this.ns.fileExists('DeepscanV2.exe')
+		if (deepScanV2) {
+			this.maxDepth = 10
+		} else if (deepScanV1) {
+			this.maxDepth = 5
+		} else {
+			this.maxDepth = 3
+		}
+	}
 
 	private scanServer(
 		currentServer: string,

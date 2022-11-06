@@ -11,7 +11,6 @@ import { Logger } from './models/logger.js'
 import { AppCacheService } from './services/app-cache.js'
 
 let running = false
-let maxDepth = 3
 
 export async function main(ns: NS) {
 	const command = ns.args[0]?.toString()
@@ -26,13 +25,8 @@ export async function main(ns: NS) {
 
 			case 'start':
 				running = false
-				maxDepth = Number(ns.args[1]) ?? maxDepth
 				hacknetNodes = Number(ns.args[2]) || hacknetNodes
 				suggestedTarget = new Server(ns, ns.args[4]?.toString() ?? 'n00dles')
-				break
-
-			case 'maxdepth':
-				maxDepth = Number(ns.args[1]) ?? maxDepth
 				break
 
 			default:
@@ -68,7 +62,7 @@ export async function main(ns: NS) {
 		// *** hacking and deploying payloads ***
 		const stats = new Stats(ns)
 		const hackerService = new HackerService(ns, logger, stats)
-		const scannerService = new ScannerService(ns, servers, maxDepth)
+		const scannerService = new ScannerService(ns, servers)
 		const deploymentService = new DeploymentService(
 			hackerService,
 			logger,
