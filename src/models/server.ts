@@ -1,5 +1,3 @@
-export type TargetDirection = 'weaken' | 'grow' | 'hack'
-
 const moneyThresholdMultiplier = 0.75
 const securityThresholdOverage = 5
 
@@ -12,60 +10,22 @@ const slowlist = new Set([
 	'netlink',
 ])
 
-export class Server {
-	public readonly hackingLevel: number
-	private hackingPorts: number | null = null
-	private maxRam: number | null = null
+/**
+ * Base Server is the minimal server API for possible use in payload-all
+ */
+export class BaseServer {
 	private worth: number | null = null
 	private moneyThreshold: number | null = null
-	private minSecurityLevel: number | null = null
 	private securityThreshold: number | null = null
-	private isRooted: boolean
-	public readonly purchasedNumber: number | null
-	public readonly isSlow: boolean
+	private minSecurityLevel: number | null = null
 
-	constructor(
-		private ns: NS,
-		public readonly name: string,
-		public readonly purchased = false
-	) {
-		this.hackingLevel = this.ns.getServerRequiredHackingLevel(this.name)
-		this.isRooted = this.ns.hasRootAccess(this.name)
-		this.isSlow = slowlist.has(this.name)
-		this.purchasedNumber = purchased ? Number(this.name.split('-')[1]) : null
-	}
-
-	getHackingPorts() {
-		if (this.hackingPorts === null) {
-			this.hackingPorts = this.ns.getServerNumPortsRequired(this.name)
-		}
-		return this.hackingPorts
-	}
-
-	getMaxRam() {
-		if (this.maxRam === null) {
-			this.maxRam = this.ns.getServerMaxRam(this.name)
-		}
-		return this.maxRam
-	}
+	constructor(protected ns: NS, public readonly name: string) {}
 
 	getWorth() {
 		if (this.worth === null) {
 			this.worth = this.ns.getServerMaxMoney(this.name)
 		}
 		return this.worth
-	}
-
-	getRooted() {
-		return this.isRooted
-	}
-
-	checkRooted() {
-		if (this.isRooted) {
-			return this.isRooted
-		}
-		this.isRooted = this.ns.hasRootAccess(this.name)
-		return this.isRooted
 	}
 
 	getMoneyThreshold() {
@@ -96,6 +56,49 @@ export class Server {
 
 	checkMoneyAvailable() {
 		return this.ns.getServerMoneyAvailable(this.name)
+	}
+}
+
+export class Server extends BaseServer {
+	public readonly hackingLevel: number
+	private hackingPorts: number | null = null
+	private maxRam: number | null = null
+	private isRooted: boolean
+	public readonly purchasedNumber: number | null
+	public readonly isSlow: boolean
+
+	constructor(ns: NS, name: string, public readonly purchased = false) {
+		super(ns, name)
+		this.hackingLevel = this.ns.getServerRequiredHackingLevel(this.name)
+		this.isRooted = this.ns.hasRootAccess(this.name)
+		this.isSlow = slowlist.has(this.name)
+		this.purchasedNumber = purchased ? Number(this.name.split('-')[1]) : null
+	}
+
+	getHackingPorts() {
+		if (this.hackingPorts === null) {
+			this.hackingPorts = this.ns.getServerNumPortsRequired(this.name)
+		}
+		return this.hackingPorts
+	}
+
+	getMaxRam() {
+		if (this.maxRam === null) {
+			this.maxRam = this.ns.getServerMaxRam(this.name)
+		}
+		return this.maxRam
+	}
+
+	getRooted() {
+		return this.isRooted
+	}
+
+	checkRooted() {
+		if (this.isRooted) {
+			return this.isRooted
+		}
+		this.isRooted = this.ns.hasRootAccess(this.name)
+		return this.isRooted
 	}
 
 	isRunning(script: FilenameOrPID, ...args: (string | number | boolean)[]) {

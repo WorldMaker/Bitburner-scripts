@@ -1,5 +1,6 @@
-import { Server, TargetDirection } from '../models/server.js'
+import { Server } from '../models/server.js'
 import { Stats } from '../models/stats.js'
+import { findTargetDirection, TargetDirection } from '../models/target.js'
 
 const targetHackingLevelMultiplier = 0.333
 
@@ -52,45 +53,13 @@ export class TargetService {
 	}
 
 	updateDirection() {
-		const securityLevel = this.currentTarget.checkSecurityLevel()
-		const money = this.currentTarget.checkMoneyAvailable()
-		switch (this.currentDirection) {
-			case 'weaken':
-				if (
-					Math.round(securityLevel) === this.currentTarget.getMinSecurityLevel()
-				) {
-					if (money > this.currentTarget.getMoneyThreshold()) {
-						this.currentDirection = 'hack'
-						return true
-					} else {
-						this.currentDirection = 'grow'
-						return true
-					}
-				}
-				break
-			case 'grow':
-				if (
-					securityLevel > this.currentTarget.getSecurityThreshold() ||
-					money >= this.currentTarget.getWorth()
-				) {
-					if (money > this.currentTarget.getMoneyThreshold()) {
-						this.currentDirection = 'hack'
-						return true
-					} else {
-						this.currentDirection = 'weaken'
-						return true
-					}
-				}
-				break
-			case 'hack':
-				if (
-					securityLevel > this.currentTarget.getSecurityThreshold() ||
-					money < this.currentTarget.getMoneyThreshold()
-				) {
-					this.currentDirection = 'weaken'
-					return true
-				}
-				break
+		const nextDirection = findTargetDirection(
+			this.currentTarget,
+			this.currentDirection
+		)
+		if (nextDirection !== this.currentDirection) {
+			this.currentDirection = nextDirection
+			return true
 		}
 		return false
 	}

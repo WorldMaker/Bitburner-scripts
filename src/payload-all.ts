@@ -1,5 +1,6 @@
-const moneyThresholdMultiplier = 0.75
-const securityThresholdOverage = 5
+import { BaseServer } from './models/server'
+import { findTargetDirection, TargetDirection } from './models/target'
+
 const currentTargetActions = 10
 
 let nextTarget: string = 'n00dles'
@@ -34,31 +35,31 @@ export async function main(ns: NS) {
 
 	running = true
 
-	let target = nextTarget
+	let target = new BaseServer(ns, nextTarget)
+	let direction: TargetDirection = 'weaken'
 	while (running) {
-		const moneyThreshold =
-			ns.getServerMaxMoney(target) * moneyThresholdMultiplier
-		const securityThreshold =
-			ns.getServerMinSecurityLevel(target) + securityThresholdOverage
-
 		let hacked = false
 		let action = 0
 
 		while (
-			target === nextTarget &&
+			target.name === nextTarget &&
 			(action < currentTargetActions || !hacked)
 		) {
-			if (ns.getServerSecurityLevel(target) > securityThreshold) {
-				await ns.weaken(target)
-			} else if (ns.getServerMoneyAvailable(target) < moneyThreshold) {
-				await ns.grow(target)
-			} else {
-				await ns.hack(target)
-				hacked = true
+			direction = findTargetDirection(target, direction)
+			switch (direction) {
+				case 'weaken':
+					await ns.weaken(target.name)
+				case 'grow':
+					await ns.grow(target.name)
+				case 'hack':
+					await ns.hack(target.name)
+					hacked = true
+				default:
+					await ns.sleep(1 /* s */ * 1000 /* ms */)
 			}
 			action++
 		}
 
-		target = nextTarget
+		target = new BaseServer(ns, nextTarget)
 	}
 }

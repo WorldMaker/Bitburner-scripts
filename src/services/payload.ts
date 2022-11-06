@@ -1,6 +1,7 @@
 import { App } from '../models/app.js'
 import { Logger } from '../models/logger.js'
-import { Server, TargetDirection } from '../models/server.js'
+import { Server } from '../models/server.js'
+import { TargetDirection } from '../models/target.js'
 import { AppCacheService } from './app-cache.js'
 import { TargetService } from './target.js'
 
