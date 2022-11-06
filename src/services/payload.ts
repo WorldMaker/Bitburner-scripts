@@ -10,11 +10,11 @@ const PayloadG = 'payload-g.js'
 const PayloadH = 'payload-h.js'
 const PayloadW = 'payload-w.js'
 const PurchasedServerPayloads: Array<TargetDirection | null> = [
+	null, // follower
 	'weaken',
-	'weaken',
-	'grow',
-	'grow',
 	null,
+	'grow',
+	'weaken',
 ]
 
 export class PayloadService {
