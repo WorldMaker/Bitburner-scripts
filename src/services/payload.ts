@@ -11,7 +11,11 @@ const PayloadW = 'payload-w.js'
 const PurchasedServerPayloads = ['weaken', 'weaken', 'grow', 'grow', null]
 
 export class PayloadService {
-	constructor(protected logger: Logger, protected targetService: TargetService, private app: App) {}
+	constructor(
+		protected logger: Logger,
+		protected targetService: TargetService,
+		private app: App
+	) {}
 
 	deliverAll(servers: Iterable<Server>, ...args: any[]) {
 		let delivered = 0
@@ -53,13 +57,21 @@ export class PayloadService {
 }
 
 export class PayloadAllService extends PayloadService {
-	constructor(logger: Logger, targetService: TargetService, apps: AppCacheService) {
+	constructor(
+		logger: Logger,
+		targetService: TargetService,
+		apps: AppCacheService
+	) {
 		super(logger, targetService, apps.getApp(PayloadAll))
 	}
 }
 
 export class PayloadGService extends PayloadService {
-	constructor(logger: Logger, targetService: TargetService, apps: AppCacheService) {
+	constructor(
+		logger: Logger,
+		targetService: TargetService,
+		apps: AppCacheService
+	) {
 		super(logger, targetService, apps.getApp(PayloadG))
 	}
 
@@ -69,7 +81,11 @@ export class PayloadGService extends PayloadService {
 }
 
 export class PayloadHService extends PayloadService {
-	constructor(logger: Logger, targetService: TargetService, apps: AppCacheService) {
+	constructor(
+		logger: Logger,
+		targetService: TargetService,
+		apps: AppCacheService
+	) {
 		super(logger, targetService, apps.getApp(PayloadH))
 	}
 
@@ -85,7 +101,11 @@ export class PayloadHService extends PayloadService {
 }
 
 export class PayloadWService extends PayloadService {
-	constructor(logger: Logger, targetService: TargetService, apps: AppCacheService) {
+	constructor(
+		logger: Logger,
+		targetService: TargetService,
+		apps: AppCacheService
+	) {
 		super(logger, targetService, apps.getApp(PayloadW))
 	}
 }
@@ -96,7 +116,11 @@ export class MultiPayloadService extends PayloadService {
 	private payloadH: PayloadHService
 	private payloadW: PayloadWService
 
-	constructor(logger: Logger, targetService: TargetService, apps: AppCacheService) {
+	constructor(
+		logger: Logger,
+		targetService: TargetService,
+		apps: AppCacheService
+	) {
 		super(logger, targetService, apps.getApp(PayloadH))
 		this.payloadAll = new PayloadAllService(logger, targetService, apps)
 		this.payloadG = new PayloadGService(logger, targetService, apps)
