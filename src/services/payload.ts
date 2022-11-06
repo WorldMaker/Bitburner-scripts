@@ -4,6 +4,7 @@ const PayloadAll = 'payload-all.js'
 const PayloadG = 'payload-g.js'
 const PayloadH = 'payload-h.js'
 const PayloadW = 'payload-w.js'
+const PurchasedWeakenServerGroup = 3
 
 export class PayloadService {
 	private appRamCost: number
@@ -27,32 +28,26 @@ export class PayloadService {
 			return false
 		}
 		if (
-			this.ns.isRunning(
-				this.app,
-				server.getName(),
-				'start',
-				target.getName(),
-				...args
-			)
+			this.ns.isRunning(this.app, server.name, 'start', target.name, ...args)
 		) {
 			return true
 		}
 		const ram = server.getMaxRam()
 		if (ram < this.appRamCost) {
-			this.ns.print(`WARN ${server.getName()} only has ${ram} memory`)
+			this.ns.print(`WARN ${server.name} only has ${ram} memory`)
 			return false
 		}
-		this.ns.scp(this.app, server.getName())
-		this.ns.killall(server.getName())
-		const availableRam = ram - this.ns.getServerUsedRam(server.getName())
+		this.ns.scp(this.app, server.name)
+		this.ns.killall(server.name)
+		const availableRam = ram - this.ns.getServerUsedRam(server.name)
 		return (
 			0 !==
 			this.ns.exec(
 				this.app,
-				server.getName(),
+				server.name,
 				Math.floor(availableRam / this.appRamCost),
 				'start',
-				target.getName(),
+				target.name,
 				...args
 			)
 		)
@@ -120,10 +115,10 @@ export class MultiPayloadService extends PayloadService {
 	): number {
 		this.currentTarget = target
 		this.currentServerSecurityLevel = this.ns.getServerSecurityLevel(
-			target.getName()
+			target.name
 		)
 		this.currentServerMoneyAvailable = this.ns.getServerMoneyAvailable(
-			target.getName()
+			target.name
 		)
 		return super.deliverAll(servers, target, ...args)
 	}
@@ -132,20 +127,27 @@ export class MultiPayloadService extends PayloadService {
 		if (server.isSlow) {
 			return this.payloadW.deliver(server, target, ...args)
 		}
-		if (this.currentTarget?.getName() !== target.getName()) {
+		if (
+			server.purchased &&
+			server.purchasedNumber &&
+			server.purchasedNumber % PurchasedWeakenServerGroup === 1
+		) {
+			return this.payloadW.deliver(server, target, ...args)
+		}
+		if (this.currentTarget?.name !== target.name) {
 			this.currentTarget = null
 			this.currentServerSecurityLevel = null
 			this.currentServerMoneyAvailable = null
 		}
 		if (
 			(this.currentServerSecurityLevel ??
-				this.ns.getServerSecurityLevel(target.getName())) >
+				this.ns.getServerSecurityLevel(target.name)) >
 			target.getSecurityThreshold()
 		) {
 			return this.payloadW.deliver(server, target, ...args)
 		} else if (
 			(this.currentServerMoneyAvailable ??
-				this.ns.getServerMoneyAvailable(target.getName())) <
+				this.ns.getServerMoneyAvailable(target.name)) <
 			target.getMoneyThreshold()
 		) {
 			return this.payloadG.deliver(server, target, ...args)

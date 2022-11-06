@@ -18,19 +18,17 @@ export class Server {
 	private moneyThreshold: number | null = null
 	private securityThreshold: number | null = null
 	private isRooted: boolean
+	public readonly purchasedNumber: number | null
 	public readonly isSlow: boolean
 
-	constructor(private ns: NS, private name: string, private purchased = false) {
+	constructor(
+		private ns: NS,
+		public readonly name: string,
+		public readonly purchased = false
+	) {
 		this.isRooted = this.ns.hasRootAccess(this.name)
 		this.isSlow = slowlist.has(this.name)
-	}
-
-	getName() {
-		return this.name
-	}
-
-	getPurchased() {
-		return this.purchased
+		this.purchasedNumber = purchased ? Number(this.name.split('-')[1]) : null
 	}
 
 	getHackingLevel() {

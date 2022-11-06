@@ -16,17 +16,17 @@ export class TargetService {
 	findTarget(rootedServers: Iterable<Server>) {
 		const hackingLevel = this.ns.getHackingLevel()
 		const targetHackingLevel = hackingLevel * targetHackingLevelMultiplier
-		if (hackingLevel == 1 && this.currentTarget.getName() !== 'n00dles') {
+		if (hackingLevel == 1 && this.currentTarget.name !== 'n00dles') {
 			// always starting with n00dles
 			this.currentTarget = new Server(this.ns, 'n00dles')
 			return [true, this.currentTarget] as const
 		}
 		let newTarget = false
 		for (const server of rootedServers) {
-			if (server.getName() === this.currentTarget.getName()) {
+			if (server.name === this.currentTarget.name) {
 				continue
 			}
-			if (server.getPurchased()) {
+			if (server.purchased) {
 				// no need to target our own servers, presumably
 				continue
 			}

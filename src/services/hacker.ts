@@ -30,44 +30,42 @@ export class HackerService {
 					if (!this.sqlInjectExists) {
 						return false
 					}
-					this.ns.sqlinject(server.getName())
+					this.ns.sqlinject(server.name)
 				// continue to case 4
 				case 4:
 					if (!this.httpWormExists) {
 						return false
 					}
-					this.ns.httpworm(server.getName())
+					this.ns.httpworm(server.name)
 				// continue to case 3
 				case 3:
 					if (!this.relaySmtpExists) {
 						return false
 					}
-					this.ns.relaysmtp(server.getName())
+					this.ns.relaysmtp(server.name)
 				// continue to case 2
 				case 2:
 					if (!this.ftpCrackExists) {
 						return false
 					}
-					this.ns.ftpcrack(server.getName())
+					this.ns.ftpcrack(server.name)
 				// continue to case 1
 				case 1:
 					if (!this.bruteSshExists) {
 						return false
 					}
-					this.ns.brutessh(server.getName())
+					this.ns.brutessh(server.name)
 				// continue to case 0
 				case 0:
-					this.ns.nuke(server.getName())
+					this.ns.nuke(server.name)
 					return server.checkRooted()
 				default:
-					this.ns.print(`WARN ${server.getName()} needs ${ports} ports`)
+					this.ns.print(`WARN ${server.name} needs ${ports} ports`)
 					return false
 			}
 		} else {
 			this.ns.print(
-				`WARN ${server.getName()} hacking level ${serverLevel} above ${
-					this.hackingLevel
-				}`
+				`WARN ${server.name} hacking level ${serverLevel} above ${this.hackingLevel}`
 			)
 		}
 		return false

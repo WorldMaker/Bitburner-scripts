@@ -19,7 +19,7 @@ export class ServerCacheService {
 	}
 
 	set(server: Server) {
-		return this.servers.set(server.getName(), server)
+		return this.servers.set(server.name, server)
 	}
 
 	values() {
