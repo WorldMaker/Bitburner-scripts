@@ -49,15 +49,21 @@ export async function main(ns: NS) {
 			switch (direction) {
 				case 'weaken':
 					await ns.weaken(target.name)
+					action++
+					break
 				case 'grow':
 					await ns.grow(target.name)
+					action++
+					break
 				case 'hack':
 					await ns.hack(target.name)
+					action++
 					hacked = true
+					break
 				default:
 					await ns.sleep(1 /* s */ * 1000 /* ms */)
+					break
 			}
-			action++
 		}
 
 		target = new BaseServer(ns, nextTarget)
