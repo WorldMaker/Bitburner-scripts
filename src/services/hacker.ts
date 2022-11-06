@@ -58,7 +58,7 @@ export class HackerService {
 				// continue to case 0
 				case 0:
 					this.ns.nuke(server.getName())
-					return true
+					return server.checkRooted()
 				default:
 					this.ns.print(`WARN ${server.getName()} needs ${ports} ports`)
 					return false

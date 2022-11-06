@@ -8,7 +8,7 @@ export class PayloadService {
 	}
 
 	deliver(server: Server, target: Server, ...args: any[]) {
-		if (!server.checkRooted()) {
+		if (!server.getRooted()) {
 			return false
 		}
 		if (
