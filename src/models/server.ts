@@ -1,3 +1,5 @@
+export type TargetDirection = 'weaken' | 'grow' | 'hack'
+
 const moneyThresholdMultiplier = 0.75
 const securityThresholdOverage = 5
 
@@ -16,6 +18,7 @@ export class Server {
 	private maxRam: number | null = null
 	private worth: number | null = null
 	private moneyThreshold: number | null = null
+	private minSecurityLevel: number | null = null
 	private securityThreshold: number | null = null
 	private isRooted: boolean
 	public readonly purchasedNumber: number | null
@@ -72,10 +75,17 @@ export class Server {
 		return this.moneyThreshold
 	}
 
+	getMinSecurityLevel() {
+		if (this.minSecurityLevel === null) {
+			this.minSecurityLevel = this.ns.getServerMinSecurityLevel(this.name)
+		}
+		return this.minSecurityLevel
+	}
+
 	getSecurityThreshold() {
 		if (this.securityThreshold === null) {
 			this.securityThreshold =
-				this.ns.getServerMinSecurityLevel(this.name) + securityThresholdOverage
+				this.getMinSecurityLevel() + securityThresholdOverage
 		}
 		return this.securityThreshold
 	}

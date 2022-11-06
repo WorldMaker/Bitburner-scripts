@@ -50,7 +50,7 @@ export async function main(ns: NS) {
 	const apps = new AppCacheService(ns)
 	const logger = new Logger(ns)
 	const targetService = new TargetService(suggestedTarget)
-	const payloadService = new MultiPayloadService(logger, apps)
+	const payloadService = new MultiPayloadService(logger, targetService, apps)
 	const servers = new ServerCacheService(ns)
 	const purchaseService = new PurchaseService(
 		ns,

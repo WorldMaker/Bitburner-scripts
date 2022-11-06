@@ -30,17 +30,21 @@ export class DeploymentService {
 		}
 
 		// pick a target
-		const [newTarget, target] = this.targetService.findTarget(
-			this.stats,
-			rooted
-		)
+		if (this.targetService.findTarget(this.stats, rooted)) {
+			this.logger.display(
+				`INFO Target changed to ${this.targetService.getCurrentTarget().name}`
+			)
+		}
 
-		if (newTarget) {
-			this.logger.display(`INFO Target changed to ${target.name}`)
+		// pick a direction
+		if (this.targetService.updateDirection()) {
+			this.logger.log(
+				`INFO Direction changed to ${this.targetService.getCurrentDirection()}`
+			)
 		}
 
 		// deliver the payload
-		const payloads = this.payloadService.deliverAll(rooted, target)
+		const payloads = this.payloadService.deliverAll(rooted)
 
 		return {
 			servers: servers.length,

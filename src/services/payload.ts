@@ -2,6 +2,7 @@ import { App } from '../models/app.js'
 import { Logger } from '../models/logger.js'
 import { Server } from '../models/server.js'
 import { AppCacheService } from './app-cache.js'
+import { TargetService } from './target.js'
 
 const PayloadAll = 'payload-all.js'
 const PayloadG = 'payload-g.js'
@@ -10,10 +11,11 @@ const PayloadW = 'payload-w.js'
 const PurchasedServerPayloads = ['weaken', 'weaken', 'grow', 'grow', null]
 
 export class PayloadService {
-	constructor(protected logger: Logger, private app: App) {}
+	constructor(protected logger: Logger, protected targetService: TargetService, private app: App) {}
 
-	deliverAll(servers: Iterable<Server>, target: Server, ...args: any[]) {
+	deliverAll(servers: Iterable<Server>, ...args: any[]) {
 		let delivered = 0
+		const target = this.targetService.getCurrentTarget()
 		for (const server of servers) {
 			if (this.deliver(server, target, ...args)) {
 				delivered++
@@ -51,14 +53,14 @@ export class PayloadService {
 }
 
 export class PayloadAllService extends PayloadService {
-	constructor(logger: Logger, apps: AppCacheService) {
-		super(logger, apps.getApp(PayloadAll))
+	constructor(logger: Logger, targetService: TargetService, apps: AppCacheService) {
+		super(logger, targetService, apps.getApp(PayloadAll))
 	}
 }
 
 export class PayloadGService extends PayloadService {
-	constructor(logger: Logger, apps: AppCacheService) {
-		super(logger, apps.getApp(PayloadG))
+	constructor(logger: Logger, targetService: TargetService, apps: AppCacheService) {
+		super(logger, targetService, apps.getApp(PayloadG))
 	}
 
 	deliver(server: Server, target: Server, ...args: any[]): boolean {
@@ -67,8 +69,8 @@ export class PayloadGService extends PayloadService {
 }
 
 export class PayloadHService extends PayloadService {
-	constructor(logger: Logger, apps: AppCacheService) {
-		super(logger, apps.getApp(PayloadH))
+	constructor(logger: Logger, targetService: TargetService, apps: AppCacheService) {
+		super(logger, targetService, apps.getApp(PayloadH))
 	}
 
 	deliver(server: Server, target: Server, ...args: any[]): boolean {
@@ -83,8 +85,8 @@ export class PayloadHService extends PayloadService {
 }
 
 export class PayloadWService extends PayloadService {
-	constructor(logger: Logger, apps: AppCacheService) {
-		super(logger, apps.getApp(PayloadW))
+	constructor(logger: Logger, targetService: TargetService, apps: AppCacheService) {
+		super(logger, targetService, apps.getApp(PayloadW))
 	}
 }
 
@@ -94,35 +96,12 @@ export class MultiPayloadService extends PayloadService {
 	private payloadH: PayloadHService
 	private payloadW: PayloadWService
 
-	private currentTarget: Server | null = null
-	private currentServerSecurityLevel: number | null = null
-	private currentServerMoneyAvailable: number | null = null
-
-	constructor(logger: Logger, apps: AppCacheService) {
-		super(logger, apps.getApp(PayloadH))
-		this.payloadAll = new PayloadAllService(logger, apps)
-		this.payloadG = new PayloadGService(logger, apps)
-		this.payloadH = new PayloadHService(logger, apps)
-		this.payloadW = new PayloadWService(logger, apps)
-	}
-
-	deliverAll(
-		servers: Iterable<Server>,
-		target: Server,
-		...args: any[]
-	): number {
-		this.currentTarget = target
-		this.currentServerSecurityLevel = target.checkSecurityLevel()
-		this.currentServerMoneyAvailable = target.checkMoneyAvailable()
-		const payloads = super.deliverAll(servers, target, ...args)
-		this.logger.log(
-			`INFO ${target.name} is at ${
-				this.currentServerSecurityLevel
-			}/${target.getSecurityThreshold()} ${
-				this.currentServerMoneyAvailable
-			}/${target.getMoneyThreshold()}`
-		)
-		return payloads
+	constructor(logger: Logger, targetService: TargetService, apps: AppCacheService) {
+		super(logger, targetService, apps.getApp(PayloadH))
+		this.payloadAll = new PayloadAllService(logger, targetService, apps)
+		this.payloadG = new PayloadGService(logger, targetService, apps)
+		this.payloadH = new PayloadHService(logger, targetService, apps)
+		this.payloadW = new PayloadWService(logger, targetService, apps)
 	}
 
 	deliver(server: Server, target: Server, ...args: any[]): boolean {
@@ -158,23 +137,15 @@ export class MultiPayloadService extends PayloadService {
 		) {
 			return this.payloadH.deliver(server, target, ...args)
 		}
-		if (this.currentTarget?.name !== target.name) {
-			this.currentTarget = null
-			this.currentServerSecurityLevel = null
-			this.currentServerMoneyAvailable = null
-		}
-		if (
-			(this.currentServerSecurityLevel ?? target.checkSecurityLevel()) >
-			target.getSecurityThreshold()
-		) {
-			return this.payloadW.deliver(server, target, ...args)
-		} else if (
-			(this.currentServerMoneyAvailable ?? target.checkMoneyAvailable()) <
-			target.getMoneyThreshold()
-		) {
-			return this.payloadG.deliver(server, target, ...args)
-		} else {
-			return this.payloadH.deliver(server, target, ...args)
+		switch (this.targetService.getCurrentDirection()) {
+			case 'weaken':
+				return this.payloadW.deliver(server, target, ...args)
+			case 'grow':
+				return this.payloadG.deliver(server, target, ...args)
+			case 'hack':
+				return this.payloadH.deliver(server, target, ...args)
+			default:
+				return this.payloadAll.deliver(server, target, ...args)
 		}
 	}
 }
