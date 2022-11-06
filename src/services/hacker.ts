@@ -1,15 +1,15 @@
+import { Logger } from '../models/logger.js'
 import { Server } from '../models/server.js'
+import { Stats } from '../models/stats.js'
 
 export class HackerService {
-	private hackingLevel: number
 	private bruteSshExists: boolean
 	private ftpCrackExists: boolean
 	private relaySmtpExists: boolean
 	private httpWormExists: boolean
 	private sqlInjectExists: boolean
 
-	constructor(private ns: NS) {
-		this.hackingLevel = this.ns.getHackingLevel()
+	constructor(private ns: NS, private logger: Logger, private stats: Stats) {
 		this.bruteSshExists = this.ns.fileExists('BruteSSH.exe')
 		this.ftpCrackExists = this.ns.fileExists('FTPCrack.exe')
 		this.relaySmtpExists = this.ns.fileExists('relaySMTP.exe')
@@ -21,8 +21,7 @@ export class HackerService {
 		if (server.checkRooted()) {
 			return true
 		}
-		const serverLevel = server.getHackingLevel()
-		if (serverLevel <= this.hackingLevel) {
+		if (server.hackingLevel <= this.stats.hackingLevel) {
 			// hack
 			const ports = server.getHackingPorts()
 			switch (ports) {
@@ -64,8 +63,8 @@ export class HackerService {
 					return false
 			}
 		} else {
-			this.ns.print(
-				`WARN ${server.name} hacking level ${serverLevel} above ${this.hackingLevel}`
+			this.logger.log(
+				`WARN ${server.name} hacking level ${server.hackingLevel} above ${this.stats.hackingLevel}`
 			)
 		}
 		return false

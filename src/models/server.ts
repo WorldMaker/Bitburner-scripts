@@ -11,7 +11,7 @@ const slowlist = new Set([
 ])
 
 export class Server {
-	private hackingLevel: number | null = null
+	public readonly hackingLevel: number
 	private hackingPorts: number | null = null
 	private maxRam: number | null = null
 	private worth: number | null = null
@@ -26,16 +26,10 @@ export class Server {
 		public readonly name: string,
 		public readonly purchased = false
 	) {
+		this.hackingLevel = this.ns.getServerRequiredHackingLevel(this.name)
 		this.isRooted = this.ns.hasRootAccess(this.name)
 		this.isSlow = slowlist.has(this.name)
 		this.purchasedNumber = purchased ? Number(this.name.split('-')[1]) : null
-	}
-
-	getHackingLevel() {
-		if (this.hackingLevel === null) {
-			this.hackingLevel = this.ns.getServerRequiredHackingLevel(this.name)
-		}
-		return this.hackingLevel
 	}
 
 	getHackingPorts() {
@@ -84,5 +78,33 @@ export class Server {
 				this.ns.getServerMinSecurityLevel(this.name) + securityThresholdOverage
 		}
 		return this.securityThreshold
+	}
+
+	checkSecurityLevel() {
+		return this.ns.getServerSecurityLevel(this.name)
+	}
+
+	checkMoneyAvailable() {
+		return this.ns.getServerMoneyAvailable(this.name)
+	}
+
+	isRunning(script: FilenameOrPID, ...args: (string | number | boolean)[]) {
+		return this.ns.isRunning(script, this.name, ...args)
+	}
+
+	scp(files: string | string[], source?: string) {
+		return this.ns.scp(files, this.name, source)
+	}
+
+	killall(safetyGuard?: boolean) {
+		return this.ns.killall(this.name, safetyGuard)
+	}
+
+	exec(script: string, threads = 1, ...args: (string | number | boolean)[]) {
+		return this.ns.exec(script, this.name, threads, ...args)
+	}
+
+	checkUsedRam() {
+		return this.ns.getServerUsedRam(this.name)
 	}
 }

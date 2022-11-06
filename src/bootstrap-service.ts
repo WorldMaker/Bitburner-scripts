@@ -5,7 +5,10 @@ import { MultiPayloadService } from './services/payload.js'
 import { PurchaseService } from './services/purchase.js'
 import { ScannerService } from './services/scanner.js'
 import { ServerCacheService } from './services/server-cache.js'
+import { Stats } from './models/stats.js'
 import { TargetService } from './services/target.js'
+import { Logger } from './models/logger.js'
+import { AppCacheService } from './services/app-cache.js'
 
 let running = false
 let maxDepth = 3
@@ -44,8 +47,10 @@ export async function main(ns: NS) {
 
 	running = true
 
-	const targetService = new TargetService(ns, suggestedTarget)
-	const payloadService = new MultiPayloadService(ns)
+	const apps = new AppCacheService(ns)
+	const logger = new Logger(ns)
+	const targetService = new TargetService(suggestedTarget)
+	const payloadService = new MultiPayloadService(logger, apps)
 	const servers = new ServerCacheService(ns)
 	const purchaseService = new PurchaseService(
 		ns,
@@ -61,42 +66,41 @@ export async function main(ns: NS) {
 
 	while (running) {
 		// *** hacking and deploying payloads ***
-		const hackerService = new HackerService(ns)
+		const stats = new Stats(ns)
+		const hackerService = new HackerService(ns, logger, stats)
 		const scannerService = new ScannerService(ns, servers, maxDepth)
 		const deploymentService = new DeploymentService(
-			ns,
 			hackerService,
+			logger,
 			payloadService,
 			scannerService,
+			stats,
 			targetService
 		)
 		const counts = deploymentService.deploy()
-
-		// general logs
-		ns.print(
-			`SUCCESS ${counts.servers} servers scanned; ${counts.rooted} rooted, ${counts.payloads} payloads`
-		)
-
-		// terminal notifications
-		if (
-			counts.servers !== lastServersCount ||
-			counts.rooted !== lastRootedCount ||
-			counts.payloads !== lastPayloadsCount
-		) {
-			ns.tprint(
-				`INFO ${counts.servers} servers scanned; ${counts.rooted} rooted, ${counts.payloads} payloads`
-			)
-			lastServersCount = counts.servers
-			lastRootedCount = counts.rooted
-			lastPayloadsCount = counts.payloads
-		}
 
 		// *** purchasing servers ***
 		if (purchaseService.wantsToPurchase()) {
 			purchaseService.purchase()
 			if (!purchaseService.wantsToPurchase()) {
-				ns.tprint('SUCCESS Finished purchasing')
+				logger.display('SUCCESS Finished purchasing')
 			}
+		}
+
+		// *** status logging ***
+		const statusMessage = `INFO ${counts.servers} servers scanned; ${counts.rooted} rooted, ${counts.payloads} payloads`
+		// terminal notifications when changes occur otherwise regular logs
+		if (
+			counts.servers !== lastServersCount ||
+			counts.rooted !== lastRootedCount ||
+			counts.payloads !== lastPayloadsCount
+		) {
+			logger.display(statusMessage)
+			lastServersCount = counts.servers
+			lastRootedCount = counts.rooted
+			lastPayloadsCount = counts.payloads
+		} else {
+			logger.log(statusMessage)
 		}
 
 		await ns.sleep(1 /* s */ * 1000 /* ms */)

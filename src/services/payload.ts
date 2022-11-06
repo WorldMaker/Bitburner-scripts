@@ -1,4 +1,7 @@
+import { App } from '../models/app.js'
+import { Logger } from '../models/logger.js'
 import { Server } from '../models/server.js'
+import { AppCacheService } from './app-cache.js'
 
 const PayloadAll = 'payload-all.js'
 const PayloadG = 'payload-g.js'
@@ -7,11 +10,7 @@ const PayloadW = 'payload-w.js'
 const PurchasedServerPayloads = ['weaken', 'weaken', 'grow', 'grow', null]
 
 export class PayloadService {
-	private appRamCost: number
-
-	constructor(protected ns: NS, private app: string) {
-		this.appRamCost = this.ns.getScriptRam(app)
-	}
+	constructor(protected logger: Logger, private app: App) {}
 
 	deliverAll(servers: Iterable<Server>, target: Server, ...args: any[]) {
 		let delivered = 0
@@ -27,25 +26,22 @@ export class PayloadService {
 		if (!server.getRooted()) {
 			return false
 		}
-		if (
-			this.ns.isRunning(this.app, server.name, 'start', target.name, ...args)
-		) {
+		if (server.isRunning(this.app.name, 'start', target.name, ...args)) {
 			return true
 		}
 		const ram = server.getMaxRam()
-		if (ram < this.appRamCost) {
-			this.ns.print(`WARN ${server.name} only has ${ram} memory`)
+		if (ram < this.app.ramCost) {
+			this.logger.log(`WARN ${server.name} only has ${ram} memory`)
 			return false
 		}
-		this.ns.scp(this.app, server.name)
-		this.ns.killall(server.name)
-		const availableRam = ram - this.ns.getServerUsedRam(server.name)
+		server.scp(this.app.name)
+		server.killall()
+		const availableRam = ram - server.checkUsedRam()
 		return (
 			0 !==
-			this.ns.exec(
-				this.app,
-				server.name,
-				Math.floor(availableRam / this.appRamCost),
+			server.exec(
+				this.app.name,
+				Math.floor(availableRam / this.app.ramCost),
 				'start',
 				target.name,
 				...args
@@ -55,14 +51,14 @@ export class PayloadService {
 }
 
 export class PayloadAllService extends PayloadService {
-	constructor(ns: NS) {
-		super(ns, PayloadAll)
+	constructor(logger: Logger, apps: AppCacheService) {
+		super(logger, apps.getApp(PayloadAll))
 	}
 }
 
 export class PayloadGService extends PayloadService {
-	constructor(ns: NS) {
-		super(ns, PayloadG)
+	constructor(logger: Logger, apps: AppCacheService) {
+		super(logger, apps.getApp(PayloadG))
 	}
 
 	deliver(server: Server, target: Server, ...args: any[]): boolean {
@@ -71,8 +67,8 @@ export class PayloadGService extends PayloadService {
 }
 
 export class PayloadHService extends PayloadService {
-	constructor(ns: NS) {
-		super(ns, PayloadH)
+	constructor(logger: Logger, apps: AppCacheService) {
+		super(logger, apps.getApp(PayloadH))
 	}
 
 	deliver(server: Server, target: Server, ...args: any[]): boolean {
@@ -87,8 +83,8 @@ export class PayloadHService extends PayloadService {
 }
 
 export class PayloadWService extends PayloadService {
-	constructor(ns: NS) {
-		super(ns, PayloadW)
+	constructor(logger: Logger, apps: AppCacheService) {
+		super(logger, apps.getApp(PayloadW))
 	}
 }
 
@@ -102,12 +98,12 @@ export class MultiPayloadService extends PayloadService {
 	private currentServerSecurityLevel: number | null = null
 	private currentServerMoneyAvailable: number | null = null
 
-	constructor(ns: NS) {
-		super(ns, PayloadH)
-		this.payloadAll = new PayloadAllService(ns)
-		this.payloadG = new PayloadGService(ns)
-		this.payloadH = new PayloadHService(ns)
-		this.payloadW = new PayloadWService(ns)
+	constructor(logger: Logger, apps: AppCacheService) {
+		super(logger, apps.getApp(PayloadH))
+		this.payloadAll = new PayloadAllService(logger, apps)
+		this.payloadG = new PayloadGService(logger, apps)
+		this.payloadH = new PayloadHService(logger, apps)
+		this.payloadW = new PayloadWService(logger, apps)
 	}
 
 	deliverAll(
@@ -116,14 +112,10 @@ export class MultiPayloadService extends PayloadService {
 		...args: any[]
 	): number {
 		this.currentTarget = target
-		this.currentServerSecurityLevel = this.ns.getServerSecurityLevel(
-			target.name
-		)
-		this.currentServerMoneyAvailable = this.ns.getServerMoneyAvailable(
-			target.name
-		)
+		this.currentServerSecurityLevel = target.checkSecurityLevel()
+		this.currentServerMoneyAvailable = target.checkMoneyAvailable()
 		const payloads = super.deliverAll(servers, target, ...args)
-		this.ns.print(
+		this.logger.log(
 			`INFO ${target.name} is at ${
 				this.currentServerSecurityLevel
 			}/${target.getSecurityThreshold()} ${
@@ -172,14 +164,12 @@ export class MultiPayloadService extends PayloadService {
 			this.currentServerMoneyAvailable = null
 		}
 		if (
-			(this.currentServerSecurityLevel ??
-				this.ns.getServerSecurityLevel(target.name)) >
+			(this.currentServerSecurityLevel ?? target.checkSecurityLevel()) >
 			target.getSecurityThreshold()
 		) {
 			return this.payloadW.deliver(server, target, ...args)
 		} else if (
-			(this.currentServerMoneyAvailable ??
-				this.ns.getServerMoneyAvailable(target.name)) <
+			(this.currentServerMoneyAvailable ?? target.checkMoneyAvailable()) <
 			target.getMoneyThreshold()
 		) {
 			return this.payloadG.deliver(server, target, ...args)
