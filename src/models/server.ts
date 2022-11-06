@@ -75,8 +75,7 @@ export class Server {
 
 	getMoneyThreshold() {
 		if (this.moneyThreshold === null) {
-			this.moneyThreshold =
-				this.ns.getServerMaxMoney(this.name) * moneyThresholdMultiplier
+			this.moneyThreshold = this.getWorth() * moneyThresholdMultiplier
 		}
 		return this.moneyThreshold
 	}
