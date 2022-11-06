@@ -44,10 +44,11 @@ export class PayloadService {
 		}
 		this.ns.scp(this.app, server.getName())
 		this.ns.killall(server.getName())
+		const availableRam = ram - this.ns.getServerUsedRam(server.getName())
 		this.ns.exec(
 			this.app,
 			server.getName(),
-			Math.floor(ram / this.appRamCost),
+			Math.floor(availableRam / this.appRamCost),
 			'start',
 			target.getName(),
 			...args
