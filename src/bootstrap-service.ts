@@ -83,7 +83,9 @@ export async function main(ns: NS) {
 
 		// *** status logging ***
 		logger.log(
-			`INFO ${targetService.getCurrentDirection()}ing ${targetService.getCurrentTarget()}`
+			`INFO ${targetService.getCurrentDirection()}ing ${
+				targetService.getCurrentTarget().name
+			}`
 		)
 		const statusMessage = `INFO ${counts.servers} servers scanned; ${counts.rooted} rooted, ${counts.payloads} payloads`
 		// terminal notifications when changes occur otherwise regular logs
