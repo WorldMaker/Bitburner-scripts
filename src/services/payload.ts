@@ -1,6 +1,6 @@
 import { App } from '../models/app.js'
 import { Logger } from '../models/logger.js'
-import { Server } from '../models/server.js'
+import { Server, TargetDirection } from '../models/server.js'
 import { AppCacheService } from './app-cache.js'
 import { TargetService } from './target.js'
 
@@ -8,7 +8,13 @@ const PayloadAll = 'payload-all.js'
 const PayloadG = 'payload-g.js'
 const PayloadH = 'payload-h.js'
 const PayloadW = 'payload-w.js'
-const PurchasedServerPayloads = ['weaken', 'weaken', 'grow', 'grow', null]
+const PurchasedServerPayloads: Array<TargetDirection | null> = [
+	'weaken',
+	'weaken',
+	'grow',
+	'grow',
+	null,
+]
 
 export class PayloadService {
 	constructor(
@@ -133,35 +139,21 @@ export class MultiPayloadService extends PayloadService {
 		if (server.isSlow) {
 			return this.payloadAll.deliver(server, target, ...args)
 		}
-		// purchased servers get split into even, dedicated groups in deployment order of the payloads array
-		if (
-			server.purchased &&
-			server.purchasedNumber &&
-			PurchasedServerPayloads[
-				server.purchasedNumber % PurchasedServerPayloads.length
-			] === 'weaken'
-		) {
-			return this.payloadW.deliver(server, target, ...args)
+
+		let direction = this.targetService.getCurrentDirection()
+
+		// purchased servers get split into dedicated groups in deployment order of the payloads array
+		if (server.purchased && server.purchasedNumber) {
+			const payload =
+				PurchasedServerPayloads[
+					server.purchasedNumber % PurchasedServerPayloads.length
+				]
+			if (payload !== null) {
+				direction = payload
+			}
 		}
-		if (
-			server.purchased &&
-			server.purchasedNumber &&
-			PurchasedServerPayloads[
-				server.purchasedNumber % PurchasedServerPayloads.length
-			] === 'grow'
-		) {
-			return this.payloadG.deliver(server, target, ...args)
-		}
-		if (
-			server.purchased &&
-			server.purchasedNumber &&
-			PurchasedServerPayloads[
-				server.purchasedNumber % PurchasedServerPayloads.length
-			] === 'hack'
-		) {
-			return this.payloadH.deliver(server, target, ...args)
-		}
-		switch (this.targetService.getCurrentDirection()) {
+
+		switch (direction) {
 			case 'weaken':
 				return this.payloadW.deliver(server, target, ...args)
 			case 'grow':
