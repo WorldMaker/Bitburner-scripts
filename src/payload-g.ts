@@ -1,17 +1,17 @@
 let target: string = 'n00dles'
 let securityThreshold = 0
-let isRunning = false
+let running = false
 
 export async function main(ns: NS) {
 	const command = ns.args[0]?.toString()
 	if (command) {
 		switch (command) {
 			case 'stop':
-				isRunning = false
+				running = false
 				return
 
 			case 'start':
-				isRunning = false
+				running = false
 				target = ns.args[1]?.toString() ?? target
 				securityThreshold = Number(ns.args[2]) ?? securityThreshold
 				break
@@ -27,13 +27,13 @@ export async function main(ns: NS) {
 		}
 	}
 
-	if (isRunning) {
+	if (running) {
 		return
 	}
 
-	isRunning = true
+	running = true
 
-	while (isRunning) {
+	while (running) {
 		if (ns.getServerSecurityLevel(target) <= securityThreshold) {
 			await ns.grow(target)
 		} else {

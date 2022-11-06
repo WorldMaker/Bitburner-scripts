@@ -3,18 +3,18 @@ const securityThresholdOverage = 5
 const currentTargetActions = 10
 
 let nextTarget: string = 'n00dles'
-let isRunning = false
+let running = false
 
 export async function main(ns: NS) {
 	const command = ns.args[0]?.toString()
 	if (command) {
 		switch (command) {
 			case 'stop':
-				isRunning = false
+				running = false
 				return
 
 			case 'start':
-				isRunning = false
+				running = false
 				nextTarget = ns.args[1]?.toString() ?? nextTarget
 				break
 
@@ -28,14 +28,14 @@ export async function main(ns: NS) {
 		}
 	}
 
-	if (isRunning) {
+	if (running) {
 		return
 	}
 
-	isRunning = true
+	running = true
 
 	let target = nextTarget
-	while (isRunning) {
+	while (running) {
 		const moneyThreshold =
 			ns.getServerMaxMoney(target) * moneyThresholdMultiplier
 		const securityThreshold =
