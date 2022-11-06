@@ -2,7 +2,7 @@ const moneyThresholdMultiplier = 0.75
 const securityThresholdOverage = 5
 
 const slowlist = new Set([
-	'maximum-fitness',
+	'millenium-fitness',
 	'catalyst',
 	'rothman-uni',
 	'silver-helix',
