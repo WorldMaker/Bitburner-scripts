@@ -3,7 +3,7 @@ import { PayloadService } from './payload.js'
 import { ServerCacheService } from './server-cache.js'
 import { TargetService } from './target.js'
 
-const PurchasedServerRamMultiplier = 0.125
+const PurchasedServerRamMultiplier = 0.03125
 
 export class PurchaseService {
 	private purchasedServerCount: number
