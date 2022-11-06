@@ -15,7 +15,7 @@ export class TargetService {
 	}
 
 	findTarget(stats: Stats, rootedServers: Iterable<Server>) {
-		const targetHackingLevel = Math.min(
+		const targetHackingLevel = Math.max(
 			1,
 			stats.hackingLevel * targetHackingLevelMultiplier
 		)

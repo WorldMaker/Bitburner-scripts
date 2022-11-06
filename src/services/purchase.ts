@@ -25,7 +25,7 @@ export class PurchaseService {
 		this.hacknetNodesCount = this.ns.hacknet.numNodes()
 		this.nextHacknetNodePurchaseCost = this.ns.hacknet.getPurchaseNodeCost()
 		const homeRam = this.ns.getServerMaxRam('home')
-		this.ram = Math.min(8, Math.floor(homeRam * PurchasedServerRamMultiplier))
+		this.ram = Math.max(8, Math.floor(homeRam * PurchasedServerRamMultiplier))
 		this.nextServerPurchaseCost = this.ns.getPurchasedServerCost(this.ram)
 	}
 
