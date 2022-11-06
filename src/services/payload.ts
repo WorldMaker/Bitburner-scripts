@@ -4,7 +4,7 @@ const PayloadAll = 'payload-all.js'
 const PayloadG = 'payload-g.js'
 const PayloadH = 'payload-h.js'
 const PayloadW = 'payload-w.js'
-const PurchasedWeakenServerGroup = 3
+const PurchasedServerPayloads = ['weaken', 'weaken', 'grow', 'grow', 'hack']
 
 export class PayloadService {
 	private appRamCost: number
@@ -93,6 +93,7 @@ export class PayloadWService extends PayloadService {
 }
 
 export class MultiPayloadService extends PayloadService {
+	private payloadAll: PayloadAllService
 	private payloadG: PayloadGService
 	private payloadH: PayloadHService
 	private payloadW: PayloadWService
@@ -103,6 +104,7 @@ export class MultiPayloadService extends PayloadService {
 
 	constructor(ns: NS) {
 		super(ns, PayloadH)
+		this.payloadAll = new PayloadAllService(ns)
 		this.payloadG = new PayloadGService(ns)
 		this.payloadH = new PayloadHService(ns)
 		this.payloadW = new PayloadWService(ns)
@@ -132,15 +134,37 @@ export class MultiPayloadService extends PayloadService {
 	}
 
 	deliver(server: Server, target: Server, ...args: any[]): boolean {
+		// "slow" servers get the combined "smart" payload
 		if (server.isSlow) {
+			return this.payloadAll.deliver(server, target, ...args)
+		}
+		// purchased servers get split into even, dedicated groups in deployment order of the payloads array
+		if (
+			server.purchased &&
+			server.purchasedNumber &&
+			PurchasedServerPayloads[
+				server.purchasedNumber % PurchasedServerPayloads.length
+			] === 'weaken'
+		) {
 			return this.payloadW.deliver(server, target, ...args)
 		}
 		if (
 			server.purchased &&
 			server.purchasedNumber &&
-			server.purchasedNumber % PurchasedWeakenServerGroup === 1
+			PurchasedServerPayloads[
+				server.purchasedNumber % PurchasedServerPayloads.length
+			] === 'grow'
 		) {
-			return this.payloadW.deliver(server, target, ...args)
+			return this.payloadG.deliver(server, target, ...args)
+		}
+		if (
+			server.purchased &&
+			server.purchasedNumber &&
+			PurchasedServerPayloads[
+				server.purchasedNumber % PurchasedServerPayloads.length
+			] === 'hack'
+		) {
+			return this.payloadH.deliver(server, target, ...args)
 		}
 		if (this.currentTarget?.name !== target.name) {
 			this.currentTarget = null
