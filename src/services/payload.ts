@@ -97,7 +97,8 @@ export class PayloadWService extends PayloadService {
 	}
 }
 
-export class TriplePayloadService extends PayloadService {
+export class MultiPayloadService extends PayloadService {
+	private payloadAll: PayloadAllService
 	private payloadG: PayloadGService
 	private payloadH: PayloadHService
 	private payloadW: PayloadWService
@@ -108,6 +109,7 @@ export class TriplePayloadService extends PayloadService {
 
 	constructor(ns: NS) {
 		super(ns, PayloadH)
+		this.payloadAll = new PayloadAllService(ns)
 		this.payloadG = new PayloadGService(ns)
 		this.payloadH = new PayloadHService(ns)
 		this.payloadW = new PayloadWService(ns)
@@ -129,6 +131,9 @@ export class TriplePayloadService extends PayloadService {
 	}
 
 	deliver(server: Server, target: Server, ...args: any[]): boolean {
+		if (server.isSlow) {
+			this.payloadAll.deliver(server, target, ...args)
+		}
 		if (this.currentTarget?.getName() !== target.getName()) {
 			this.currentTarget = null
 			this.currentServerSecurityLevel = null

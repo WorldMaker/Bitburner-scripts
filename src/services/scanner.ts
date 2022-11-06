@@ -1,7 +1,7 @@
 import { Server } from '../models/server.js'
 import { ServerCacheService } from './server-cache.js'
 
-const blacklist = new Set(['home'])
+const ignorelist = new Set(['home'])
 
 export class ScannerService {
 	constructor(
@@ -17,7 +17,7 @@ export class ScannerService {
 	) {
 		const servers = this.ns.scan(currentServer)
 		for (const server of servers) {
-			if (blacklist.has(server)) {
+			if (ignorelist.has(server)) {
 				continue
 			}
 			if (!this.servers.has(server)) {

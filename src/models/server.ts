@@ -1,6 +1,13 @@
 const moneyThresholdMultiplier = 0.75
 const securityThresholdOverage = 5
 
+const slowlist = new Set([
+	'maximum-fitness',
+	'catalyst',
+	'rothman-uni',
+	'silver-helix',
+])
+
 export class Server {
 	private hackingLevel: number | null = null
 	private hackingPorts: number | null = null
@@ -9,9 +16,11 @@ export class Server {
 	private moneyThreshold: number | null = null
 	private securityThreshold: number | null = null
 	private isRooted: boolean
+	public readonly isSlow: boolean
 
 	constructor(private ns: NS, private name: string, private purchased = false) {
 		this.isRooted = this.ns.hasRootAccess(this.name)
+		this.isSlow = slowlist.has(this.name)
 	}
 
 	getName() {

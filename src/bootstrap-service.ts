@@ -1,7 +1,7 @@
 import { Server } from './models/server.js'
 import { DeploymentService } from './services/deployment.js'
 import { HackerService } from './services/hacker.js'
-import { TriplePayloadService } from './services/payload.js'
+import { MultiPayloadService } from './services/payload.js'
 import { PurchaseService } from './services/purchase.js'
 import { ScannerService } from './services/scanner.js'
 import { ServerCacheService } from './services/server-cache.js'
@@ -45,7 +45,7 @@ export async function main(ns: NS) {
 	running = true
 
 	const targetService = new TargetService(ns, suggestedTarget)
-	const payloadService = new TriplePayloadService(ns)
+	const payloadService = new MultiPayloadService(ns)
 	const servers = new ServerCacheService(ns)
 	const purchaseService = new PurchaseService(
 		ns,
