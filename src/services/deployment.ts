@@ -56,6 +56,8 @@ export class DeploymentService {
 			servers: servers.length,
 			rooted: rooted.size,
 			plans: plans.length,
+			existingPlans: plans.filter((plan) => plan.type === 'existing').length,
+			changedPlans: plans.filter((plan) => plan.type === 'change').length,
 			payloads,
 		}
 	}
