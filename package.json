@@ -18,5 +18,8 @@
 		"esbuild": "^0.15.13",
 		"prettier": "^2.7.1",
 		"typescript": "^4.8.4"
+	},
+	"dependencies": {
+		"ix": "^5.0.0"
 	}
 }
