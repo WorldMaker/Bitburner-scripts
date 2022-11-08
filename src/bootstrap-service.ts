@@ -89,8 +89,8 @@ export async function main(ns: NS) {
 
 		// *** status logging ***
 		logger.log(
-			`INFO ${targetService.getCurrentTarget().getTargetDirection()}ing ${
-				targetService.getCurrentTarget().name
+			`INFO ${targetService.getTopTarget().getTargetDirection()}ing ${
+				targetService.getTopTarget().name
 			}`
 		)
 		logger.log(

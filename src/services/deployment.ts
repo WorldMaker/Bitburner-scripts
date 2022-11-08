@@ -34,12 +34,12 @@ export class DeploymentService {
 		// pick a target
 		if (this.targetService.findTarget(this.stats, rooted)) {
 			this.logger.display(
-				`INFO Target changed to ${this.targetService.getCurrentTarget().name}`
+				`INFO Target changed to ${this.targetService.getTopTarget().name}`
 			)
 		}
 
 		// pick a direction
-		const target = this.targetService.getCurrentTarget()
+		const target = this.targetService.getTopTarget()
 		if (target.updateTargetDirection()) {
 			this.logger.log(
 				`INFO Direction changed to ${target.getTargetDirection()}`

@@ -68,7 +68,7 @@ export class SingleTargetDirectionalPayloadPlanner implements PayloadPlanner {
 
 	*plan(rooted: Iterable<Server>): Iterable<PayloadPlan> {
 		for (const server of rooted) {
-			const target = this.targetService.getCurrentTarget()
+			const target = this.targetService.getTopTarget()
 			const app = this.selectApp(server, target)
 
 			if (server.getMaxRam() < app.ramCost) {
@@ -94,7 +94,7 @@ export class SingleTargetDirectionalPayloadPlanner implements PayloadPlanner {
 				killall: true,
 				deployments: [
 					{
-						target: this.targetService.getCurrentTarget(),
+						target: this.targetService.getTopTarget(),
 						app: app,
 						threads,
 					},

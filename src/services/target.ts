@@ -1,40 +1,40 @@
+import { from } from 'ix/iterable'
+import {
+	filter,
+	orderByDescending,
+	thenByDescending,
+} from 'ix/iterable/operators'
 import { Server } from '../models/server.js'
 import { Stats } from '../models/stats.js'
 
 export class TargetService {
-	private currentTarget: Server
+	private targets: Server[]
 
 	constructor(startingTarget: Server) {
-		this.currentTarget = startingTarget
+		this.targets = [startingTarget]
 	}
 
-	getCurrentTarget() {
-		return this.currentTarget
+	getTopTarget() {
+		return this.targets[0]
+	}
+
+	assessTargets(stats: Stats, rootedServers: Iterable<Server>) {
+		this.targets = [
+			...from(rootedServers).pipe(
+				filter((server) => !server.purchased), // skip own servers
+				filter(
+					(server) => server.hackingLevel >= stats.getTargetHackingLevel()
+				),
+				orderByDescending((server) => server.getWorth()),
+				thenByDescending((server) => server.hackingLevel),
+				thenByDescending((server) => server.name)
+			),
+		]
 	}
 
 	findTarget(stats: Stats, rootedServers: Iterable<Server>) {
-		let newTarget = false
-		for (const server of rootedServers) {
-			if (server.name === this.currentTarget.name) {
-				continue
-			}
-			if (server.purchased) {
-				// no need to target our own servers, presumably
-				continue
-			}
-			if (server.hackingLevel < this.currentTarget.hackingLevel) {
-				continue
-			}
-			if (server.hackingLevel > stats.getTargetHackingLevel()) {
-				continue
-			}
-			const worth = server.getWorth()
-			if (worth < this.currentTarget.getWorth()) {
-				continue
-			}
-			this.currentTarget = server
-			newTarget = true
-		}
-		return newTarget
+		const previousTarget = this.getTopTarget()
+		this.assessTargets(stats, rootedServers)
+		return previousTarget !== this.getTopTarget()
 	}
 }

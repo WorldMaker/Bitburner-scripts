@@ -19,7 +19,7 @@ export class SingleTargetSinglePayloadPlanner implements PayloadPlanner {
 				)
 				continue
 			}
-			const target = this.targetService.getCurrentTarget()
+			const target = this.targetService.getTopTarget()
 			if (server.isRunning(this.app.name, ...this.app.getArgs(target))) {
 				yield {
 					type: 'existing',
