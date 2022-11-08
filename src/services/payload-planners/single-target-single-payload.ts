@@ -25,6 +25,7 @@ export class SingleTargetSinglePayloadPlanner implements PayloadPlanner {
 					type: 'existing',
 					server,
 				}
+				continue
 			}
 			const threads = Math.floor(server.getMaxRam() / this.app.ramCost)
 			yield {

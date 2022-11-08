@@ -83,6 +83,7 @@ export class SingleTargetDirectionalPayloadPlanner implements PayloadPlanner {
 					type: 'existing',
 					server,
 				}
+				continue
 			}
 
 			const threads = Math.floor(server.getMaxRam() / app.ramCost)
