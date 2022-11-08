@@ -1,8 +1,6 @@
 import { Server } from '../models/server.js'
 import { Stats } from '../models/stats.js'
 
-const targetHackingLevelMultiplier = 0.333
-
 export class TargetService {
 	private currentTarget: Server
 
@@ -15,10 +13,6 @@ export class TargetService {
 	}
 
 	findTarget(stats: Stats, rootedServers: Iterable<Server>) {
-		const targetHackingLevel = Math.max(
-			1,
-			stats.hackingLevel * targetHackingLevelMultiplier
-		)
 		let newTarget = false
 		for (const server of rootedServers) {
 			if (server.name === this.currentTarget.name) {
@@ -31,7 +25,7 @@ export class TargetService {
 			if (server.hackingLevel < this.currentTarget.hackingLevel) {
 				continue
 			}
-			if (server.hackingLevel > targetHackingLevel) {
+			if (server.hackingLevel > stats.getTargetHackingLevel()) {
 				continue
 			}
 			const worth = server.getWorth()
