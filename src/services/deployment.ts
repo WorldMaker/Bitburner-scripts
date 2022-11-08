@@ -47,7 +47,7 @@ export class DeploymentService {
 		}
 
 		// plan the payloads
-		const plans = this.payloadPlanner.plan(rooted)
+		const plans = [...this.payloadPlanner.plan(rooted)]
 
 		// deliver the payloads
 		const payloads = this.payloadService.deliverAll(plans)
@@ -55,6 +55,7 @@ export class DeploymentService {
 		return {
 			servers: servers.length,
 			rooted: rooted.size,
+			plans: plans.length,
 			payloads,
 		}
 	}

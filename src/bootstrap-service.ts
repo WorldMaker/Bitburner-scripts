@@ -93,6 +93,7 @@ export async function main(ns: NS) {
 				targetService.getCurrentTarget().name
 			}`
 		)
+		logger.log(`INFO ${counts.plans} deployment plans`)
 		const statusMessage = `INFO ${counts.servers} servers scanned; ${counts.rooted} rooted, ${counts.payloads} payloads`
 		// terminal notifications when changes occur otherwise regular logs
 		if (
