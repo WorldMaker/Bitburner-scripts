@@ -1,29 +1,42 @@
+import { from } from 'ix/iterable'
+import {
+	orderByDescending,
+	repeat,
+	thenBy,
+	zipWith,
+} from 'ix/iterable/operators'
 import { App } from '../../models/app'
 import { Logger } from '../../models/logger'
 import { PayloadPlan, PayloadPlanner } from '../../models/payload-plan'
 import { Server } from '../../models/server'
 import { TargetService } from '../target'
 
-export class SingleTargetSinglePayloadPlanner implements PayloadPlanner {
+export class MultiTargetRoundRobinPlanner implements PayloadPlanner {
 	constructor(
 		private logger: Logger,
 		private targetService: TargetService,
 		private app: App
 	) {}
 
-	summarize() {
-		return `INFO attacking ${this.targetService.getTopTarget().name}`
+	summarize(): string {
+		return `INFO attacking up to ${
+			this.targetService.getTargets().length
+		} targets`
 	}
 
 	*plan(rooted: Iterable<Server>): Iterable<PayloadPlan> {
-		for (const server of rooted) {
+		const servertargets = from(rooted).pipe(
+			orderByDescending((server) => server.getMaxRam()),
+			thenBy((server) => server.name),
+			zipWith(from(this.targetService.getTargets()).pipe(repeat()))
+		)
+		for (const [server, target] of servertargets) {
 			if (server.getMaxRam() < this.app.ramCost) {
 				this.logger.log(
 					`WARN ${server.name} only has ${server.getMaxRam()} memory`
 				)
 				continue
 			}
-			const target = this.targetService.getTopTarget()
 			if (server.isRunning(this.app.name, ...this.app.getArgs(target))) {
 				yield {
 					type: 'existing',

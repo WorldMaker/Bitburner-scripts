@@ -36,6 +36,12 @@ export class SingleTargetDirectionalPayloadPlanner implements PayloadPlanner {
 		this.payloadW = apps.getApp(PayloadW)
 	}
 
+	summarize(): string {
+		return `INFO ${this.targetService.getTopTarget().getTargetDirection()}ing ${
+			this.targetService.getTopTarget().name
+		}`
+	}
+
 	selectApp(server: Server, target: Server) {
 		// "slow" servers get the combined "smart" payload
 		if (server.isSlow) {

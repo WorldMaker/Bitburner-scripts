@@ -30,4 +30,5 @@ export type PayloadPlan = ExistingPayloadPlan | ChangePayloadPlan
 
 export interface PayloadPlanner {
 	plan(rooted: Iterable<Server>): Iterable<PayloadPlan>
+	summarize(): string
 }

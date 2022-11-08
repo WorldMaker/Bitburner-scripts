@@ -18,6 +18,10 @@ export class TargetService {
 		return this.targets[0]
 	}
 
+	getTargets() {
+		return this.targets
+	}
+
 	assessTargets(stats: Stats, rootedServers: Iterable<Server>) {
 		this.targets = [
 			...from(rootedServers).pipe(

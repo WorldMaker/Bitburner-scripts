@@ -7,11 +7,14 @@ import { ServerCacheService } from './services/server-cache.js'
 import { Stats } from './models/stats.js'
 import { TargetService } from './services/target.js'
 import { Logger } from './models/logger.js'
-import { AppCacheService } from './services/app-cache.js'
+import { AppCacheService, PayloadAll } from './services/app-cache.js'
 import { PayloadService } from './services/payload.js'
 import { SingleTargetDirectionalPayloadPlanner } from './services/payload-planners/single-target-directional-payload.js'
+import { SingleTargetSinglePayloadPlanner } from './services/payload-planners/single-target-single-payload.js'
+import { MultiTargetRoundRobinPlanner } from './services/payload-planners/multi-target-round-robin.js'
 
 let running = false
+let strategy = 'directional'
 
 export async function main(ns: NS) {
 	const command = ns.args[0]?.toString()
@@ -26,8 +29,13 @@ export async function main(ns: NS) {
 
 			case 'start':
 				running = false
+				strategy = ns.args[1]?.toString() ?? strategy
 				hacknetNodes = Number(ns.args[2]) || hacknetNodes
-				suggestedTarget = new Server(ns, ns.args[4]?.toString() ?? 'n00dles')
+				suggestedTarget = new Server(ns, ns.args[3]?.toString() ?? 'n00dles')
+				break
+
+			case 'strategy':
+				strategy = ns.args[1].toString()
 				break
 
 			default:
@@ -45,11 +53,6 @@ export async function main(ns: NS) {
 	const apps = new AppCacheService(ns)
 	const logger = new Logger(ns)
 	const targetService = new TargetService(suggestedTarget)
-	const payloadPlanner = new SingleTargetDirectionalPayloadPlanner(
-		logger,
-		targetService,
-		apps
-	)
 	const payloadService = new PayloadService()
 	const servers = new ServerCacheService(ns)
 	const purchaseService = new PurchaseService(
@@ -63,7 +66,35 @@ export async function main(ns: NS) {
 	let lastRootedCount = 0
 	let lastPayloadsCount = 0
 
+	const getPayloadPlanner = () => {
+		switch (strategy) {
+			case 'simple':
+				return new SingleTargetSinglePayloadPlanner(
+					logger,
+					targetService,
+					apps.getApp(PayloadAll)
+				)
+			case 'multisimple':
+				return new MultiTargetRoundRobinPlanner(
+					logger,
+					targetService,
+					apps.getApp(PayloadAll)
+				)
+			case 'directional':
+			default:
+				return new SingleTargetDirectionalPayloadPlanner(
+					logger,
+					targetService,
+					apps
+				)
+		}
+	}
+
+	let payloadPlanner = getPayloadPlanner()
+
 	while (running) {
+		payloadPlanner = getPayloadPlanner()
+
 		// *** hacking and deploying payloads ***
 		const stats = new Stats(ns)
 		const hackerService = new HackerService(ns, logger, stats)
@@ -88,11 +119,7 @@ export async function main(ns: NS) {
 		}
 
 		// *** status logging ***
-		logger.log(
-			`INFO ${targetService.getTopTarget().getTargetDirection()}ing ${
-				targetService.getTopTarget().name
-			}`
-		)
+		logger.log(payloadPlanner.summarize())
 		logger.log(
 			`INFO ${counts.plans} deployment plans; ${counts.existingPlans} existing, ${counts.changedPlans} changed`
 		)
