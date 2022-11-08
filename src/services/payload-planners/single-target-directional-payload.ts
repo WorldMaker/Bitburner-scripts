@@ -85,8 +85,7 @@ export class SingleTargetDirectionalPayloadPlanner implements PayloadPlanner {
 				}
 			}
 
-			const usedRam = server.checkUsedRam()
-			const threads = Math.floor((server.getMaxRam() - usedRam) / app.ramCost)
+			const threads = Math.floor(server.getMaxRam() / app.ramCost)
 
 			yield {
 				type: 'change',
