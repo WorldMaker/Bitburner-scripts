@@ -1,13 +1,15 @@
 import { App } from '../models/app.js'
 import { Logger } from '../models/logger.js'
 import { Server, TargetDirection } from '../models/server.js'
-import { AppCacheService } from './app-cache.js'
+import {
+	AppCacheService,
+	PayloadAll,
+	PayloadG,
+	PayloadH,
+	PayloadW,
+} from './app-cache.js'
 import { TargetService } from './target.js'
 
-const PayloadAll = 'payload-all.js'
-const PayloadG = 'payload-g.js'
-const PayloadH = 'payload-h.js'
-const PayloadW = 'payload-w.js'
 const PurchasedServerPayloads: Array<TargetDirection | null> = [
 	null, // follower
 	'weaken',
@@ -56,71 +58,18 @@ export class PayloadService {
 				Math.floor(availableRam / this.app.ramCost),
 				'start',
 				target.name,
+				...this.app.getArgs(target),
 				...args
 			)
 		)
 	}
 }
 
-export class PayloadAllService extends PayloadService {
-	constructor(
-		logger: Logger,
-		targetService: TargetService,
-		apps: AppCacheService
-	) {
-		super(logger, targetService, apps.getApp(PayloadAll))
-	}
-}
-
-export class PayloadGService extends PayloadService {
-	constructor(
-		logger: Logger,
-		targetService: TargetService,
-		apps: AppCacheService
-	) {
-		super(logger, targetService, apps.getApp(PayloadG))
-	}
-
-	deliver(server: Server, target: Server, ...args: any[]): boolean {
-		return super.deliver(server, target, target.getSecurityThreshold(), ...args)
-	}
-}
-
-export class PayloadHService extends PayloadService {
-	constructor(
-		logger: Logger,
-		targetService: TargetService,
-		apps: AppCacheService
-	) {
-		super(logger, targetService, apps.getApp(PayloadH))
-	}
-
-	deliver(server: Server, target: Server, ...args: any[]): boolean {
-		return super.deliver(
-			server,
-			target,
-			target.getSecurityThreshold(),
-			target.getMoneyThreshold(),
-			...args
-		)
-	}
-}
-
-export class PayloadWService extends PayloadService {
-	constructor(
-		logger: Logger,
-		targetService: TargetService,
-		apps: AppCacheService
-	) {
-		super(logger, targetService, apps.getApp(PayloadW))
-	}
-}
-
 export class MultiPayloadService extends PayloadService {
-	private payloadAll: PayloadAllService
-	private payloadG: PayloadGService
-	private payloadH: PayloadHService
-	private payloadW: PayloadWService
+	private payloadAll: PayloadService
+	private payloadG: PayloadService
+	private payloadH: PayloadService
+	private payloadW: PayloadService
 
 	constructor(
 		logger: Logger,
@@ -128,10 +77,26 @@ export class MultiPayloadService extends PayloadService {
 		apps: AppCacheService
 	) {
 		super(logger, targetService, apps.getApp(PayloadH))
-		this.payloadAll = new PayloadAllService(logger, targetService, apps)
-		this.payloadG = new PayloadGService(logger, targetService, apps)
-		this.payloadH = new PayloadHService(logger, targetService, apps)
-		this.payloadW = new PayloadWService(logger, targetService, apps)
+		this.payloadAll = new PayloadService(
+			logger,
+			targetService,
+			apps.getApp(PayloadAll)
+		)
+		this.payloadG = new PayloadService(
+			logger,
+			targetService,
+			apps.getApp(PayloadG)
+		)
+		this.payloadH = new PayloadService(
+			logger,
+			targetService,
+			apps.getApp(PayloadH)
+		)
+		this.payloadW = new PayloadService(
+			logger,
+			targetService,
+			apps.getApp(PayloadW)
+		)
 	}
 
 	deliver(server: Server, target: Server, ...args: any[]): boolean {
