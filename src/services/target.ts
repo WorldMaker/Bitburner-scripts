@@ -1,11 +1,13 @@
-import { from } from 'ix/iterable'
+import { IterableX } from '@reactivex/ix-esnext-esm/iterable/iterablex'
+import { filter } from '@reactivex/ix-esnext-esm/iterable/operators/filter'
 import {
-	filter,
 	orderByDescending,
 	thenByDescending,
-} from 'ix/iterable/operators'
+} from '@reactivex/ix-esnext-esm/iterable/operators/orderby'
 import { Server } from '../models/server.js'
 import { Stats } from '../models/stats.js'
+
+const { from } = IterableX
 
 export class TargetService {
 	private targets: Server[]

@@ -1,15 +1,17 @@
-import { from } from 'ix/iterable'
+import { IterableX } from '@reactivex/ix-esnext-esm/iterable/iterablex'
 import {
 	orderByDescending,
-	repeat,
 	thenBy,
-	zipWith,
-} from 'ix/iterable/operators'
+} from '@reactivex/ix-esnext-esm/iterable/operators/orderby'
+import { repeat } from '@reactivex/ix-esnext-esm/iterable/operators/repeat'
+import { zipWith } from '@reactivex/ix-esnext-esm/iterable/operators/zipwith'
 import { App } from '../../models/app'
 import { Logger } from '../../models/logger'
 import { PayloadPlan, PayloadPlanner } from '../../models/payload-plan'
 import { Server } from '../../models/server'
 import { TargetService } from '../target'
+
+const { from } = IterableX
 
 export class MultiTargetRoundRobinPlanner implements PayloadPlanner {
 	constructor(
