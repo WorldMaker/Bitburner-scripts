@@ -1,5 +1,4 @@
-import { BaseServer } from './models/server'
-import { findTargetDirection, TargetDirection } from './models/target'
+import { BaseServer, TargetDirection } from './models/server'
 
 const currentTargetActions = 10
 
@@ -36,7 +35,6 @@ export async function main(ns: NS) {
 	running = true
 
 	let target = new BaseServer(ns, nextTarget)
-	let direction: TargetDirection = 'weaken'
 	while (running) {
 		let hacked = false
 		let action = 0
@@ -45,8 +43,8 @@ export async function main(ns: NS) {
 			target.name === nextTarget &&
 			(action < currentTargetActions || !hacked)
 		) {
-			direction = findTargetDirection(target, direction)
-			switch (direction) {
+			target.updateTargetDirection()
+			switch (target.getTargetDirection()) {
 				case 'weaken':
 					await ns.weaken(target.name)
 					action++

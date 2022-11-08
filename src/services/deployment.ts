@@ -37,9 +37,10 @@ export class DeploymentService {
 		}
 
 		// pick a direction
-		if (this.targetService.updateDirection()) {
+		const target = this.targetService.getCurrentTarget()
+		if (target.updateTargetDirection()) {
 			this.logger.log(
-				`INFO Direction changed to ${this.targetService.getCurrentDirection()}`
+				`INFO Direction changed to ${target.getTargetDirection()}`
 			)
 		}
 

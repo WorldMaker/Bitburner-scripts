@@ -1,7 +1,6 @@
 import { App } from '../models/app.js'
 import { Logger } from '../models/logger.js'
-import { Server } from '../models/server.js'
-import { TargetDirection } from '../models/target.js'
+import { Server, TargetDirection } from '../models/server.js'
 import { AppCacheService } from './app-cache.js'
 import { TargetService } from './target.js'
 
@@ -141,8 +140,7 @@ export class MultiPayloadService extends PayloadService {
 			return this.payloadAll.deliver(server, target, ...args)
 		}
 
-		let direction = this.targetService.getCurrentDirection()
-
+		let direction = target.getTargetDirection()
 		// purchased servers get split into dedicated groups in deployment order of the payloads array
 		if (server.purchased && server.purchasedNumber) {
 			const payload =

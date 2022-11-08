@@ -1,3 +1,5 @@
+export type TargetDirection = 'weaken' | 'grow' | 'hack'
+
 const moneyThresholdMultiplier = 0.75
 const securityThresholdOverage = 5
 
@@ -18,6 +20,7 @@ export class BaseServer {
 	private moneyThreshold: number | null = null
 	private securityThreshold: number | null = null
 	private minSecurityLevel: number | null = null
+	private targetDirection: TargetDirection = 'weaken'
 
 	constructor(protected ns: NS, public readonly name: string) {}
 
@@ -56,6 +59,68 @@ export class BaseServer {
 
 	checkMoneyAvailable() {
 		return this.ns.getServerMoneyAvailable(this.name)
+	}
+
+	getTargetDirection() {
+		return this.targetDirection
+	}
+
+	/**
+	 * Finds the next target direction
+	 *
+	 * Target direction is a simple state machine based on [security, money].
+	 *
+	 * ```
+	 * weaken [start]
+	 * weaken -> grow [low on money]
+	 * weaken -> hack [has enough money]
+	 * grow -> weaken [high security]
+	 * grow -> hack [has enough money]
+	 * hack -> weaken [low on money or high security; cycle]
+	 * ```
+	 *
+	 * @returns Is new direction
+	 */
+	updateTargetDirection() {
+		const securityLevel = this.checkSecurityLevel()
+		const money = this.checkMoneyAvailable()
+		switch (this.targetDirection) {
+			case 'weaken':
+				if (Math.round(securityLevel) === this.getMinSecurityLevel()) {
+					if (money > this.getMoneyThreshold()) {
+						this.targetDirection = 'hack'
+						return true
+					} else {
+						this.targetDirection = 'grow'
+						return true
+					}
+				}
+				break
+			case 'grow':
+				if (
+					securityLevel > this.getSecurityThreshold() ||
+					money >= this.getWorth()
+				) {
+					if (money > this.getMoneyThreshold()) {
+						this.targetDirection = 'hack'
+						return true
+					} else {
+						this.targetDirection = 'weaken'
+						return true
+					}
+				}
+				break
+			case 'hack':
+				if (
+					securityLevel > this.getSecurityThreshold() ||
+					money < this.getMoneyThreshold()
+				) {
+					this.targetDirection = 'weaken'
+					return true
+				}
+				break
+		}
+		return false
 	}
 }
 
