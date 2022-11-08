@@ -14,6 +14,8 @@ export class App {
 
 	getArgs(target: Server) {
 		return [
+			'start',
+			target.name,
 			...(this.needsSecurityThreshold ? [target.getSecurityThreshold()] : []),
 			...(this.needsMoneyThreshold ? [target.getMoneyThreshold()] : []),
 		]

@@ -5,11 +5,13 @@ import { ScannerService } from './scanner.js'
 import { Stats } from '../models/stats.js'
 import { TargetService } from './target.js'
 import { Logger } from '../models/logger.js'
+import { PayloadPlanner } from '../models/payload-plan.js'
 
 export class DeploymentService {
 	constructor(
 		private hackerService: HackerService,
 		private logger: Logger,
+		private payloadPlanner: PayloadPlanner,
 		private payloadService: PayloadService,
 		private scannerService: ScannerService,
 		private stats: Stats,
@@ -44,8 +46,11 @@ export class DeploymentService {
 			)
 		}
 
-		// deliver the payload
-		const payloads = this.payloadService.deliverAll(rooted)
+		// plan the payloads
+		const plans = this.payloadPlanner.plan(rooted)
+
+		// deliver the payloads
+		const payloads = this.payloadService.deliverAll(plans)
 
 		return {
 			servers: servers.length,

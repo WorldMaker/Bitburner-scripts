@@ -178,6 +178,10 @@ export class Server extends BaseServer {
 		return this.ns.killall(this.name, safetyGuard)
 	}
 
+	kill(script: string, ...args: (string | number | boolean)[]) {
+		return this.ns.kill(script, this.name, ...args)
+	}
+
 	exec(script: string, threads = 1, ...args: (string | number | boolean)[]) {
 		return this.ns.exec(script, this.name, threads, ...args)
 	}

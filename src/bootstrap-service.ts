@@ -1,7 +1,6 @@
 import { Server } from './models/server.js'
 import { DeploymentService } from './services/deployment.js'
 import { HackerService } from './services/hacker.js'
-import { MultiPayloadService } from './services/payload.js'
 import { PurchaseService } from './services/purchase.js'
 import { ScannerService } from './services/scanner.js'
 import { ServerCacheService } from './services/server-cache.js'
@@ -9,6 +8,8 @@ import { Stats } from './models/stats.js'
 import { TargetService } from './services/target.js'
 import { Logger } from './models/logger.js'
 import { AppCacheService } from './services/app-cache.js'
+import { PayloadService } from './services/payload.js'
+import { SingleTargetDirectionalPayloadPlanner } from './services/payload-planners/single-target-directional-payload.js'
 
 let running = false
 
@@ -44,11 +45,15 @@ export async function main(ns: NS) {
 	const apps = new AppCacheService(ns)
 	const logger = new Logger(ns)
 	const targetService = new TargetService(suggestedTarget)
-	const payloadService = new MultiPayloadService(logger, targetService, apps)
+	const payloadPlanner = new SingleTargetDirectionalPayloadPlanner(
+		logger,
+		targetService,
+		apps
+	)
+	const payloadService = new PayloadService()
 	const servers = new ServerCacheService(ns)
 	const purchaseService = new PurchaseService(
 		ns,
-		payloadService,
 		servers,
 		targetService,
 		hacknetNodes
@@ -66,6 +71,7 @@ export async function main(ns: NS) {
 		const deploymentService = new DeploymentService(
 			hackerService,
 			logger,
+			payloadPlanner,
 			payloadService,
 			scannerService,
 			stats,
