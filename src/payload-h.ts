@@ -42,6 +42,7 @@ export async function main(ns: NS) {
 			ns.getServerMoneyAvailable(target) >= moneyThreshold
 		) {
 			await ns.hack(target)
+			await ns.sleep(Math.random() /* 0-1s */ * 1000 /* ms */ + 20 /* ms */) // ~20ms to 1s 20ms
 		} else {
 			await ns.sleep(1000 /* ms */)
 		}
