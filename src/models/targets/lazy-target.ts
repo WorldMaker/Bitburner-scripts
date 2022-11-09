@@ -1,7 +1,7 @@
 import { DeployTarget } from './deploy-target'
 import { Target } from './target'
 
-const slowlist = new Set([
+export const slowlist = new Set([
 	'millenium-fitness',
 	'catalyst',
 	'rothman-uni',
