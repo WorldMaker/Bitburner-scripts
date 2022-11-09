@@ -1,9 +1,10 @@
-import { LazyTarget } from '../models/target.js'
+import { LazyTarget, Target } from '../models/target.js'
 import { ServerCacheService } from './server-cache.js'
 
 const PurchasedServerRamMultiplier = 0.015625
 
 export class PurchaseService {
+	private homeServer: Target
 	private purchasedServerCount: number
 	private purchasedServerLimit: number
 	private hacknetNodesCount: number
@@ -16,11 +17,12 @@ export class PurchaseService {
 		private servers: ServerCacheService,
 		private hacknetNodesToBuy = 0
 	) {
+		this.homeServer = new LazyTarget(ns, 'home', true)
 		this.purchasedServerCount = this.ns.getPurchasedServers().length
 		this.purchasedServerLimit = this.ns.getPurchasedServerLimit()
 		this.hacknetNodesCount = this.ns.hacknet.numNodes()
 		this.nextHacknetNodePurchaseCost = this.ns.hacknet.getPurchaseNodeCost()
-		const homeRam = this.ns.getServerMaxRam('home')
+		const homeRam = this.homeServer.getMaxRam()
 		this.ram = Math.max(8, Math.floor(homeRam * PurchasedServerRamMultiplier))
 		this.nextServerPurchaseCost = this.ns.getPurchasedServerCost(this.ram)
 	}
@@ -37,7 +39,7 @@ export class PurchaseService {
 	}
 
 	purchase() {
-		const money = this.ns.getServerMoneyAvailable('home')
+		const money = this.homeServer.checkMoneyAvailable()
 		// Focus on active income over passive (purchased servers over hacknet nodes)
 		if (
 			this.purchasedServerCount < this.ns.getPurchasedServerLimit() &&
