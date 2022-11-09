@@ -1,5 +1,5 @@
 import { Logger } from './models/logger.js'
-import { SimpleStats } from './models/stats.js'
+import { PlayerStats } from './models/stats.js'
 import { ServerTarget } from './models/targets/server-target.js'
 import { AppCacheService, PayloadAll } from './services/app-cache.js'
 import { DeploymentService } from './services/deployment.js'
@@ -101,7 +101,7 @@ export async function main(ns: NS) {
 		payloadPlanner = getPayloadPlanner()
 
 		// *** hacking and deploying payloads ***
-		const stats = new SimpleStats(ns)
+		const stats = new PlayerStats(ns)
 		const hackerService = new HackerService(ns, logger, stats)
 		const scannerService = new ScannerService(ns, servers)
 		const deploymentService = new DeploymentService(
