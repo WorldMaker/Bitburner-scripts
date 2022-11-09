@@ -25,6 +25,10 @@ export class PurchaseService {
 		this.nextServerPurchaseCost = this.ns.getPurchasedServerCost(this.ram)
 	}
 
+	summarize() {
+		return `INFO bought ${this.purchasedServerCount}/${this.purchasedServerLimit} servers; ${this.hacknetNodesCount}/${this.hacknetNodesToBuy} hacknet`
+	}
+
 	wantsToPurchase() {
 		return (
 			this.purchasedServerCount < this.purchasedServerLimit ||
@@ -54,6 +58,7 @@ export class PurchaseService {
 		) {
 			this.ns.hacknet.purchaseNode()
 			this.nextHacknetNodePurchaseCost = this.ns.hacknet.getPurchaseNodeCost()
+			this.hacknetNodesCount++
 			return true
 		}
 		return false

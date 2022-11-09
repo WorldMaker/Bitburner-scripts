@@ -117,6 +117,7 @@ export async function main(ns: NS) {
 		}
 
 		// *** status logging ***
+		logger.log(purchaseService.summarize())
 		logger.log(payloadPlanner.summarize())
 		logger.log(
 			`INFO ${counts.plans} deployment plans; ${counts.existingPlans} existing, ${counts.changedPlans} changed`
