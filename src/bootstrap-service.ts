@@ -12,6 +12,7 @@ import { PayloadService } from './services/payload.js'
 import { SingleTargetDirectionalPayloadPlanner } from './services/payload-planners/single-target-directional-payload.js'
 import { SingleTargetSinglePayloadPlanner } from './services/payload-planners/single-target-single-payload.js'
 import { MultiTargetRoundRobinPlanner } from './services/payload-planners/multi-target-round-robin.js'
+import { MultiTargetDirectionalRoundRobinPlanner } from './services/payload-planners/multi-target-directional-round-robin.js'
 
 let running = false
 let strategy = 'multisimple'
@@ -77,6 +78,12 @@ export async function main(ns: NS) {
 					logger,
 					targetService,
 					apps.getApp(PayloadAll)
+				)
+			case 'multidirectional':
+				return new MultiTargetDirectionalRoundRobinPlanner(
+					logger,
+					targetService,
+					apps
 				)
 			case 'directional':
 			default:

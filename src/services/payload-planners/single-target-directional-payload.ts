@@ -19,27 +19,17 @@ const PurchasedServerPayloads: Array<TargetDirection | null> = [
 	'weaken',
 ]
 
-export class SingleTargetDirectionalPayloadPlanner implements PayloadPlanner {
+export class AppSelector {
 	private payloadAll: App
 	private payloadG: App
 	private payloadH: App
 	private payloadW: App
 
-	constructor(
-		private logger: Logger,
-		private targetService: TargetService,
-		apps: AppCacheService
-	) {
+	constructor(apps: AppCacheService) {
 		this.payloadAll = apps.getApp(PayloadAll)
 		this.payloadG = apps.getApp(PayloadG)
 		this.payloadH = apps.getApp(PayloadH)
 		this.payloadW = apps.getApp(PayloadW)
-	}
-
-	summarize(): string {
-		return `INFO ${this.targetService.getTopTarget().getTargetDirection()}ing ${
-			this.targetService.getTopTarget().name
-		}`
 	}
 
 	selectApp(server: Target, target: Target) {
@@ -71,11 +61,29 @@ export class SingleTargetDirectionalPayloadPlanner implements PayloadPlanner {
 				return this.payloadAll
 		}
 	}
+}
+
+export class SingleTargetDirectionalPayloadPlanner implements PayloadPlanner {
+	private readonly appSelector: AppSelector
+
+	constructor(
+		private logger: Logger,
+		private targetService: TargetService,
+		apps: AppCacheService
+	) {
+		this.appSelector = new AppSelector(apps)
+	}
+
+	summarize(): string {
+		return `INFO ${this.targetService.getTopTarget().getTargetDirection()}ing ${
+			this.targetService.getTopTarget().name
+		}`
+	}
 
 	*plan(rooted: Iterable<Target>): Iterable<PayloadPlan> {
 		for (const server of rooted) {
 			const target = this.targetService.getTopTarget()
-			const app = this.selectApp(server, target)
+			const app = this.appSelector.selectApp(server, target)
 
 			if (server.getMaxRam() < app.ramCost) {
 				this.logger.log(
