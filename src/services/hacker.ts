@@ -1,5 +1,5 @@
 import { Logger } from '../models/logger.js'
-import { Server } from '../models/server.js'
+import { Target } from '../models/target.js'
 import { Stats } from '../models/stats.js'
 
 export class HackerService {
@@ -17,7 +17,7 @@ export class HackerService {
 		this.sqlInjectExists = this.ns.fileExists('SQLInject.exe')
 	}
 
-	hack(server: Server) {
+	hack(server: Target) {
 		if (server.checkRooted()) {
 			return true
 		}

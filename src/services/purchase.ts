@@ -1,6 +1,5 @@
-import { Server } from '../models/server.js'
+import { LazyTarget } from '../models/target.js'
 import { ServerCacheService } from './server-cache.js'
-import { TargetService } from './target.js'
 
 const PurchasedServerRamMultiplier = 0.015625
 
@@ -15,7 +14,6 @@ export class PurchaseService {
 	constructor(
 		private ns: NS,
 		private servers: ServerCacheService,
-		private targetService: TargetService,
 		private hacknetNodesToBuy = 0
 	) {
 		this.purchasedServerCount = this.ns.getPurchasedServers().length
@@ -45,7 +43,7 @@ export class PurchaseService {
 				'pserv-' + this.purchasedServerCount,
 				this.ram
 			)
-			const host = new Server(this.ns, hostname, true)
+			const host = new LazyTarget(this.ns, hostname, true)
 			this.servers.set(host)
 			this.purchasedServerCount++
 			this.nextServerPurchaseCost = this.ns.getPurchasedServerCost(this.ram)

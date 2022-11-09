@@ -1,4 +1,4 @@
-import { Server } from '../models/server.js'
+import { Target } from '../models/target.js'
 import { HackerService } from './hacker.js'
 import { PayloadService } from './payload.js'
 import { ScannerService } from './scanner.js'
@@ -23,7 +23,7 @@ export class DeploymentService {
 		const servers = this.scannerService.scan()
 
 		// hack the planet
-		let rooted = new Set<Server>()
+		let rooted = new Set<Target>()
 
 		for (const server of servers) {
 			if (this.hackerService.hack(server)) {

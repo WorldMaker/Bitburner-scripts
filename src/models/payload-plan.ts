@@ -1,26 +1,26 @@
 import { App } from './app'
-import { Server } from './server'
+import { Target } from './target'
 
 export interface DeployPlan {
-	target: Server
+	target: Target
 	app: App
 	threads: number
 }
 
 export interface KillPlan {
-	target: Server
+	target: Target
 	app: App
 	args: any[]
 }
 
 export interface ExistingPayloadPlan {
 	type: 'existing'
-	server: Server
+	server: Target
 }
 
 export interface ChangePayloadPlan {
 	type: 'change'
-	server: Server
+	server: Target
 	killall: boolean
 	kills?: KillPlan[]
 	deployments: DeployPlan[]
@@ -29,6 +29,6 @@ export interface ChangePayloadPlan {
 export type PayloadPlan = ExistingPayloadPlan | ChangePayloadPlan
 
 export interface PayloadPlanner {
-	plan(rooted: Iterable<Server>): Iterable<PayloadPlan>
+	plan(rooted: Iterable<Target>): Iterable<PayloadPlan>
 	summarize(): string
 }

@@ -1,4 +1,4 @@
-import { Server } from '../models/server.js'
+import { Target } from '../models/target.js'
 import { ServerCacheService } from './server-cache.js'
 
 const ignorelist = new Set(['home'])
@@ -29,7 +29,7 @@ export class ScannerService {
 				continue
 			}
 			if (!this.servers.has(server)) {
-				this.servers.set(new Server(this.ns, server))
+				this.servers.set(new Target(this.ns, server))
 			}
 			if (!visited.has(server) && depth < this.maxDepth) {
 				visited.add(server)

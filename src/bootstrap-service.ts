@@ -1,4 +1,4 @@
-import { Server } from './models/server.js'
+import { LazyTarget, Target } from './models/target.js'
 import { DeploymentService } from './services/deployment.js'
 import { HackerService } from './services/hacker.js'
 import { PurchaseService } from './services/purchase.js'
@@ -19,7 +19,7 @@ let strategy = 'directional'
 export async function main(ns: NS) {
 	const command = ns.args[0]?.toString()
 	let hacknetNodes = 5
-	let suggestedTarget = new Server(ns, 'n00dles')
+	let suggestedTarget = new LazyTarget(ns, 'n00dles')
 
 	if (command) {
 		switch (command) {
@@ -31,7 +31,10 @@ export async function main(ns: NS) {
 				running = false
 				strategy = ns.args[1]?.toString() ?? strategy
 				hacknetNodes = Number(ns.args[2]) || hacknetNodes
-				suggestedTarget = new Server(ns, ns.args[3]?.toString() ?? 'n00dles')
+				suggestedTarget = new LazyTarget(
+					ns,
+					ns.args[3]?.toString() ?? 'n00dles'
+				)
 				break
 
 			case 'strategy':
@@ -55,12 +58,7 @@ export async function main(ns: NS) {
 	const targetService = new TargetService(suggestedTarget)
 	const payloadService = new PayloadService()
 	const servers = new ServerCacheService(ns)
-	const purchaseService = new PurchaseService(
-		ns,
-		servers,
-		targetService,
-		hacknetNodes
-	)
+	const purchaseService = new PurchaseService(ns, servers, hacknetNodes)
 
 	let lastServersCount = 0
 	let lastRootedCount = 0

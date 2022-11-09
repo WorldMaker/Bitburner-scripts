@@ -1,7 +1,7 @@
 import { App } from '../../models/app'
 import { Logger } from '../../models/logger'
 import { PayloadPlan, PayloadPlanner } from '../../models/payload-plan'
-import { Server, TargetDirection } from '../../models/server'
+import { Target, TargetDirection } from '../../models/target'
 import {
 	AppCacheService,
 	PayloadAll,
@@ -42,7 +42,7 @@ export class SingleTargetDirectionalPayloadPlanner implements PayloadPlanner {
 		}`
 	}
 
-	selectApp(server: Server, target: Server) {
+	selectApp(server: Target, target: Target) {
 		// "slow" servers get the combined "smart" payload
 		if (server.isSlow) {
 			return this.payloadAll
@@ -72,7 +72,7 @@ export class SingleTargetDirectionalPayloadPlanner implements PayloadPlanner {
 		}
 	}
 
-	*plan(rooted: Iterable<Server>): Iterable<PayloadPlan> {
+	*plan(rooted: Iterable<Target>): Iterable<PayloadPlan> {
 		for (const server of rooted) {
 			const target = this.targetService.getTopTarget()
 			const app = this.selectApp(server, target)

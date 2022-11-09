@@ -1,7 +1,7 @@
 import { App } from '../../models/app'
 import { Logger } from '../../models/logger'
 import { PayloadPlan, PayloadPlanner } from '../../models/payload-plan'
-import { Server } from '../../models/server'
+import { Target } from '../../models/target'
 import { TargetService } from '../target'
 
 export class SingleTargetSinglePayloadPlanner implements PayloadPlanner {
@@ -15,7 +15,7 @@ export class SingleTargetSinglePayloadPlanner implements PayloadPlanner {
 		return `INFO attacking ${this.targetService.getTopTarget().name}`
 	}
 
-	*plan(rooted: Iterable<Server>): Iterable<PayloadPlan> {
+	*plan(rooted: Iterable<Target>): Iterable<PayloadPlan> {
 		for (const server of rooted) {
 			if (server.getMaxRam() < this.app.ramCost) {
 				this.logger.log(

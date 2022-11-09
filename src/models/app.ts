@@ -1,4 +1,4 @@
-import { Server } from './server'
+import { Target } from './target'
 
 export class App {
 	public readonly ramCost: number
@@ -12,7 +12,7 @@ export class App {
 		this.ramCost = this.ns.getScriptRam(this.name)
 	}
 
-	getArgs(target: Server) {
+	getArgs(target: Target) {
 		return [
 			'start',
 			target.name,

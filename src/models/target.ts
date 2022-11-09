@@ -13,9 +13,9 @@ const slowlist = new Set([
 ])
 
 /**
- * Base Server is the minimal server API for possible use in payload-all
+ * Simple Target is the minimal server API for use in payload-all
  */
-export class BaseServer {
+export class SimpleTarget {
 	private worth: number | null = null
 	private moneyThreshold: number | null = null
 	private securityThreshold: number | null = null
@@ -124,7 +124,47 @@ export class BaseServer {
 	}
 }
 
-export class Server extends BaseServer {
+/**
+ * Deploy Target has useful functions for deployment
+ */
+export class DeployTarget extends SimpleTarget {
+	isRunning(script: FilenameOrPID, ...args: (string | number | boolean)[]) {
+		return this.ns.isRunning(script, this.name, ...args)
+	}
+
+	scp(files: string | string[], source?: string) {
+		return this.ns.scp(files, this.name, source)
+	}
+
+	killall(safetyGuard?: boolean) {
+		return this.ns.killall(this.name, safetyGuard)
+	}
+
+	kill(script: string, ...args: (string | number | boolean)[]) {
+		return this.ns.kill(script, this.name, ...args)
+	}
+
+	exec(script: string, threads = 1, ...args: (string | number | boolean)[]) {
+		return this.ns.exec(script, this.name, threads, ...args)
+	}
+}
+
+export interface Target extends DeployTarget {
+	readonly hackingLevel: number
+	readonly purchasedNumber: number | null
+	readonly isSlow: boolean
+	readonly purchased: boolean
+	getHackingPorts(): number
+	getMaxRam(): number
+	getRooted(): boolean
+	checkRooted(): boolean
+	checkUsedRam(): number
+}
+
+/**
+ * Lazy Target is entirely "pay-per-play" when looking up Server information
+ */
+export class LazyTarget extends DeployTarget implements Target {
 	public readonly hackingLevel: number
 	private hackingPorts: number | null = null
 	private maxRam: number | null = null
@@ -164,26 +204,6 @@ export class Server extends BaseServer {
 		}
 		this.isRooted = this.ns.hasRootAccess(this.name)
 		return this.isRooted
-	}
-
-	isRunning(script: FilenameOrPID, ...args: (string | number | boolean)[]) {
-		return this.ns.isRunning(script, this.name, ...args)
-	}
-
-	scp(files: string | string[], source?: string) {
-		return this.ns.scp(files, this.name, source)
-	}
-
-	killall(safetyGuard?: boolean) {
-		return this.ns.killall(this.name, safetyGuard)
-	}
-
-	kill(script: string, ...args: (string | number | boolean)[]) {
-		return this.ns.kill(script, this.name, ...args)
-	}
-
-	exec(script: string, threads = 1, ...args: (string | number | boolean)[]) {
-		return this.ns.exec(script, this.name, threads, ...args)
 	}
 
 	checkUsedRam() {
