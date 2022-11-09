@@ -1,9 +1,9 @@
-import { SimpleTarget } from "./simple-target"
+import { SimpleTarget } from './simple-target'
 
 /**
  * Deploy Target has useful functions for deployment
  */
- export class DeployTarget extends SimpleTarget {
+export class DeployTarget extends SimpleTarget {
 	isRunning(script: FilenameOrPID, ...args: (string | number | boolean)[]) {
 		return this.ns.isRunning(script, this.name, ...args)
 	}
