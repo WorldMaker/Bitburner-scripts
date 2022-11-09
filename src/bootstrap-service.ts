@@ -1,18 +1,18 @@
-import { LazyTarget, Target } from './models/target.js'
+import { Logger } from './models/logger.js'
+import { SimpleStats } from './models/stats.js'
+import { ServerTarget } from './models/targets/server-target.js'
+import { AppCacheService, PayloadAll } from './services/app-cache.js'
 import { DeploymentService } from './services/deployment.js'
 import { HackerService } from './services/hacker.js'
+import { MultiTargetDirectionalRoundRobinPlanner } from './services/payload-planners/multi-target-directional-round-robin.js'
+import { MultiTargetRoundRobinPlanner } from './services/payload-planners/multi-target-round-robin.js'
+import { SingleTargetDirectionalPayloadPlanner } from './services/payload-planners/single-target-directional-payload.js'
+import { SingleTargetSinglePayloadPlanner } from './services/payload-planners/single-target-single-payload.js'
+import { PayloadService } from './services/payload.js'
 import { PurchaseService } from './services/purchase.js'
 import { ScannerService } from './services/scanner.js'
 import { ServerCacheService } from './services/server-cache.js'
-import { SimpleStats, Stats } from './models/stats.js'
 import { TargetService } from './services/target.js'
-import { Logger } from './models/logger.js'
-import { AppCacheService, PayloadAll } from './services/app-cache.js'
-import { PayloadService } from './services/payload.js'
-import { SingleTargetDirectionalPayloadPlanner } from './services/payload-planners/single-target-directional-payload.js'
-import { SingleTargetSinglePayloadPlanner } from './services/payload-planners/single-target-single-payload.js'
-import { MultiTargetRoundRobinPlanner } from './services/payload-planners/multi-target-round-robin.js'
-import { MultiTargetDirectionalRoundRobinPlanner } from './services/payload-planners/multi-target-directional-round-robin.js'
 
 let running = false
 let strategy = 'multisimple'
@@ -20,7 +20,7 @@ let strategy = 'multisimple'
 export async function main(ns: NS) {
 	const command = ns.args[0]?.toString()
 	let hacknetNodes = 5
-	let suggestedTarget = new LazyTarget(ns, 'n00dles')
+	let suggestedTarget = new ServerTarget(ns, 'n00dles')
 
 	if (command) {
 		switch (command) {
@@ -32,7 +32,7 @@ export async function main(ns: NS) {
 				running = false
 				strategy = ns.args[1]?.toString() ?? strategy
 				hacknetNodes = Number(ns.args[2]) || hacknetNodes
-				suggestedTarget = new LazyTarget(
+				suggestedTarget = new ServerTarget(
 					ns,
 					ns.args[3]?.toString() ?? 'n00dles'
 				)
