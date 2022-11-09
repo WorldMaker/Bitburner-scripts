@@ -14,7 +14,7 @@ import { SingleTargetSinglePayloadPlanner } from './services/payload-planners/si
 import { MultiTargetRoundRobinPlanner } from './services/payload-planners/multi-target-round-robin.js'
 
 let running = false
-let strategy = 'directional'
+let strategy = 'multisimple'
 
 export async function main(ns: NS) {
 	const command = ns.args[0]?.toString()
