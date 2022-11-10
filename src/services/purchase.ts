@@ -1,4 +1,4 @@
-import { ServerTarget, Target } from '../models/target.js'
+import { LazyTarget, Target } from '../models/target.js'
 import { ServerCacheService } from './server-cache.js'
 
 const PurchasedServerRamMultiplier = 0.015625
@@ -17,7 +17,7 @@ export class PurchaseService {
 		private servers: ServerCacheService,
 		private hacknetNodesToBuy = 0
 	) {
-		this.homeServer = new ServerTarget(ns, 'home')
+		this.homeServer = new LazyTarget(ns, 'home')
 		this.purchasedServerCount = this.ns.getPurchasedServers().length
 		this.purchasedServerLimit = this.ns.getPurchasedServerLimit()
 		this.hacknetNodesCount = this.ns.hacknet.numNodes()
@@ -49,7 +49,7 @@ export class PurchaseService {
 				'pserv-' + this.purchasedServerCount,
 				this.ram
 			)
-			const host = new ServerTarget(this.ns, hostname)
+			const host = new LazyTarget(this.ns, hostname)
 			this.servers.set(host)
 			this.purchasedServerCount++
 			this.nextServerPurchaseCost = this.ns.getPurchasedServerCost(this.ram)

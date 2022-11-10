@@ -1,5 +1,3 @@
-import { ServerTarget } from './targets/server-target'
-
 const targetHackingLevelMultiplier = 1 / 3
 
 export interface Stats {
