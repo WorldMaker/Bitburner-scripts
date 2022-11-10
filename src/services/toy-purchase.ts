@@ -19,10 +19,10 @@ export class ToyPurchaseService {
 		private ns: NS,
 		private logger: Logger,
 		private servers: ServerCacheService,
-		private budgetOverride?: number | null
+		startingBudget: number | null
 	) {
 		this.homeServer = new ServerTarget(ns, 'home')
-		this.updateBudget()
+		this.budget = startingBudget
 	}
 
 	summarize() {
@@ -30,10 +30,6 @@ export class ToyPurchaseService {
 	}
 
 	updateBudget() {
-		if (typeof this.budgetOverride !== 'undefined') {
-			this.budget = this.budgetOverride
-			return
-		}
 		if (this.budget === null) {
 			return
 		}
