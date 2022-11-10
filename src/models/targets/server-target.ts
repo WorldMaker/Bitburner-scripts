@@ -12,7 +12,7 @@ export class ServerTarget extends DeployTarget implements Target {
 	public readonly isSlow: boolean
 	public readonly purchased: boolean
 
-	constructor(ns: NS, name: string) {
+	constructor(ns: NS, name: string, _purchased: boolean) {
 		super(ns, name)
 
 		this.server = this.ns.getServer(this.name)

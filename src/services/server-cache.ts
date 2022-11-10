@@ -5,10 +5,10 @@ export class ServerCacheService {
 	private servers = new Map<string, Target>()
 
 	constructor(private ns: NS) {
-		this.homeServer = new LazyTarget(ns, 'home')
+		this.homeServer = new LazyTarget(ns, 'home', true)
 		const purchasedServers = this.ns.getPurchasedServers()
 		for (const server of purchasedServers) {
-			this.servers.set(server, new LazyTarget(this.ns, server))
+			this.servers.set(server, new LazyTarget(this.ns, server, true))
 		}
 	}
 

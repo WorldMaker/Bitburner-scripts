@@ -29,7 +29,7 @@ export class ScannerService {
 				continue
 			}
 			if (!this.servers.has(server)) {
-				this.servers.set(new LazyTarget(this.ns, server))
+				this.servers.set(new LazyTarget(this.ns, server, false))
 			}
 			if (!visited.has(server) && depth < this.maxDepth) {
 				visited.add(server)

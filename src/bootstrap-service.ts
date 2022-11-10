@@ -21,7 +21,7 @@ let strategy = 'multidirectional'
 export async function main(ns: NS) {
 	const command = ns.args[0]?.toString()
 	let hacknetNodes = 5
-	let suggestedTarget = new LazyTarget(ns, 'n00dles')
+	let suggestedTarget = new LazyTarget(ns, 'n00dles', false)
 
 	if (command) {
 		switch (command) {
@@ -35,7 +35,8 @@ export async function main(ns: NS) {
 				hacknetNodes = Number(ns.args[2]) || hacknetNodes
 				suggestedTarget = new LazyTarget(
 					ns,
-					ns.args[3]?.toString() ?? 'n00dles'
+					ns.args[3]?.toString() ?? 'n00dles',
+					false
 				)
 				break
 

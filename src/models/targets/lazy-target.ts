@@ -21,7 +21,7 @@ export class LazyTarget extends DeployTarget implements Target {
 	public readonly purchasedNumber: number | null
 	public readonly isSlow: boolean
 
-	constructor(ns: NS, name: string, public readonly purchased = false) {
+	constructor(ns: NS, name: string, public readonly purchased: boolean) {
 		super(ns, name)
 		this.hackingLevel = this.ns.getServerRequiredHackingLevel(this.name)
 		this.isRooted = this.ns.hasRootAccess(this.name)

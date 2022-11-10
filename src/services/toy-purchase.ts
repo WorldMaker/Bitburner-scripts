@@ -65,7 +65,7 @@ export class ToyPurchaseService {
 				if (this.ns.deleteServer(server.name)) {
 					const hostname = this.ns.purchaseServer(server.name, doubleRam)
 					this.budget -= cost
-					this.servers.set(new ServerTarget(this.ns, hostname))
+					this.servers.set(new LazyTarget(this.ns, hostname, true))
 					break
 				}
 			}

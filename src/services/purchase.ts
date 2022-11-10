@@ -47,7 +47,7 @@ export class PurchaseService {
 				'pserv-' + this.purchasedServerCount,
 				this.ram
 			)
-			const host = new LazyTarget(this.ns, hostname)
+			const host = new LazyTarget(this.ns, hostname, true)
 			this.servers.set(host)
 			this.purchasedServerCount++
 			this.nextServerPurchaseCost = this.ns.getPurchasedServerCost(this.ram)
