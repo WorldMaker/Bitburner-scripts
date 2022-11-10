@@ -13,6 +13,7 @@ const ToyBudgetMultiplier = 1 / 10_000_000 /* per minute */ / BudgetTicks
 export class ToyPurchaseService {
 	private homeServer: Target
 	private budget: number | null = null
+	private budgetPerMinute: number | null = null
 	private tickCount = 0
 
 	constructor(
@@ -26,14 +27,17 @@ export class ToyPurchaseService {
 	}
 
 	summarize() {
-		return `INFO shopped for toys with budget ${this.budget}`
+		return `INFO shopped for toys with budget ${this.budgetPerMinute} per minute`
 	}
 
 	updateBudget() {
 		if (this.budget === null) {
 			return
 		}
-		this.budget += this.homeServer.checkMoneyAvailable() * ToyBudgetMultiplier
+		const budgetPerTick =
+			this.homeServer.checkMoneyAvailable() * ToyBudgetMultiplier
+		this.budget += budgetPerTick
+		this.budgetPerMinute = budgetPerTick * BudgetTicks
 	}
 
 	purchase() {
