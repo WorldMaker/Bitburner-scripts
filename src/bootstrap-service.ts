@@ -7,6 +7,7 @@ import { HackerService } from './services/hacker.js'
 import { MultiTargetDirectionalFormulatedPlanner } from './services/payload-planners/multi-target-directional-formulated.js'
 import { MultiTargetDirectionalRoundRobinPlanner } from './services/payload-planners/multi-target-directional-round-robin.js'
 import { MultiTargetRoundRobinPlanner } from './services/payload-planners/multi-target-round-robin.js'
+import { MultiTargetUpgradePlanner } from './services/payload-planners/multi-target-upgrade.js'
 import { SingleTargetDirectionalPayloadPlanner } from './services/payload-planners/single-target-directional-payload.js'
 import { SingleTargetSinglePayloadPlanner } from './services/payload-planners/single-target-single-payload.js'
 import { PayloadService } from './services/payload.js'
@@ -17,7 +18,7 @@ import { TargetService } from './services/target.js'
 import { ToyPurchaseService } from './services/toy-purchase.js'
 
 let running = false
-let strategy = 'multidirectional'
+let strategy = 'multiup'
 
 export async function main(ns: NS) {
 	const command = ns.args[0]?.toString()
@@ -96,6 +97,8 @@ export async function main(ns: NS) {
 					targetService,
 					apps
 				)
+			case 'multiup':
+				return new MultiTargetUpgradePlanner(ns, logger, targetService, apps)
 			case 'directional':
 			default:
 				return new SingleTargetDirectionalPayloadPlanner(
