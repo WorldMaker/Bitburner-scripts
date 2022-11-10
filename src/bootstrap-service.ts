@@ -13,6 +13,7 @@ import { PurchaseService } from './services/purchase.js'
 import { ScannerService } from './services/scanner.js'
 import { ServerCacheService } from './services/server-cache.js'
 import { TargetService } from './services/target.js'
+import { ToyPurchaseService } from './services/toy-purchase.js'
 
 let running = false
 let strategy = 'multisimple'
@@ -60,6 +61,7 @@ export async function main(ns: NS) {
 	const payloadService = new PayloadService()
 	const servers = new ServerCacheService(ns)
 	const purchaseService = new PurchaseService(ns, servers, hacknetNodes)
+	const toyPurchaseService = new ToyPurchaseService(ns, servers)
 
 	let lastServersCount = 0
 	let lastRootedCount = 0
@@ -123,7 +125,10 @@ export async function main(ns: NS) {
 			}
 		}
 
+		toyPurchaseService.purchase()
+
 		// *** status logging ***
+		logger.log(toyPurchaseService.summarize())
 		logger.log(purchaseService.summarize())
 		logger.log(payloadPlanner.summarize())
 		logger.log(
