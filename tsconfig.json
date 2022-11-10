@@ -1,0 +1,10 @@
+{
+	"compilerOptions": {
+		"target": "es2020",
+		"strict": true,
+		"noEmit": true,
+		"forceConsistentCasingInFileNames": true,
+		"moduleResolution": "node"
+	},
+	"include": ["lib.d.ts", "src/**/*.ts"]
+}

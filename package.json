@@ -1,0 +1,25 @@
+{
+	"name": "@worldmaker/bitburner",
+	"version": "1.0.0",
+	"description": "Bitburner scripts",
+	"main": "index.js",
+	"scripts": {
+		"pretypecheck": "npm run prettier:check",
+		"typecheck": "tsc -p tsconfig.json",
+		"prebuild": "npm run typecheck",
+		"build": "node ./esbuild.mjs",
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"prettier": "prettier --write .",
+		"prettier:check": "prettier --check ."
+	},
+	"author": "",
+	"license": "MIT",
+	"devDependencies": {
+		"esbuild": "^0.15.13",
+		"prettier": "^2.7.1",
+		"typescript": "^4.8.4"
+	},
+	"dependencies": {
+		"@reactivex/ix-esnext-esm": "^5.0.0"
+	}
+}
