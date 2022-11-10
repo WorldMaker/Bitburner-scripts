@@ -16,7 +16,7 @@ import { TargetService } from './services/target.js'
 import { ToyPurchaseService } from './services/toy-purchase.js'
 
 let running = false
-let strategy = 'multisimple'
+let strategy = 'multidirectional'
 
 export async function main(ns: NS) {
 	const command = ns.args[0]?.toString()
