@@ -1,9 +1,11 @@
 import { LazyTarget, ServerTarget, Target } from '../models/target.js'
 
 export class ServerCacheService {
+	private homeServer: Target
 	private servers = new Map<string, Target>()
 
 	constructor(private ns: NS) {
+		this.homeServer = new LazyTarget(ns, 'home')
 		const purchasedServers = this.ns.getPurchasedServers()
 		for (const server of purchasedServers) {
 			this.servers.set(server, new LazyTarget(this.ns, server))
@@ -16,6 +18,10 @@ export class ServerCacheService {
 
 	get(name: string) {
 		return this.servers.get(name)
+	}
+
+	getHome() {
+		return this.homeServer
 	}
 
 	set(server: Target) {

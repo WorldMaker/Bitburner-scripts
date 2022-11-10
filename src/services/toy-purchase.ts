@@ -11,7 +11,6 @@ const BudgetTicks = 6 /* 10s */
 const ToyBudgetMultiplier = 1 / 10_000_000 /* per minute */ / BudgetTicks
 
 export class ToyPurchaseService {
-	private homeServer: Target
 	private budget: number | null = null
 	private budgetPerMinute: number | null = null
 	private tickCount = 0
@@ -22,7 +21,6 @@ export class ToyPurchaseService {
 		private servers: ServerCacheService,
 		startingBudget: number | null
 	) {
-		this.homeServer = new LazyTarget(ns, 'home')
 		this.budget = startingBudget
 	}
 
@@ -35,7 +33,7 @@ export class ToyPurchaseService {
 			return
 		}
 		const budgetPerTick =
-			this.homeServer.checkMoneyAvailable() * ToyBudgetMultiplier
+			this.servers.getHome().checkMoneyAvailable() * ToyBudgetMultiplier
 		this.budget += budgetPerTick
 		this.budgetPerMinute = Math.round(budgetPerTick * BudgetTicks)
 	}
