@@ -37,7 +37,7 @@ export class ToyPurchaseService {
 		const budgetPerTick =
 			this.homeServer.checkMoneyAvailable() * ToyBudgetMultiplier
 		this.budget += budgetPerTick
-		this.budgetPerMinute = budgetPerTick * BudgetTicks
+		this.budgetPerMinute = Math.round(budgetPerTick * BudgetTicks)
 	}
 
 	purchase() {
