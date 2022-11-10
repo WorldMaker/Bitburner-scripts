@@ -189,7 +189,7 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 					this.threads,
 					Math.floor(ram / app.ramCost)
 				)
-				expectedDeployments.get(app.name)?.set(target.name, {
+				expectedDeployments.get(app.name)!.set(target.name, {
 					app,
 					target,
 					threads: availableThreads,
@@ -207,12 +207,13 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 			const unseen = new Set(expectedDeployments.keys())
 			for (const group of processes) {
 				unseen.delete(group.key)
-				if (!expectedDeployments.has(group.key)) {
+				const appdeployments = expectedDeployments.get(group.key)
+				if (!appdeployments) {
 					for (const process of group) {
 						kills.push(process)
 					}
+					continue
 				}
-				const appdeployments = expectedDeployments.get(group.key)!
 				const unseenTargets = new Set(appdeployments.keys())
 				const targets = group.pipe(
 					// all current payloads are ["start", target, ...]
