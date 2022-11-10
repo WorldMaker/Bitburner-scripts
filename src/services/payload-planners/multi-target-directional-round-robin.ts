@@ -5,7 +5,6 @@ import {
 } from '@reactivex/ix-esnext-esm/iterable/operators/orderby'
 import { repeat } from '@reactivex/ix-esnext-esm/iterable/operators/repeat'
 import { zipWith } from '@reactivex/ix-esnext-esm/iterable/operators/zipwith'
-import { App } from '../../models/app'
 import { Logger } from '../../models/logger'
 import { PayloadPlan, PayloadPlanner } from '../../models/payload-plan'
 import { Target } from '../../models/target'
@@ -39,7 +38,9 @@ export class MultiTargetDirectionalRoundRobinPlanner implements PayloadPlanner {
 			zipWith(from(this.targetService.getTargets()).pipe(repeat()))
 		)
 		for (const [server, target] of servertargets) {
-			const app = this.appSelector.selectApp(server, target)
+			const app = this.appSelector.selectApp(
+				server.isSlow ? 'all' : target.getTargetDirection()
+			)
 			if (server.getMaxRam() < app.ramCost) {
 				this.logger.log(
 					`WARN ${server.name} only has ${server.getMaxRam()} memory`
