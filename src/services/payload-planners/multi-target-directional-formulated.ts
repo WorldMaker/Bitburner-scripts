@@ -96,7 +96,7 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 	}
 
 	summarize(): string {
-		return `INFO attacking ${this.targetNumber + 1} / ${
+		return `INFO attacking ${this.targetNumber} / ${
 			this.targetService.getTargets().length
 		} targets; ${this.ramBudget} free; ${this.threads} needed threads`
 	}
@@ -127,6 +127,11 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 			app,
 			this.ramBudget
 		)
+		this.logger.log(
+			`INFO ${target.getTargetDirection()} ${target.name} by ${
+				this.threads
+			} threads`
+		)
 
 		for (const server of servers) {
 			if (server.isSlow) {
@@ -138,7 +143,12 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 					)
 					continue
 				}
-				if (server.isRunning(app.name, ...app.getArgs(target))) {
+				if (
+					server.isRunning(
+						app.name,
+						...app.getArgs(this.targetService.getTopTarget())
+					)
+				) {
 					yield {
 						type: 'existing',
 						server,
@@ -152,7 +162,7 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 					killall: true,
 					deployments: [
 						{
-							target,
+							target: this.targetService.getTopTarget(),
 							app,
 							threads,
 						},
@@ -177,6 +187,11 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 						target,
 						app,
 						this.ramBudget
+					)
+					this.logger.log(
+						`INFO ${target.getTargetDirection()} ${target.name} by ${
+							this.threads
+						} threads`
 					)
 					if (this.threads <= 0) {
 						continue
@@ -225,6 +240,7 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 						for (const process of targetProcesses) {
 							kills.push(process)
 						}
+						continue
 					}
 					const targetdeployment = appdeployments.get(targetProcesses.key)!
 					const totalThreads = reduce(
@@ -260,8 +276,8 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 			yield {
 				type: 'change',
 				server,
-				kills,
-				killall: false,
+				//kills,
+				killall: true,
 				deployments,
 			}
 		}
