@@ -119,7 +119,7 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 
 		this.targetNumber = 0
 		let target = targets[this.targetNumber]
-        target.updateTargetDirection()
+		target.updateTargetDirection()
 		let app = this.appSelector.selectApp(target.getTargetDirection())
 		this.threads = calculateTargetThreads(
 			this.ns,
@@ -181,7 +181,7 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 						break
 					}
 					target = targets[this.targetNumber]
-                    target.updateTargetDirection()
+					target.updateTargetDirection()
 					app = this.appSelector.selectApp(target.getTargetDirection())
 					this.threads = calculateTargetThreads(
 						this.ns,
