@@ -163,11 +163,7 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 
 			const expectedDeployments = new Map<string, Map<string, DeployPlan>>()
 			let ram = server.getMaxRam()
-			while (
-				this.threads > 0 &&
-				this.targetNumber < targets.length &&
-				ram > 0
-			) {
+			while (this.targetNumber < targets.length && ram > 0) {
 				if (this.threads <= 0) {
 					this.targetNumber++
 					if (this.targetNumber == targets.length) {
