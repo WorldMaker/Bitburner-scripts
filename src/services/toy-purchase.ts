@@ -32,10 +32,15 @@ export class ToyPurchaseService {
 		if (this.budget === null) {
 			return
 		}
-		const budgetPerTick =
-			this.servers.getHome().checkMoneyAvailable() * ToyBudgetMultiplier
+		const moneyAvailable = this.servers.getHome().checkMoneyAvailable()
+		const budgetPerTick = moneyAvailable * ToyBudgetMultiplier
 		this.budget += budgetPerTick
 		this.budgetPerMinute = Math.round(budgetPerTick * BudgetTicks)
+
+		if (this.budget > moneyAvailable) {
+			// bankruptcy
+			this.budget = 0
+		}
 	}
 
 	purchase() {
