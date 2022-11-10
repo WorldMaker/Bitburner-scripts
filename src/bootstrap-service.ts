@@ -61,7 +61,7 @@ export async function main(ns: NS) {
 	const payloadService = new PayloadService()
 	const servers = new ServerCacheService(ns)
 	const purchaseService = new PurchaseService(ns, servers, hacknetNodes)
-	const toyPurchaseService = new ToyPurchaseService(ns, logger, servers)
+	const toyPurchaseService = new ToyPurchaseService(ns, logger, servers, 0)
 
 	let lastServersCount = 0
 	let lastRootedCount = 0
