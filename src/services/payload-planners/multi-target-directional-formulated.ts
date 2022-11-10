@@ -149,9 +149,12 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 	}
 
 	summarize(): string {
+		const ramPercent = this.freeRam / this.totalRam
 		return `INFO attacking ${this.satisfiedTargets}/${this.attackedTargets}/${
 			this.targetService.getTargets().length
-		} targets; RAM free ${this.freeRam}/${this.totalRam}`
+		} targets; RAM ${ramPercent.toLocaleString(undefined, {
+			style: 'percent ',
+		})} free of ${this.totalRam}`
 	}
 
 	*plan(rooted: Iterable<Target>): Iterable<PayloadPlan> {
