@@ -38,6 +38,7 @@ export class MultiTargetDirectionalRoundRobinPlanner implements PayloadPlanner {
 			zipWith(from(this.targetService.getTargets()).pipe(repeat()))
 		)
 		for (const [server, target] of servertargets) {
+			target.updateTargetDirection()
 			const app = this.appSelector.selectApp(
 				server.isSlow ? 'all' : target.getTargetDirection()
 			)
