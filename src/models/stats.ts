@@ -26,6 +26,10 @@ export class PlayerStats implements Stats {
 		this.hackingLevel = this.player.skills.hacking
 	}
 
+	getPlayer() {
+		return this.player
+	}
+
 	getTargetHackingLevel() {
 		return Math.max(1, this.hackingLevel * targetHackingLevelMultiplier)
 	}

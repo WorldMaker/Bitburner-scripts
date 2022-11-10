@@ -8,9 +8,9 @@ export interface DeployPlan {
 }
 
 export interface KillPlan {
-	target: Target
-	app: App
-	args: any[]
+	filename: string
+	args: (string | number | boolean)[]
+	pid: number
 }
 
 export interface ExistingPayloadPlan {

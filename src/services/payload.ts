@@ -22,7 +22,7 @@ export class PayloadService {
 			plan.server.killall()
 		} else if (plan.kills) {
 			for (const kill of plan.kills) {
-				plan.server.kill(kill.app.name, ...kill.args)
+				plan.server.kill(kill.filename, ...kill.args)
 			}
 		}
 
