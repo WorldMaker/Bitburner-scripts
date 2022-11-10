@@ -7,8 +7,8 @@ import { ServerCacheService } from './server-cache'
 
 const { from } = IterableX
 
-const ToyBudgetMultiplier = 1 / 10_000_000
 const BudgetTicks = 6 /* 10s */
+const ToyBudgetMultiplier = 1 / 10_000_000 /* per minute */ / BudgetTicks
 
 export class ToyPurchaseService {
 	private homeServer: Target
@@ -33,9 +33,7 @@ export class ToyPurchaseService {
 		if (this.budget === null) {
 			return
 		}
-		this.budget +=
-			(this.homeServer.checkMoneyAvailable() * ToyBudgetMultiplier) /
-			BudgetTicks
+		this.budget += this.homeServer.checkMoneyAvailable() * ToyBudgetMultiplier
 	}
 
 	purchase() {
