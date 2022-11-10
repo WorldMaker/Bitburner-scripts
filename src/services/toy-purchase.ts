@@ -1,4 +1,4 @@
-import { IterableX } from '@reactivex/ix-esnext-esm/iterable'
+import { IterableX } from '@reactivex/ix-esnext-esm/iterable/iterablex'
 import { filter } from '@reactivex/ix-esnext-esm/iterable/operators/filter'
 import { orderBy } from '@reactivex/ix-esnext-esm/iterable/operators/orderby'
 import { Logger } from '../models/logger'
