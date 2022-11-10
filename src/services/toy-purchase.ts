@@ -1,6 +1,7 @@
 import { IterableX } from '@reactivex/ix-esnext-esm/iterable'
 import { filter } from '@reactivex/ix-esnext-esm/iterable/operators/filter'
 import { orderBy } from '@reactivex/ix-esnext-esm/iterable/operators/orderby'
+import { Logger } from '../models/logger'
 import { ServerTarget, Target } from '../models/target'
 import { ServerCacheService } from './server-cache'
 
@@ -16,6 +17,7 @@ export class ToyPurchaseService {
 
 	constructor(
 		private ns: NS,
+		private logger: Logger,
 		private servers: ServerCacheService,
 		private budgetOverride?: number | null
 	) {
@@ -24,7 +26,7 @@ export class ToyPurchaseService {
 	}
 
 	summarize() {
-		return `INFO shopping for toys with budget ${this.budget} per minute`
+		return `INFO shopped for toys with budget ${this.budget}`
 	}
 
 	updateBudget() {
@@ -32,7 +34,12 @@ export class ToyPurchaseService {
 			this.budget = this.budgetOverride
 			return
 		}
-		this.budget = this.homeServer.checkMoneyAvailable() * ToyBudgetMultiplier
+		if (this.budget === null) {
+			return
+		}
+		this.budget +=
+			(this.homeServer.checkMoneyAvailable() * ToyBudgetMultiplier) /
+			BudgetTicks
 	}
 
 	purchase() {
@@ -40,6 +47,8 @@ export class ToyPurchaseService {
 		if (!this.budget) {
 			return
 		}
+
+		const startingBudget = this.budget
 
 		if (this.tickCount < BudgetTicks) {
 			this.tickCount++
@@ -111,6 +120,11 @@ export class ToyPurchaseService {
 			}
 		}
 
+		this.logger.log(
+			`SUCCESS spent toy budget ${
+				startingBudget - this.budget
+			} / ${startingBudget}`
+		)
 		this.tickCount = 0
 	}
 }
