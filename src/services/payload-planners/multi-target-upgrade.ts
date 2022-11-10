@@ -7,6 +7,7 @@ import { MultiTargetDirectionalFormulatedPlanner } from './multi-target-directio
 import { MultiTargetDirectionalRoundRobinPlanner } from './multi-target-directional-round-robin'
 
 export class MultiTargetUpgradePlanner implements PayloadPlanner {
+	private formulasExist: boolean
 	private directional: PayloadPlanner
 	private formulated: PayloadPlanner
 
@@ -16,6 +17,7 @@ export class MultiTargetUpgradePlanner implements PayloadPlanner {
 		targetService: TargetService,
 		apps: AppCacheService
 	) {
+		this.formulasExist = this.ns.fileExists('Formulas.exe')
 		this.directional = new MultiTargetDirectionalRoundRobinPlanner(
 			logger,
 			targetService,
@@ -30,7 +32,8 @@ export class MultiTargetUpgradePlanner implements PayloadPlanner {
 	}
 
 	summarize(): string {
-		if (this.ns.fileExists('Formulas.exe')) {
+		this.formulasExist ||= this.ns.fileExists('Formulas.exe')
+		if (this.formulasExist) {
 			return this.formulated.summarize()
 		} else {
 			return this.directional.summarize()
@@ -38,7 +41,8 @@ export class MultiTargetUpgradePlanner implements PayloadPlanner {
 	}
 
 	plan(rooted: Iterable<Target>) {
-		if (this.ns.fileExists('Formulas.exe')) {
+		this.formulasExist ||= this.ns.fileExists('Formulas.exe')
+		if (this.formulasExist) {
 			return this.formulated.plan(rooted)
 		} else {
 			return this.directional.plan(rooted)
