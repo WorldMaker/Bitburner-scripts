@@ -36,7 +36,7 @@ function areThreadsSufficient(
 		case 'grow':
 			const moneyAvailable = target.checkMoneyAvailable()
 			const targetGrowPercent =
-				moneyAvailable / (target.getMaxRam() - moneyAvailable)
+				moneyAvailable / (target.getWorth() - moneyAvailable)
 			const growPercent = ns.formulas.hacking.growPercent(
 				server,
 				threads,
@@ -78,24 +78,20 @@ function calculateTargetThreads(
 		case 'grow':
 			const moneyAvailable = target.checkMoneyAvailable()
 			const targetGrowPercent =
-				moneyAvailable / (target.getMaxRam() - moneyAvailable)
+				moneyAvailable / (target.getWorth() - moneyAvailable)
 			const securityAvailable =
 				target.getSecurityThreshold() - target.checkSecurityLevel()
 			const totalPossibleGrowThreads = Math.min(
 				ramBudget / app.ramCost,
 				securityAvailable / GrowthSecurityRaisePerThread
 			)
-			for (let threads = 1; threads <= totalPossibleGrowThreads; threads++) {
-				const growPercent = ns.formulas.hacking.growPercent(
-					server,
-					threads,
-					player
-				)
-				if (growPercent >= targetGrowPercent) {
-					return threads
-				}
+			if (targetGrowPercent <= 1) {
+				return 1
 			}
-			return totalPossibleGrowThreads
+			return Math.min(
+				totalPossibleGrowThreads,
+				Math.ceil(ns.growthAnalyze(target.name, targetGrowPercent))
+			)
 		case 'weaken':
 			const securityDesired =
 				target.checkSecurityLevel() - target.getMinSecurityLevel()
