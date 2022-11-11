@@ -1,28 +1,70 @@
 import { IterableX } from '@reactivex/ix-esnext-esm/iterable/iterablex'
+import { concatWith } from '@reactivex/ix-esnext-esm/iterable/operators/concatwith'
 import { groupBy } from '@reactivex/ix-esnext-esm/iterable/operators/groupby'
-import {
-	orderByDescending,
-	thenBy,
-} from '@reactivex/ix-esnext-esm/iterable/operators/orderby'
+import { map } from '@reactivex/ix-esnext-esm/iterable/operators/map'
+import { orderByDescending } from '@reactivex/ix-esnext-esm/iterable/operators/orderby'
+import { repeat } from '@reactivex/ix-esnext-esm/iterable/operators/repeat'
 import { reduce } from '@reactivex/ix-esnext-esm/iterable/reduce'
+import { zip } from '@reactivex/ix-esnext-esm/iterable/zip'
 import { App } from '../../models/app'
 import { Logger } from '../../models/logger'
 import {
 	DeployPlan,
-	KillPlan,
 	PayloadPlan,
 	PayloadPlanner,
 } from '../../models/payload-plan'
-import { Target, TargetDirection } from '../../models/target'
+import { Target } from '../../models/target'
 import { AppCacheService } from '../app-cache'
 import { TargetService } from '../target'
-import { SingleTargetAppSelector } from './single-target-directional-payload'
+import { AppSelector } from './single-target-directional-payload'
 
 const { from } = IterableX
 
 const GrowthSecurityRaisePerThread = 0.004
 const WeakenSecurityLowerPerThread = 0.05
 const DesiredHackingSkim = 0.25
+
+function areThreadsSufficient(
+	ns: NS,
+	player: Player,
+	target: Target,
+	app: App,
+	threads: number
+) {
+	const server = ns.getServer(target.name)
+	switch (target.getTargetDirection()) {
+		case 'grow':
+			const moneyAvailable = target.checkMoneyAvailable()
+			const targetGrowPercent =
+				(target.getMaxRam() - moneyAvailable) / moneyAvailable
+			const growPercent = ns.formulas.hacking.growPercent(
+				server,
+				threads,
+				player
+			)
+			if (growPercent >= targetGrowPercent) {
+				return true
+			}
+			return false
+		case 'weaken':
+			const securityDesired =
+				target.checkSecurityLevel() - target.getMinSecurityLevel()
+			const desiredThreads = securityDesired / WeakenSecurityLowerPerThread
+			if (threads >= desiredThreads) {
+				return true
+			}
+			return false
+		case 'hack':
+			const hackPercent =
+				ns.formulas.hacking.hackPercent(server, player) * threads
+			if (hackPercent >= DesiredHackingSkim) {
+				return true
+			}
+			return false
+		default:
+			return false
+	}
+}
 
 function calculateTargetThreads(
 	ns: NS,
@@ -80,11 +122,22 @@ function calculateTargetThreads(
 	}
 }
 
+interface FreeRam {
+	server: Target
+	available: number
+}
+
+interface RunningProcess {
+	server: Target
+	process: ProcessInfo
+}
+
 export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
-	private appSelector: SingleTargetAppSelector
-	private targetNumber = 0
-	private threads = 0
-	private ramBudget = 0
+	private appSelector: AppSelector
+	private totalRam = 0
+	private freeRam = 0
+	private satisfiedTargets = 0
+	private attackedTargets = 0
 
 	constructor(
 		private ns: NS,
@@ -92,53 +145,47 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 		private targetService: TargetService,
 		apps: AppCacheService
 	) {
-		this.appSelector = new SingleTargetAppSelector(apps)
+		this.appSelector = new AppSelector(apps)
 	}
 
 	summarize(): string {
-		return `INFO attacking ${this.targetNumber} / ${
+		const ramPercent = this.freeRam / this.totalRam
+		return `INFO attacking ${this.satisfiedTargets}/${this.attackedTargets}/${
 			this.targetService.getTargets().length
-		} targets; ${this.ramBudget} free; ${this.threads} needed threads`
+		} targets; RAM ${ramPercent.toLocaleString(undefined, {
+			style: 'percent',
+		})} free of ${this.totalRam}`
 	}
 
 	*plan(rooted: Iterable<Target>): Iterable<PayloadPlan> {
+		this.totalRam = 0
+		this.freeRam = 0
+		this.satisfiedTargets = 0
+		this.attackedTargets = 0
+
 		const targets = this.targetService.getTargets()
 
 		const servers = from(rooted).pipe(
-			orderByDescending((server) => server.getMaxRam()),
-			thenBy((server) => server.name)
+			map((server) => ({
+				server,
+				available: server.getMaxRam() - server.checkUsedRam(),
+			})),
+			orderByDescending((server) => server.available)
 		)
 
-		this.ramBudget = reduce(
-			servers,
-			(total, current) => total + current.getMaxRam(),
-			0
-		)
+		const allApp = this.appSelector.selectApp('all')
+		const freelist: FreeRam[] = []
+		const allProcesses: RunningProcess[] = []
+		const serversToDeploy: Target[] = []
 
-		const player = this.ns.getPlayer()
+		// *** Assess what is currently running ***
 
-		this.targetNumber = 0
-		let target = targets[this.targetNumber]
-		target.updateTargetDirection()
-		let app = this.appSelector.selectApp(target.getTargetDirection())
-		this.threads = calculateTargetThreads(
-			this.ns,
-			player,
-			target,
-			app,
-			this.ramBudget
-		)
-		this.logger.log(
-			`INFO ${target.getTargetDirection()} ${target.name} by ${
-				this.threads
-			} threads`
-		)
-
-		for (const server of servers) {
+		for (const free of servers) {
+			const { server } = free
+			this.totalRam += server.getMaxRam()
+			// fast path "slow" servers
 			if (server.isSlow) {
-				app = this.appSelector.selectApp('all')
-				this.ramBudget -= server.getMaxRam()
-				if (server.getMaxRam() < app.ramCost) {
+				if (server.getMaxRam() < allApp.ramCost) {
 					this.logger.log(
 						`WARN ${server.name} only has ${server.getMaxRam()} memory`
 					)
@@ -146,8 +193,8 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 				}
 				if (
 					server.isRunning(
-						app.name,
-						...app.getArgs(this.targetService.getTopTarget())
+						allApp.name,
+						...allApp.getArgs(this.targetService.getTopTarget())
 					)
 				) {
 					yield {
@@ -156,7 +203,7 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 					}
 					continue
 				}
-				const threads = Math.floor(server.getMaxRam() / app.ramCost)
+				const threads = Math.floor(server.getMaxRam() / allApp.ramCost)
 				yield {
 					type: 'change',
 					server,
@@ -164,123 +211,136 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 					deployments: [
 						{
 							target: this.targetService.getTopTarget(),
-							app,
+							app: allApp,
 							threads,
 						},
 					],
 				}
 				continue
 			}
-
-			const expectedDeployments = new Map<string, Map<string, DeployPlan>>()
-			let ram = server.getMaxRam()
-			while (this.targetNumber < targets.length && ram > 0) {
-				if (this.threads <= 0) {
-					this.targetNumber++
-					if (this.targetNumber == targets.length) {
-						break
-					}
-					target = targets[this.targetNumber]
-					target.updateTargetDirection()
-					app = this.appSelector.selectApp(target.getTargetDirection())
-					this.threads = calculateTargetThreads(
-						this.ns,
-						player,
-						target,
-						app,
-						this.ramBudget
-					)
-					this.logger.log(
-						`INFO ${target.getTargetDirection()} ${target.name} by ${
-							this.threads
-						} threads`
-					)
-					if (this.threads <= 0) {
-						continue
-					}
-				}
-				if (!expectedDeployments.has(app.name)) {
-					expectedDeployments.set(app.name, new Map())
-				}
-				const availableThreads = Math.min(
-					this.threads,
-					Math.floor(ram / app.ramCost)
-				)
-				expectedDeployments.get(app.name)!.set(target.name, {
-					app,
-					target,
-					threads: availableThreads,
-				})
-				this.threads -= availableThreads
-				ram -= availableThreads * app.ramCost
+			serversToDeploy.push(server)
+			if (free.available > 0) {
+				freelist.push(free)
 			}
+			const processes = this.ns.ps(server.name)
+			for (const process of processes) {
+				allProcesses.push({ server, process })
+			}
+		}
 
-			const processes = from(this.ns.ps(target.name)).pipe(
-				groupBy((process) => process.filename)
+		const player = this.ns.getPlayer()
+
+		const processesByTarget = new Map(
+			from(allProcesses).pipe(
+				// all current payloads are ["start", target, ...]
+				groupBy((process) => process.process.args[1]?.toString()),
+				map((group) => [group.key, group])
 			)
+		)
 
-			const kills: KillPlan[] = []
-			const deployments: DeployPlan[] = []
-			const unseen = new Set(expectedDeployments.keys())
-			for (const group of processes) {
-				unseen.delete(group.key)
-				const appdeployments = expectedDeployments.get(group.key)
-				if (!appdeployments) {
-					for (const process of group) {
-						kills.push(process)
-					}
-					continue
-				}
-				const unseenTargets = new Set(appdeployments.keys())
-				const targets = group.pipe(
-					// all current payloads are ["start", target, ...]
-					groupBy((process) => process.args[1]?.toString())
+		const needsThreads: Target[] = []
+		const killProcesses = new Map<string, ProcessInfo[]>()
+
+		for (const target of targets) {
+			target.updateTargetDirection()
+			const app = this.appSelector.selectApp(target.getTargetDirection())
+			const targetProcesses = processesByTarget.get(target.name)
+			if (!targetProcesses) {
+				needsThreads.push(target)
+			} else {
+				const processesByApp = new Map(
+					targetProcesses.pipe(
+						groupBy((process) => process.process.filename),
+						map((group) => [group.key, group])
+					)
 				)
-				for (const targetProcesses of targets) {
-					unseenTargets.delete(targetProcesses.key)
-					if (!appdeployments.has(targetProcesses.key)) {
-						for (const process of targetProcesses) {
-							kills.push(process)
-						}
-						continue
-					}
-					const targetdeployment = appdeployments.get(targetProcesses.key)!
-					const totalThreads = reduce(
-						targetProcesses,
-						(acc, cur) => acc + cur.threads,
+				const appProcesses = processesByApp.get(app.name)
+				if (!appProcesses) {
+					needsThreads.push(target)
+				} else {
+					const appThreads = reduce(
+						appProcesses,
+						(acc, cur) => acc + cur.process.threads,
 						0
 					)
-					if (totalThreads !== targetdeployment.threads) {
-						for (const process of targetProcesses) {
-							kills.push(process)
-						}
-						deployments.push(targetdeployment)
+					if (areThreadsSufficient(this.ns, player, target, app, appThreads)) {
+						this.satisfiedTargets++
+					} else {
+						needsThreads.push(target)
+					}
+					processesByApp.delete(app.name)
+				}
+
+				for (const processes of processesByApp.values()) {
+					for (const { server, process } of processes) {
+						const killlist = killProcesses.get(server.name) ?? []
+						killlist.push(process)
+						killProcesses.set(server.name, killlist)
 					}
 				}
-				for (const unseenTarget of unseenTargets) {
-					deployments.push(appdeployments.get(unseenTarget)!)
-				}
+				processesByTarget.delete(target.name)
 			}
-			for (const unseenApp of unseen) {
-				for (const deployment of expectedDeployments.get(unseenApp)!.values()) {
-					deployments.push(deployment)
-				}
-			}
+		}
 
-			if (kills.length <= 0 && deployments.length <= 0) {
+		for (const processes of processesByTarget.values()) {
+			for (const { server, process } of processes) {
+				const killlist = killProcesses.get(server.name) ?? []
+				killlist.push(process)
+				killProcesses.set(server.name, killlist)
+			}
+		}
+
+		// *** Use freelist to find new deployments ***
+
+		this.attackedTargets = this.satisfiedTargets
+
+		const deployments = new Map<string, DeployPlan>()
+		for (const [free, target] of zip(
+			freelist,
+			from(needsThreads).pipe(concatWith(from([null]).pipe(repeat())))
+		)) {
+			if (target == null) {
+				this.freeRam += free.available
+				continue
+			}
+			const app = this.appSelector.selectApp(target.getTargetDirection())
+			if (free.available < app.ramCost) {
+				continue
+			}
+			const threads = calculateTargetThreads(
+				this.ns,
+				player,
+				target,
+				app,
+				free.available
+			)
+			deployments.set(free.server.name, {
+				app,
+				target,
+				threads,
+			})
+			this.attackedTargets++
+			this.freeRam += free.available - threads * app.ramCost
+		}
+
+		// *** Merge kills and deployments to yield current plans ***
+
+		for (const server of serversToDeploy) {
+			const kills = killProcesses.get(server.name)
+			const deploy = deployments.get(server.name)
+			if (!kills && !deploy) {
 				yield {
 					type: 'existing',
 					server,
 				}
 				continue
 			}
-
 			yield {
 				type: 'change',
+				deployments: [...(deploy ? [deploy] : [])],
+				kills,
+				killall: false,
 				server,
-				//kills,
-				killall: true,
-				deployments,
 			}
 		}
 	}
