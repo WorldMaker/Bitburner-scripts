@@ -153,7 +153,7 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 		return `INFO attacking ${this.satisfiedTargets}/${this.attackedTargets}/${
 			this.targetService.getTargets().length
 		} targets; RAM ${ramPercent.toLocaleString(undefined, {
-			style: 'percent ',
+			style: 'percent',
 		})} free of ${this.totalRam}`
 	}
 
