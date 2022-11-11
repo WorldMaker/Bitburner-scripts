@@ -6,15 +6,6 @@ const format = 'esm'
 const logLevel = 'info'
 
 buildSync({
-	entryPoints: ['./src/bootstrap-service.ts'],
-	bundle,
-	target,
-	format,
-	outfile: './dist/boot.js',
-	logLevel,
-})
-
-buildSync({
 	entryPoints: ['./src/payload-all.ts'],
 	bundle,
 	target,
@@ -47,5 +38,41 @@ buildSync({
 	target,
 	format,
 	outfile: './dist/payload-w.js',
+	logLevel,
+})
+
+buildSync({
+	entryPoints: ['./src/payload-sg.ts'],
+	bundle,
+	target,
+	format,
+	outfile: './dist/payload-sg.js',
+	logLevel,
+})
+
+buildSync({
+	entryPoints: ['./src/payload-sh.ts'],
+	bundle,
+	target,
+	format,
+	outfile: './dist/payload-sh.js',
+	logLevel,
+})
+
+buildSync({
+	entryPoints: ['./src/payload-sw.ts'],
+	bundle,
+	target,
+	format,
+	outfile: './dist/payload-sw.js',
+	logLevel,
+})
+
+buildSync({
+	entryPoints: ['./src/bootstrap-service.ts'],
+	bundle,
+	target,
+	format,
+	outfile: './dist/boot.js',
 	logLevel,
 })
