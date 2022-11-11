@@ -36,7 +36,7 @@ function areThreadsSufficient(
 		case 'grow':
 			const moneyAvailable = target.checkMoneyAvailable()
 			const targetGrowPercent =
-				(target.getMaxRam() - moneyAvailable) / moneyAvailable
+				moneyAvailable / (target.getMaxRam() - moneyAvailable)
 			const growPercent = ns.formulas.hacking.growPercent(
 				server,
 				threads,
@@ -78,7 +78,7 @@ function calculateTargetThreads(
 		case 'grow':
 			const moneyAvailable = target.checkMoneyAvailable()
 			const targetGrowPercent =
-				(target.getMaxRam() - moneyAvailable) / moneyAvailable
+				moneyAvailable / (target.getMaxRam() - moneyAvailable)
 			const securityAvailable =
 				target.getSecurityThreshold() - target.checkSecurityLevel()
 			const totalPossibleGrowThreads = Math.min(
