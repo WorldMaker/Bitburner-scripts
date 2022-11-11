@@ -277,6 +277,9 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 				app,
 				free.available
 			)
+			if (areThreadsSufficient(this.ns, player, target, app, threads)) {
+				this.satisfiedTargets++
+			}
 			deployments.set(free.server.name, {
 				app,
 				target,
