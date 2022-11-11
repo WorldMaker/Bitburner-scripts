@@ -36,7 +36,7 @@ function areThreadsSufficient(
 		case 'grow':
 			const moneyAvailable = target.checkMoneyAvailable()
 			const targetGrowPercent =
-				(target.getMaxRam() - moneyAvailable) / moneyAvailable
+				moneyAvailable / (target.getMaxRam() - moneyAvailable)
 			const growPercent = ns.formulas.hacking.growPercent(
 				server,
 				threads,
@@ -78,7 +78,7 @@ function calculateTargetThreads(
 		case 'grow':
 			const moneyAvailable = target.checkMoneyAvailable()
 			const targetGrowPercent =
-				(target.getMaxRam() - moneyAvailable) / moneyAvailable
+				moneyAvailable / (target.getMaxRam() - moneyAvailable)
 			const securityAvailable =
 				target.getSecurityThreshold() - target.checkSecurityLevel()
 			const totalPossibleGrowThreads = Math.min(
@@ -173,7 +173,6 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 			orderByDescending((server) => server.available)
 		)
 
-		const allApp = this.appSelector.selectApp('all')
 		const freelist: FreeRam[] = []
 		const allProcesses: RunningProcess[] = []
 		const serversToDeploy: Target[] = []
@@ -183,39 +182,7 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 		for (const free of servers) {
 			const { server } = free
 			this.totalRam += server.getMaxRam()
-			// fast path "slow" servers
-			if (server.isSlow) {
-				if (server.getMaxRam() < allApp.ramCost) {
-					this.logger.log(
-						`WARN ${server.name} only has ${server.getMaxRam()} memory`
-					)
-					continue
-				}
-				if (
-					server.isRunning(
-						allApp.name,
-						...allApp.getArgs(this.targetService.getTopTarget())
-					)
-				) {
-					yield {
-						type: 'existing',
-						server,
-					}
-					continue
-				}
-				const threads = Math.floor(server.getMaxRam() / allApp.ramCost)
-				yield {
-					type: 'change',
-					server,
-					killall: true,
-					deployments: [
-						{
-							target: this.targetService.getTopTarget(),
-							app: allApp,
-							threads,
-						},
-					],
-				}
+			if (server.getMaxRam() === 0) {
 				continue
 			}
 			serversToDeploy.push(server)
