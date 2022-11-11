@@ -25,7 +25,6 @@ export class MultiTargetUpgradePlanner implements PayloadPlanner {
 		)
 		this.formulated = new MultiTargetDirectionalFormulatedPlanner(
 			this.ns,
-			logger,
 			targetService,
 			apps
 		)

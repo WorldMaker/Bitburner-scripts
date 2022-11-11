@@ -7,16 +7,20 @@ import { repeat } from '@reactivex/ix-esnext-esm/iterable/operators/repeat'
 import { reduce } from '@reactivex/ix-esnext-esm/iterable/reduce'
 import { zip } from '@reactivex/ix-esnext-esm/iterable/zip'
 import { App } from '../../models/app'
-import { Logger } from '../../models/logger'
 import {
 	DeployPlan,
 	PayloadPlan,
 	PayloadPlanner,
 } from '../../models/payload-plan'
-import { Target } from '../../models/target'
-import { AppCacheService } from '../app-cache'
+import { Target, TargetDirection } from '../../models/target'
+import {
+	AppCacheService,
+	PayloadAll,
+	SalvoPayloadG,
+	SalvoPayloadH,
+	SalvoPayloadW,
+} from '../app-cache'
 import { TargetService } from '../target'
-import { AppSelector } from './single-target-directional-payload'
 
 const { from } = IterableX
 
@@ -24,11 +28,37 @@ const GrowthSecurityRaisePerThread = 0.004
 const WeakenSecurityLowerPerThread = 0.05
 const DesiredHackingSkim = 0.25
 
+export class SalvoAppSelector {
+	protected payloadAll: App
+	protected payloadG: App
+	protected payloadH: App
+	protected payloadW: App
+
+	constructor(apps: AppCacheService) {
+		this.payloadAll = apps.getApp(PayloadAll)
+		this.payloadG = apps.getApp(SalvoPayloadG)
+		this.payloadH = apps.getApp(SalvoPayloadH)
+		this.payloadW = apps.getApp(SalvoPayloadW)
+	}
+
+	selectApp(direction: TargetDirection | 'all') {
+		switch (direction) {
+			case 'weaken':
+				return this.payloadW
+			case 'grow':
+				return this.payloadG
+			case 'hack':
+				return this.payloadH
+			default:
+				return this.payloadAll
+		}
+	}
+}
+
 function areThreadsSufficient(
 	ns: NS,
 	player: Player,
 	target: Target,
-	app: App,
 	threads: number
 ) {
 	const server = ns.getServer(target.name)
@@ -129,7 +159,7 @@ interface RunningProcess {
 }
 
 export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
-	private appSelector: AppSelector
+	private appSelector: SalvoAppSelector
 	private totalRam = 0
 	private freeRam = 0
 	private satisfiedTargets = 0
@@ -137,11 +167,10 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 
 	constructor(
 		private ns: NS,
-		private logger: Logger,
 		private targetService: TargetService,
 		apps: AppCacheService
 	) {
-		this.appSelector = new AppSelector(apps)
+		this.appSelector = new SalvoAppSelector(apps)
 	}
 
 	summarize(): string {
@@ -226,7 +255,7 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 						(acc, cur) => acc + cur.process.threads,
 						0
 					)
-					if (areThreadsSufficient(this.ns, player, target, app, appThreads)) {
+					if (areThreadsSufficient(this.ns, player, target, appThreads)) {
 						this.satisfiedTargets++
 					} else {
 						needsThreads.push(target)
@@ -277,6 +306,9 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 				app,
 				free.available
 			)
+			if (areThreadsSufficient(this.ns, player, target, threads)) {
+				this.satisfiedTargets++
+			}
 			deployments.set(free.server.name, {
 				app,
 				target,

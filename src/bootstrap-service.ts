@@ -93,7 +93,6 @@ export async function main(ns: NS) {
 			case 'formulated':
 				return new MultiTargetDirectionalFormulatedPlanner(
 					ns,
-					logger,
 					targetService,
 					apps
 				)
