@@ -11,6 +11,7 @@ export class ServerTarget extends DeployTarget implements Target {
 	public readonly purchasedNumber: number | null
 	public readonly isSlow: boolean
 	public readonly purchased: boolean
+	private readonly parents = new Set<string>()
 
 	constructor(ns: NS, name: string, _purchased: boolean) {
 		super(ns, name)
@@ -68,5 +69,13 @@ export class ServerTarget extends DeployTarget implements Target {
 	checkSecurityLevel(): number {
 		this.server = this.ns.getServer(this.name)
 		return this.server.hackDifficulty
+	}
+
+	addParent(name: string): void {
+		this.parents.add(name)
+	}
+
+	getParents(): Iterable<string> {
+		return this.parents.values()
 	}
 }

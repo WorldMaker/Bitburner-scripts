@@ -10,4 +10,6 @@ export interface Target extends DeployTarget {
 	getRooted(): boolean
 	checkRooted(): boolean
 	checkUsedRam(): number
+	addParent(name: string): void
+	getParents(): Iterable<string>
 }
