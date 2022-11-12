@@ -31,6 +31,8 @@ export class ScannerService {
 			if (!this.servers.has(server)) {
 				this.servers.set(new LazyTarget(this.ns, server, false))
 			}
+			const target = this.servers.get(server)!
+			target.addParent(currentServer)
 			if (!visited.has(server) && depth < this.maxDepth) {
 				visited.add(server)
 				this.scanServer(server, visited, depth + 1)
