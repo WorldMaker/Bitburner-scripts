@@ -158,6 +158,12 @@ interface RunningProcess {
 	process: ProcessInfo
 }
 
+interface ThreadsNeeded {
+	target: Target
+	app: App
+	threads: number
+}
+
 export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 	private appSelector: SalvoAppSelector
 	private totalRam = 0
@@ -230,15 +236,23 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 			)
 		)
 
-		const needsThreads: Target[] = []
+		const needsThreads: ThreadsNeeded[] = []
 		const killProcesses = new Map<string, ProcessInfo[]>()
 
 		for (const target of targets) {
 			target.updateTargetDirection()
 			const app = this.appSelector.selectApp(target.getTargetDirection())
 			const targetProcesses = processesByTarget.get(target.name)
+			// ideal number of threads up to 100% of total RAM
+			const targetThreads = calculateTargetThreads(
+				this.ns,
+				player,
+				target,
+				app,
+				this.totalRam
+			)
 			if (!targetProcesses) {
-				needsThreads.push(target)
+				needsThreads.push({ target, app, threads: targetThreads })
 			} else {
 				const processesByApp = new Map(
 					targetProcesses.pipe(
@@ -248,7 +262,7 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 				)
 				const appProcesses = processesByApp.get(app.name)
 				if (!appProcesses) {
-					needsThreads.push(target)
+					needsThreads.push({ target, app, threads: targetThreads })
 				} else {
 					const appThreads = reduce(
 						appProcesses,
@@ -258,7 +272,11 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 					if (areThreadsSufficient(this.ns, player, target, appThreads)) {
 						this.satisfiedTargets++
 					} else {
-						needsThreads.push(target)
+						needsThreads.push({
+							target,
+							app,
+							threads: targetThreads - appThreads,
+						})
 					}
 					processesByApp.delete(app.name)
 				}
@@ -287,26 +305,23 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 		this.attackedTargets = this.satisfiedTargets
 
 		const deployments = new Map<string, DeployPlan>()
-		for (const [free, target] of zip(
+		for (const [free, targetRequest] of zip(
 			freelist,
 			from(needsThreads).pipe(concatWith(from([null]).pipe(repeat())))
 		)) {
-			if (target == null) {
+			if (targetRequest == null) {
 				this.freeRam += free.available
 				continue
 			}
-			const app = this.appSelector.selectApp(target.getTargetDirection())
+			const { target, app, threads: targetThreads } = targetRequest
 			if (free.available < app.ramCost) {
 				continue
 			}
-			const threads = calculateTargetThreads(
-				this.ns,
-				player,
-				target,
-				app,
-				free.available
+			const threads = Math.min(
+				Math.floor(free.available / app.ramCost),
+				targetThreads
 			)
-			if (areThreadsSufficient(this.ns, player, target, threads)) {
+			if (threads === targetThreads) {
 				this.satisfiedTargets++
 			}
 			deployments.set(free.server.name, {
