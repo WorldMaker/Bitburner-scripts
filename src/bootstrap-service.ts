@@ -147,22 +147,26 @@ export async function main(ns: NS) {
 		logger.log(toyPurchaseService.summarize())
 		logger.log(purchaseService.summarize())
 		logger.log(payloadPlanner.summarize())
-		logger.log(
-			`INFO ${counts.plans} deployment plans; ${counts.existingPlans} existing, ${counts.changedPlans} changed`
-		)
-		const statusMessage = `INFO ${counts.servers} servers scanned; ${counts.rooted} rooted, ${counts.payloads} payloads`
-		// terminal notifications when changes occur otherwise regular logs
-		if (
-			counts.servers !== lastServersCount ||
-			counts.rooted !== lastRootedCount ||
-			counts.payloads !== lastPayloadsCount
-		) {
-			logger.display(statusMessage)
-			lastServersCount = counts.servers
-			lastRootedCount = counts.rooted
-			lastPayloadsCount = counts.payloads
+		if (counts) {
+			logger.log(
+				`INFO ${counts.plans} deployment plans; ${counts.existingPlans} existing, ${counts.changedPlans} changed`
+			)
+			const statusMessage = `INFO ${counts.servers} servers scanned; ${counts.rooted} rooted, ${counts.payloads} payloads`
+			// terminal notifications when changes occur otherwise regular logs
+			if (
+				counts.servers !== lastServersCount ||
+				counts.rooted !== lastRootedCount ||
+				counts.payloads !== lastPayloadsCount
+			) {
+				logger.display(statusMessage)
+				lastServersCount = counts.servers
+				lastRootedCount = counts.rooted
+				lastPayloadsCount = counts.payloads
+			} else {
+				logger.log(statusMessage)
+			}
 		} else {
-			logger.log(statusMessage)
+			logger.log(`INFO no deployments`)
 		}
 
 		await ns.sleep(10 /* s */ * 1000 /* ms */)
