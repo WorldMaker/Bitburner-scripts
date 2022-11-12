@@ -6,7 +6,11 @@ const ignorelist = new Set(['home'])
 export class ScannerService {
 	private readonly maxDepth
 
-	constructor(private ns: NS, private servers: ServerCacheService) {
+	constructor(
+		private ns: NS,
+		private servers: ServerCacheService,
+		forceMaxDepth: number | null = null
+	) {
 		const deepScanV1 = this.ns.fileExists('DeepscanV1.exe')
 		const deepScanV2 = this.ns.fileExists('DeepscanV2.exe')
 		if (deepScanV2) {
@@ -15,6 +19,10 @@ export class ScannerService {
 			this.maxDepth = 5
 		} else {
 			this.maxDepth = 3
+		}
+
+		if (forceMaxDepth) {
+			this.maxDepth = forceMaxDepth
 		}
 	}
 

@@ -69,6 +69,15 @@ buildSync({
 })
 
 buildSync({
+	entryPoints: ['./src/pathfinder.ts'],
+	bundle,
+	target,
+	format,
+	outfile: './dist/pathfinder.js',
+	logLevel,
+})
+
+buildSync({
 	entryPoints: ['./src/bootstrap-service.ts'],
 	bundle,
 	target,
