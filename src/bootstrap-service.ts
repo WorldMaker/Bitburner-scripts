@@ -19,6 +19,7 @@ import { ToyPurchaseService } from './services/toy-purchase.js'
 
 let running = false
 let strategy = 'multiup'
+let forceMaxDepth: number | null = null
 
 export async function main(ns: NS) {
 	const command = ns.args[0]?.toString()
@@ -40,6 +41,10 @@ export async function main(ns: NS) {
 					ns.args[3]?.toString() ?? 'n00dles',
 					false
 				)
+				break
+
+			case 'maxdepth':
+				forceMaxDepth = Number(ns.args[1]) || null
 				break
 
 			case 'strategy':
@@ -116,7 +121,7 @@ export async function main(ns: NS) {
 		// *** hacking and deploying payloads ***
 		const stats = new PlayerStats(ns)
 		const hackerService = new HackerService(ns, logger, stats)
-		const scannerService = new ScannerService(ns, servers)
+		const scannerService = new ScannerService(ns, servers, forceMaxDepth)
 		const deploymentService = new DeploymentService(
 			hackerService,
 			logger,
