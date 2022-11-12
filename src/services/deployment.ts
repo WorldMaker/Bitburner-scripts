@@ -34,7 +34,7 @@ export class DeploymentService {
 		// pick a target
 		if (this.targetService.findTarget(this.stats, rooted)) {
 			this.logger.display(
-				`INFO Target changed to ${this.targetService.getTopTarget().name}`
+				`INFO Target changed to ${this.targetService.getTopTarget()?.name}`
 			)
 		}
 
