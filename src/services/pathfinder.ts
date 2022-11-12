@@ -12,7 +12,7 @@ export class PathfinderService {
 	): Iterable<string[]> {
 		for (var parent of target.getParents()) {
 			if (parent === 'home') {
-				yield suffix
+				yield [target.name, ...suffix]
 				return
 			}
 			if (visited.has(parent)) {
