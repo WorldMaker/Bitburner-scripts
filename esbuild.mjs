@@ -84,4 +84,5 @@ buildSync({
 	format,
 	outfile: './dist/boot.js',
 	logLevel,
+	define: { window: `{}`, document: `{ "nodeType": 9 }` },
 })
