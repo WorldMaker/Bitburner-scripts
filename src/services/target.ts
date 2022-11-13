@@ -29,7 +29,9 @@ export class TargetService {
 			...from(rootedServers).pipe(
 				filter((server) => !server.purchased), // skip own servers
 				filter((server) => server.getWorth() > 0), // skip servers with no money
-				filter((server) => server.hackingLevel < stats.getTargetHackingLevel()),
+				filter(
+					(server) => server.hackingLevel <= stats.getTargetHackingLevel()
+				),
 				orderByDescending((server) => server.getWorth()),
 				thenByDescending((server) => server.hackingLevel),
 				thenByDescending((server) => server.name)

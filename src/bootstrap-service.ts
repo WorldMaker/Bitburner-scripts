@@ -166,7 +166,9 @@ export async function main(ns: NS) {
 				logger.log(statusMessage)
 			}
 		} else {
-			logger.log(`INFO no deployments`)
+			logger.log(
+				`INFO no deployments; no targets equal or below ${stats.getTargetHackingLevel()}`
+			)
 		}
 
 		await ns.sleep(10 /* s */ * 1000 /* ms */)
