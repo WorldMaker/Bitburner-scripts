@@ -77,18 +77,6 @@ export async function main(ns: NS) {
 
 	const getPayloadPlanner = () => {
 		switch (strategy) {
-			case 'simple':
-				return new SingleTargetSinglePayloadPlanner(
-					logger,
-					targetService,
-					apps.getApp(PayloadAll)
-				)
-			case 'multisimple':
-				return new MultiTargetRoundRobinPlanner(
-					logger,
-					targetService,
-					apps.getApp(PayloadAll)
-				)
 			case 'multidirectional':
 				return new MultiTargetDirectionalRoundRobinPlanner(
 					logger,
@@ -102,14 +90,8 @@ export async function main(ns: NS) {
 					apps
 				)
 			case 'multiup':
-				return new MultiTargetUpgradePlanner(ns, logger, targetService, apps)
-			case 'directional':
 			default:
-				return new SingleTargetDirectionalPayloadPlanner(
-					logger,
-					targetService,
-					apps
-				)
+				return new MultiTargetUpgradePlanner(ns, logger, targetService, apps)
 		}
 	}
 
