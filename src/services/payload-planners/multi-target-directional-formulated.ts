@@ -249,7 +249,9 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 				this.totalRam
 			)
 			if (!targetProcesses) {
-				needsThreads.push({ target, app, threads: targetThreads })
+				if (targetThreads >= 1) {
+					needsThreads.push({ target, app, threads: targetThreads })
+				}
 			} else {
 				const processesByApp = new Map(
 					targetProcesses.pipe(
@@ -259,7 +261,9 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 				)
 				const appProcesses = processesByApp.get(app.name)
 				if (!appProcesses) {
-					needsThreads.push({ target, app, threads: targetThreads })
+					if (targetThreads >= 1) {
+						needsThreads.push({ target, app, threads: targetThreads })
+					}
 				} else {
 					const appThreads = reduce(
 						appProcesses,
@@ -269,11 +273,14 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 					if (areThreadsSufficient(this.ns, player, target, appThreads)) {
 						this.satisfiedTargets++
 					} else {
-						needsThreads.push({
-							target,
-							app,
-							threads: targetThreads - appThreads,
-						})
+						const threadsNeeded = Math.ceil(targetThreads - appThreads)
+						if (threadsNeeded >= 1) {
+							needsThreads.push({
+								target,
+								app,
+								threads: threadsNeeded,
+							})
+						}
 					}
 					processesByApp.delete(app.name)
 				}
