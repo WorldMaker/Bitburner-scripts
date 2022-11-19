@@ -325,6 +325,10 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 					Math.floor(available / app.ramCost),
 					needFulfilled
 				)
+				if (threads < 1) {
+					nextfreelist.push({ server, available })
+					continue
+				}
 				needFulfilled -= threads
 				if (needFulfilled <= 0) {
 					this.satisfiedTargets++
