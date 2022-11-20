@@ -148,6 +148,7 @@ function calculateTargetThreads(
 interface FreeRam {
 	server: Target
 	available: number
+	running: Set<string>
 }
 
 interface RunningProcess {
@@ -197,6 +198,7 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 			map((server) => ({
 				server,
 				available: server.getMaxRam() - server.checkUsedRam(),
+				running: new Set<string>(),
 			})),
 			orderByDescending((server) => server.available)
 		)
@@ -219,6 +221,7 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 			}
 			const processes = this.ns.ps(server.name)
 			for (const process of processes) {
+				free.running.add(process.filename)
 				allProcesses.push({ server, process })
 			}
 		}
@@ -315,9 +318,13 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 			let nextfreelist: FreeRam[] = []
 			let attacked = false
 
-			for (const { server, available } of curfreelist) {
+			for (const { server, available, running } of curfreelist) {
+				if (running.has(app.name)) {
+					nextfreelist.push({ server, available, running })
+					continue
+				}
 				if (available < app.ramCost) {
-					nextfreelist.push({ server, available })
+					nextfreelist.push({ server, available, running })
 					// when sorting these we could break here, but we want to track all free RAM
 					continue
 				}
@@ -326,7 +333,7 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 					needFulfilled
 				)
 				if (threads < 1) {
-					nextfreelist.push({ server, available })
+					nextfreelist.push({ server, available, running })
 					continue
 				}
 				needFulfilled -= threads
@@ -340,9 +347,10 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 					threads,
 				})
 				deployments.set(server.name, serverDeployments)
+				running.add(app.name)
 				const remainingAvailable = available - threads * app.ramCost
 				if (remainingAvailable > 0) {
-					nextfreelist.push({ server, available: remainingAvailable })
+					nextfreelist.push({ server, available: remainingAvailable, running })
 				}
 				attacked = true
 			}
