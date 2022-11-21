@@ -221,7 +221,8 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 			}
 			const processes = this.ns.ps(server.name)
 			for (const process of processes) {
-				free.running.add(process.filename)
+				// pipe delimit process and target
+				free.running.add(`${process.filename}|${process.args[1]}`)
 				allProcesses.push({ server, process })
 			}
 		}
@@ -319,7 +320,7 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 			let attacked = false
 
 			for (const { server, available, running } of curfreelist) {
-				if (running.has(app.name)) {
+				if (running.has(`${app.name}|${target.name}`)) {
 					nextfreelist.push({ server, available, running })
 					continue
 				}
