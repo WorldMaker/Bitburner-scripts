@@ -39,9 +39,7 @@ export class MultiTargetDirectionalRoundRobinPlanner implements PayloadPlanner {
 		)
 		for (const [server, target] of servertargets) {
 			target.updateTargetDirection()
-			const app = this.appSelector.selectApp(
-				server.isSlow ? 'all' : target.getTargetDirection()
-			)
+			const app = this.appSelector.selectApp(target.getTargetDirection())
 			if (server.getMaxRam() < app.ramCost) {
 				this.logger.log(
 					`WARN ${server.name} only has ${server.getMaxRam()} memory`

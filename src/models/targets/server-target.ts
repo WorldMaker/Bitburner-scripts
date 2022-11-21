@@ -1,5 +1,4 @@
 import { DeployTarget } from './deploy-target'
-import { slowlist } from './lazy-target'
 import { Target } from './target'
 
 /**
@@ -9,7 +8,6 @@ export class ServerTarget extends DeployTarget implements Target {
 	private server: Server
 	public readonly hackingLevel: number
 	public readonly purchasedNumber: number | null
-	public readonly isSlow: boolean
 	public readonly purchased: boolean
 	private readonly parents = new Set<string>()
 
@@ -20,7 +18,6 @@ export class ServerTarget extends DeployTarget implements Target {
 		this.purchased = this.server.purchasedByPlayer
 
 		this.hackingLevel = this.server.requiredHackingSkill
-		this.isSlow = slowlist.has(this.name)
 		this.purchasedNumber = this.purchased
 			? Number(this.name.split('-')[1])
 			: null
