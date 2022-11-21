@@ -1,11 +1,8 @@
 import { IterableX } from '@reactivex/ix-esnext-esm/iterable/iterablex'
-import { concatWith } from '@reactivex/ix-esnext-esm/iterable/operators/concatwith'
 import { groupBy } from '@reactivex/ix-esnext-esm/iterable/operators/groupby'
 import { map } from '@reactivex/ix-esnext-esm/iterable/operators/map'
 import { orderByDescending } from '@reactivex/ix-esnext-esm/iterable/operators/orderby'
-import { repeat } from '@reactivex/ix-esnext-esm/iterable/operators/repeat'
 import { reduce } from '@reactivex/ix-esnext-esm/iterable/reduce'
-import { zip } from '@reactivex/ix-esnext-esm/iterable/zip'
 import { App } from '../../models/app'
 import {
 	DeployPlan,
@@ -151,6 +148,7 @@ function calculateTargetThreads(
 interface FreeRam {
 	server: Target
 	available: number
+	running: Set<string>
 }
 
 interface RunningProcess {
@@ -200,6 +198,7 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 			map((server) => ({
 				server,
 				available: server.getMaxRam() - server.checkUsedRam(),
+				running: new Set<string>(),
 			})),
 			orderByDescending((server) => server.available)
 		)
@@ -222,6 +221,8 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 			}
 			const processes = this.ns.ps(server.name)
 			for (const process of processes) {
+				// pipe delimit process and target
+				free.running.add(`${process.filename}|${process.args[1]}`)
 				allProcesses.push({ server, process })
 			}
 		}
@@ -252,7 +253,9 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 				this.totalRam
 			)
 			if (!targetProcesses) {
-				needsThreads.push({ target, app, threads: targetThreads })
+				if (targetThreads >= 1) {
+					needsThreads.push({ target, app, threads: targetThreads })
+				}
 			} else {
 				const processesByApp = new Map(
 					targetProcesses.pipe(
@@ -262,7 +265,9 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 				)
 				const appProcesses = processesByApp.get(app.name)
 				if (!appProcesses) {
-					needsThreads.push({ target, app, threads: targetThreads })
+					if (targetThreads >= 1) {
+						needsThreads.push({ target, app, threads: targetThreads })
+					}
 				} else {
 					const appThreads = reduce(
 						appProcesses,
@@ -272,11 +277,14 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 					if (areThreadsSufficient(this.ns, player, target, appThreads)) {
 						this.satisfiedTargets++
 					} else {
-						needsThreads.push({
-							target,
-							app,
-							threads: targetThreads - appThreads,
-						})
+						const threadsNeeded = Math.ceil(targetThreads - appThreads)
+						if (threadsNeeded >= 1) {
+							needsThreads.push({
+								target,
+								app,
+								threads: threadsNeeded,
+							})
+						}
 					}
 					processesByApp.delete(app.name)
 				}
@@ -304,34 +312,60 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 
 		this.attackedTargets = this.satisfiedTargets
 
-		const deployments = new Map<string, DeployPlan>()
-		for (const [free, targetRequest] of zip(
-			freelist,
-			from(needsThreads).pipe(concatWith(from([null]).pipe(repeat())))
-		)) {
-			if (targetRequest == null) {
-				this.freeRam += free.available
-				continue
+		const deployments = new Map<string, DeployPlan[]>()
+		let curfreelist = from(freelist)
+		for (const { target, app, threads: targetThreads } of needsThreads) {
+			let needFulfilled = targetThreads
+			let nextfreelist: FreeRam[] = []
+			let attacked = false
+
+			for (const { server, available, running } of curfreelist) {
+				if (running.has(`${app.name}|${target.name}`)) {
+					nextfreelist.push({ server, available, running })
+					continue
+				}
+				if (available < app.ramCost) {
+					nextfreelist.push({ server, available, running })
+					// when sorting these we could break here, but we want to track all free RAM
+					continue
+				}
+				const threads = Math.min(
+					Math.floor(available / app.ramCost),
+					needFulfilled
+				)
+				if (threads < 1) {
+					nextfreelist.push({ server, available, running })
+					continue
+				}
+				needFulfilled -= threads
+				if (needFulfilled <= 0) {
+					this.satisfiedTargets++
+				}
+				const serverDeployments = deployments.get(server.name) ?? []
+				serverDeployments.push({
+					app,
+					target,
+					threads,
+				})
+				deployments.set(server.name, serverDeployments)
+				running.add(app.name)
+				const remainingAvailable = available - threads * app.ramCost
+				if (remainingAvailable > 0) {
+					nextfreelist.push({ server, available: remainingAvailable, running })
+				}
+				attacked = true
 			}
-			const { target, app, threads: targetThreads } = targetRequest
-			if (free.available < app.ramCost) {
-				continue
+
+			if (attacked) {
+				this.attackedTargets++
 			}
-			const threads = Math.min(
-				Math.floor(free.available / app.ramCost),
-				targetThreads
+
+			curfreelist = from(nextfreelist).pipe(
+				orderByDescending((f) => f.available)
 			)
-			if (threads === targetThreads) {
-				this.satisfiedTargets++
-			}
-			deployments.set(free.server.name, {
-				app,
-				target,
-				threads,
-			})
-			this.attackedTargets++
-			this.freeRam += free.available - threads * app.ramCost
 		}
+
+		this.freeRam += reduce(curfreelist, (acc, cur) => acc + cur.available, 0)
 
 		// *** Merge kills and deployments to yield current plans ***
 
@@ -347,7 +381,7 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 			}
 			yield {
 				type: 'change',
-				deployments: [...(deploy ? [deploy] : [])],
+				deployments: [...(deploy ? deploy : [])],
 				kills,
 				killall: false,
 				server,

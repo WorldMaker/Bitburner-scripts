@@ -1,15 +1,6 @@
 import { DeployTarget } from './deploy-target'
 import { Target } from './target'
 
-export const slowlist = new Set([
-	'millenium-fitness',
-	'catalyst',
-	'rothman-uni',
-	'silver-helix',
-	'I.I.I.I',
-	'netlink',
-])
-
 /**
  * Lazy Target is entirely "pay-per-play" when looking up Server information
  */
@@ -19,14 +10,12 @@ export class LazyTarget extends DeployTarget implements Target {
 	private maxRam: number | null = null
 	private isRooted: boolean
 	public readonly purchasedNumber: number | null
-	public readonly isSlow: boolean
 	private readonly parents = new Set<string>()
 
 	constructor(ns: NS, name: string, public readonly purchased: boolean) {
 		super(ns, name)
 		this.hackingLevel = this.ns.getServerRequiredHackingLevel(this.name)
 		this.isRooted = this.ns.hasRootAccess(this.name)
-		this.isSlow = slowlist.has(this.name)
 		this.purchasedNumber = purchased ? Number(this.name.split('-')[1]) : null
 	}
 

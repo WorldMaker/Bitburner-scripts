@@ -48,11 +48,6 @@ export class AppSelector {
 
 export class SingleTargetAppSelector extends AppSelector {
 	selectSingleApp(server: Target, target: Target) {
-		// "slow" servers get the combined "smart" payload
-		if (server.isSlow) {
-			return this.payloadAll
-		}
-
 		let direction = target.getTargetDirection()
 		// purchased servers get split into dedicated groups in deployment order of the payloads array
 		if (server.purchased && server.purchasedNumber) {
