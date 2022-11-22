@@ -15,6 +15,7 @@ export interface BatchPlan {
 export interface Batch<T extends BatchType> {
 	type: T
 	getEndTime(): number | undefined
+	getStartTime(): number | undefined
 	isSafe(): boolean
 	isStableHack(): boolean
 	plan(): Iterable<BatchPlan>

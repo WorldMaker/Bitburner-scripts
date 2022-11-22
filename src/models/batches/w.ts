@@ -11,15 +11,20 @@ export class WBatch implements Batch<'w'> {
 		private wProcess?: ProcessInfo
 	) {}
 
-	getEndTime(): number | undefined {
+	getStartTime(): number | undefined {
 		if (!this.wProcess) {
 			return undefined
 		}
 		const [, , start] = this.wProcess.args
-		return (
-			Number(start) +
-			this.ns.formulas.hacking.weakenTime(this.server, this.player)
-		)
+		return Number(start)
+	}
+
+	getEndTime(): number | undefined {
+		const start = this.getStartTime()
+		if (!start) {
+			return undefined
+		}
+		return start + this.ns.formulas.hacking.weakenTime(this.server, this.player)
 	}
 
 	isStableHack(): boolean {

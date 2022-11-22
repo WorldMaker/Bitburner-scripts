@@ -19,6 +19,50 @@ export class HwgwBatch implements Batch<'hwgw'> {
 		private w2Process?: ProcessInfo
 	) {}
 
+	getHackStart() {
+		if (!this.hackProcess) {
+			return undefined
+		}
+		// batch args: [cmd, target, startTime, batchId?]
+		const [, , start] = this.hackProcess.args
+		return Number(start)
+	}
+
+	getW1Start() {
+		if (!this.w1Process) {
+			return undefined
+		}
+		const [, , start] = this.w1Process.args
+		return Number(start)
+	}
+
+	getGrowStart() {
+		if (!this.growProcess) {
+			return undefined
+		}
+		const [, , start] = this.growProcess.args
+		return Number(start)
+	}
+
+	getW2Start() {
+		if (!this.w2Process) {
+			return undefined
+		}
+		const [, , start] = this.w2Process.args
+		return Number(start)
+	}
+
+	getStartTime(): number | undefined {
+		const hackStart = this.getHackStart()
+		const w1Start = this.getW1Start()
+		const growStart = this.getGrowStart()
+		const w2Start = this.getW2Start()
+		if (!hackStart || !w1Start || !growStart || !w2Start) {
+			return undefined
+		}
+		return Math.min(hackStart, w1Start, growStart, w2Start)
+	}
+
 	getW2Finish() {
 		if (!this.w2Process) {
 			return undefined
@@ -43,15 +87,12 @@ export class HwgwBatch implements Batch<'hwgw'> {
 		) {
 			return false
 		}
-		// batch args: [cmd, target, startTime, batchId?]
-		const [, , hackStart] = this.hackProcess.args
+		const hackStart = this.getHackStart()!
 		const hackFinish =
-			Number(hackStart) +
-			this.ns.formulas.hacking.hackTime(this.server, this.player)
-		const [, , w1Start] = this.w1Process.args
+			hackStart + this.ns.formulas.hacking.hackTime(this.server, this.player)
+		const w1Start = this.getW1Start()!
 		const w1Finish =
-			Number(w1Start) +
-			this.ns.formulas.hacking.weakenTime(this.server, this.player)
+			w1Start + this.ns.formulas.hacking.weakenTime(this.server, this.player)
 		// hack should finish before w1
 		if (hackFinish > w1Finish) {
 			return false
@@ -70,10 +111,9 @@ export class HwgwBatch implements Batch<'hwgw'> {
 		if (w1ThreadsNeeded < this.w1Process.threads) {
 			return false
 		}
-		const [, , growStart] = this.growProcess.args
+		const growStart = this.getGrowStart()!
 		const growFinish =
-			Number(growStart) +
-			this.ns.formulas.hacking.growTime(this.server, this.player)
+			growStart + this.ns.formulas.hacking.growTime(this.server, this.player)
 		// w1 should finish before grow start
 		if (w1Finish > growFinish) {
 			return false
