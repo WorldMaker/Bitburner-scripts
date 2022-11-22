@@ -5,6 +5,11 @@ import { orderByDescending } from '@reactivex/ix-esnext-esm/iterable/operators/o
 import { reduce } from '@reactivex/ix-esnext-esm/iterable/reduce'
 import { App } from '../../models/app'
 import {
+	DesiredHackingSkim,
+	GrowthSecurityRaisePerThread,
+	WeakenSecurityLowerPerThread,
+} from '../../models/hackmath'
+import {
 	DeployPlan,
 	PayloadPlan,
 	PayloadPlanner,
@@ -20,10 +25,6 @@ import {
 import { TargetService } from '../target'
 
 const { from } = IterableX
-
-const GrowthSecurityRaisePerThread = 0.004
-const WeakenSecurityLowerPerThread = 0.05
-const DesiredHackingSkim = 0.25
 
 export class SalvoAppSelector {
 	protected payloadAll: App
