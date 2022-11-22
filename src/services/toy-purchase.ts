@@ -10,6 +10,8 @@ const { from } = IterableX
 const BudgetTicks = 6 /* 10s */
 const ToyBudgetMultiplier = 1 / 10_000_000 /* per minute */ / BudgetTicks
 
+const Usd: Intl.NumberFormatOptions = { style: 'currency', currency: 'USD' }
+
 export class ToyPurchaseService {
 	private budget: number | null = null
 	private budgetPerMinute: number | null = null
@@ -25,7 +27,10 @@ export class ToyPurchaseService {
 	}
 
 	summarize() {
-		return `INFO shopped for toys with budget ${this.budgetPerMinute} per minute`
+		return `INFO shopped for toys with budget ${this.budgetPerMinute?.toLocaleString(
+			undefined,
+			Usd
+		)} per minute`
 	}
 
 	updateBudget() {
@@ -122,9 +127,10 @@ export class ToyPurchaseService {
 		}
 
 		this.logger.log(
-			`SUCCESS spent toy budget ${
-				startingBudget - this.budget
-			} / ${startingBudget}`
+			`SUCCESS spent toy budget ${(startingBudget - this.budget).toLocaleString(
+				undefined,
+				Usd
+			)} / ${startingBudget.toLocaleString(undefined, Usd)}`
 		)
 		this.tickCount = 0
 	}
