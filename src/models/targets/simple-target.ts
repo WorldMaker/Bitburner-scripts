@@ -1,4 +1,5 @@
 export type TargetDirection = 'weaken' | 'grow' | 'hack'
+export type BatchDirection = 'weaken' | 'grow' | 'batch'
 
 const moneyThresholdMultiplier = 0.75
 const securityThresholdOverage = 5
@@ -12,6 +13,7 @@ export class SimpleTarget {
 	private securityThreshold: number | null = null
 	private minSecurityLevel: number | null = null
 	private targetDirection: TargetDirection = 'weaken'
+	private batchDirection: BatchDirection = 'weaken'
 
 	constructor(protected ns: NS, public readonly name: string) {}
 
@@ -107,6 +109,74 @@ export class SimpleTarget {
 					money < this.getMoneyThreshold()
 				) {
 					this.targetDirection = 'weaken'
+					return true
+				}
+				break
+		}
+		return false
+	}
+
+	getBatchDirection() {
+		return this.batchDirection
+	}
+
+	/**
+	 * Finds the next Batch direction
+	 *
+	 * Batch direction is a similar state machine to Target Direction for Batch preparation
+	 *
+	 * ```
+	 * weaken [start; preparation]
+	 * weaken -> grow [weakened; low on money]
+	 * weaken -> batch [weakened; full on money]
+	 * grow -> weaken [high on security]
+	 * grow -> batch [UNLIKELY: weakened and full on money]
+	 * batch -> weaken [SAFE ZONE: desync either high security or low money]
+	 * ```
+	 *
+	 * @param safeZone Check for desync
+	 * @returns State has changed
+	 */
+	updateBatchDirection(safeZone = true) {
+		const securityLevel = this.checkSecurityLevel()
+		const money = this.checkMoneyAvailable()
+		switch (this.batchDirection) {
+			case 'weaken':
+				if (securityLevel <= this.getMinSecurityLevel()) {
+					if (money >= this.getWorth()) {
+						this.batchDirection = 'batch'
+						return true
+					} else {
+						this.batchDirection = 'grow'
+						return true
+					}
+				}
+				break
+			case 'grow':
+				if (
+					securityLevel > this.getSecurityThreshold() ||
+					money >= this.getWorth()
+				) {
+					if (
+						money >= this.getWorth() &&
+						securityLevel <= this.getMinSecurityLevel()
+					) {
+						this.batchDirection = 'batch'
+						return true
+					} else {
+						this.batchDirection = 'weaken'
+						return true
+					}
+				}
+				break
+			case 'batch':
+				if (
+					safeZone &&
+					(securityLevel > this.getSecurityThreshold() ||
+						money < this.getMoneyThreshold())
+				) {
+					this.ns.tprint(`WARN ${this.name} desync`)
+					this.batchDirection = 'weaken'
 					return true
 				}
 				break
