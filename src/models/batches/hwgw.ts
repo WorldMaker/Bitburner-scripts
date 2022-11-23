@@ -1,4 +1,4 @@
-import { Batch, BatchPlan } from '../batch'
+import { Batch, BatchPlan, BatchTick } from '../batch'
 import {
 	DesiredHackingSkim,
 	HackSecurityRaisePerThread,
@@ -19,9 +19,9 @@ export class HwgwBatch implements Batch<'hwgw'> {
 		private w2Process?: ProcessInfo
 	) {}
 
-    expectedGrowth(): number | undefined {
-        return undefined
-    }
+	expectedGrowth(): number | undefined {
+		return undefined
+	}
 
 	getHackStart() {
 		if (!this.hackProcess) {
@@ -142,7 +142,60 @@ export class HwgwBatch implements Batch<'hwgw'> {
 		return this.isSafe()
 	}
 
-	plan(): Iterable<BatchPlan> {
-		throw new Error('TODO')
+	plan(
+		expectedMoneyAvailable: number,
+		expectedSecurityLevel: number
+	): Iterable<BatchPlan> {
+		const hackThreads =
+			(expectedMoneyAvailable * DesiredHackingSkim) /
+			this.ns.formulas.hacking.hackPercent(this.server, this.player)
+		const w1Threads =
+			(hackThreads * HackSecurityRaisePerThread) / WeakenSecurityLowerPerThread
+		const expectedGrowMoney =
+			expectedMoneyAvailable - expectedMoneyAvailable * DesiredHackingSkim
+		const growAmount =
+			expectedGrowMoney / (expectedMoneyAvailable - expectedGrowMoney)
+		const growThreads = this.ns.growthAnalyze(this.server.hostname, growAmount)
+		const w2Threads =
+			(growThreads * GrowthSecurityRaisePerThread) /
+			WeakenSecurityLowerPerThread
+
+		const hackTime = this.ns.formulas.hacking.hackTime(this.server, this.player)
+		const weakenTime = this.ns.formulas.hacking.weakenTime(
+			this.server,
+			this.player
+		)
+		const growTime = this.ns.formulas.hacking.growTime(this.server, this.player)
+
+		// timing with t=0 at end point
+		const hackStart = -3 * BatchTick - hackTime
+		const w1Start = -2 * BatchTick - weakenTime
+		const growStart = -1 * BatchTick - growTime
+		const w2Start = 0 * BatchTick - weakenTime
+		// offset for t=0 at batch start
+		const startOffset = -Math.min(hackStart, w1Start, growStart, w2Start)
+
+		return [
+			{
+				direction: 'hack',
+				start: startOffset + hackStart,
+				threads: hackThreads,
+			},
+			{
+				direction: 'weaken',
+				start: startOffset + w1Start,
+				threads: w1Threads,
+			},
+			{
+				direction: 'grow',
+				start: startOffset + growStart,
+				threads: growThreads,
+			},
+			{
+				direction: 'weaken',
+				start: startOffset + w2Start,
+				threads: w2Threads,
+			},
+		]
 	}
 }
