@@ -1,4 +1,4 @@
-import { Batch, BatchPlan, StartDelay } from '../batch'
+import { Batch, BatchPlan } from '../batch'
 import { WeakenSecurityLowerPerThread } from '../hackmath'
 
 export class WBatch implements Batch<'w'> {
@@ -6,10 +6,14 @@ export class WBatch implements Batch<'w'> {
 
 	constructor(
 		private readonly ns: NS,
-		private player: Player,
-		private readonly server: Server,
+		public readonly player: Player,
+		public readonly server: Server,
 		private wProcess?: ProcessInfo
 	) {}
+
+	expectedGrowth(): number | undefined {
+		return undefined
+	}
 
 	getStartTime(): number | undefined {
 		if (!this.wProcess) {
@@ -35,13 +39,16 @@ export class WBatch implements Batch<'w'> {
 		return Boolean(this.wProcess)
 	}
 
-	plan(): Iterable<BatchPlan> {
-		const desiredWeaken = this.server.hackDifficulty - this.server.minDifficulty
+	plan(
+		expectedMoneyAvailable: number,
+		expectedSecurityLevel: number
+	): Iterable<BatchPlan> {
+		const desiredWeaken = expectedSecurityLevel - this.server.minDifficulty
 		const threads = desiredWeaken / WeakenSecurityLowerPerThread
 		return [
 			{
 				direction: 'weaken',
-				start: new Date().getTime() + StartDelay,
+				start: 0,
 				threads,
 			},
 		]

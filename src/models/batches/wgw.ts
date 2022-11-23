@@ -1,35 +1,30 @@
-import { Batch, BatchPlan } from '../batch'
+import { Batch, BatchPlan, BatchTick } from '../batch'
 import {
-	DesiredHackingSkim,
-	HackSecurityRaisePerThread,
 	WeakenSecurityLowerPerThread,
 	GrowthSecurityRaisePerThread,
 } from '../hackmath'
 
-export class HwgwBatch implements Batch<'hwgw'> {
-	public readonly type = 'hwgw'
+export class WgwBatch implements Batch<'wgw'> {
+	public readonly type = 'wgw'
 
 	constructor(
 		private readonly ns: NS,
 		public readonly player: Player,
 		public readonly server: Server,
-		private hackProcess?: ProcessInfo,
 		private w1Process?: ProcessInfo,
 		private growProcess?: ProcessInfo,
 		private w2Process?: ProcessInfo
 	) {}
 
-    expectedGrowth(): number | undefined {
-        return undefined
-    }
-
-	getHackStart() {
-		if (!this.hackProcess) {
+	expectedGrowth(): number | undefined {
+		if (!this.growProcess) {
 			return undefined
 		}
-		// batch args: [cmd, target, startTime, batchId?]
-		const [, , start] = this.hackProcess.args
-		return Number(start)
+		return this.ns.formulas.hacking.growPercent(
+			this.server,
+			this.growProcess.threads,
+			this.player
+		)
 	}
 
 	getW1Start() {
@@ -57,14 +52,13 @@ export class HwgwBatch implements Batch<'hwgw'> {
 	}
 
 	getStartTime(): number | undefined {
-		const hackStart = this.getHackStart()
 		const w1Start = this.getW1Start()
 		const growStart = this.getGrowStart()
 		const w2Start = this.getW2Start()
-		if (!hackStart || !w1Start || !growStart || !w2Start) {
+		if (!w1Start || !growStart || !w2Start) {
 			return undefined
 		}
-		return Math.min(hackStart, w1Start, growStart, w2Start)
+		return Math.min(w1Start, growStart, w2Start)
 	}
 
 	getW2Finish() {
@@ -83,38 +77,13 @@ export class HwgwBatch implements Batch<'hwgw'> {
 	}
 
 	isSafe() {
-		if (
-			!this.hackProcess ||
-			!this.w1Process ||
-			!this.growProcess ||
-			!this.w2Process
-		) {
+		if (!this.w1Process || !this.growProcess || !this.w2Process) {
 			return false
 		}
-		const hackStart = this.getHackStart()!
-		const hackFinish =
-			hackStart + this.ns.formulas.hacking.hackTime(this.server, this.player)
 		const w1Start = this.getW1Start()!
 		const w1Finish =
 			w1Start + this.ns.formulas.hacking.weakenTime(this.server, this.player)
-		// hack should finish before w1
-		if (hackFinish > w1Finish) {
-			return false
-		}
-		const hackSkim =
-			this.ns.formulas.hacking.hackPercent(this.server, this.player) *
-			this.hackProcess.threads
-		// hack shouldn't skim too much
-		if (hackSkim > DesiredHackingSkim) {
-			return false
-		}
-		const hackSecurityGrowth =
-			this.hackProcess.threads * HackSecurityRaisePerThread
-		const w1ThreadsNeeded = hackSecurityGrowth / WeakenSecurityLowerPerThread
-		// w1 should be enough to recoup hack security raise
-		if (w1ThreadsNeeded < this.w1Process.threads) {
-			return false
-		}
+		// TODO: check weaken is enough to minimize security?
 		const growStart = this.getGrowStart()!
 		const growFinish =
 			growStart + this.ns.formulas.hacking.growTime(this.server, this.player)
@@ -139,10 +108,69 @@ export class HwgwBatch implements Batch<'hwgw'> {
 	}
 
 	isStableHack(): boolean {
-		return this.isSafe()
+		return false
 	}
 
-	plan(): Iterable<BatchPlan> {
-		throw new Error('TODO')
+	plan(
+		expectedMoneyAvailable: number,
+		expectedSecurityLevel: number
+	): Iterable<BatchPlan> {
+		const desiredWeaken = expectedSecurityLevel - this.server.minDifficulty
+		const w1Threads = desiredWeaken / WeakenSecurityLowerPerThread
+		const growTime = this.ns.formulas.hacking.growTime(this.server, this.player)
+		const growAmount =
+			expectedMoneyAvailable / (this.server.moneyMax - expectedMoneyAvailable)
+		const growThreads = this.ns.growthAnalyze(this.server.hostname, growAmount)
+		const weakenTime = this.ns.formulas.hacking.weakenTime(
+			this.server,
+			this.player
+		)
+		const w2Threads =
+			(growThreads * GrowthSecurityRaisePerThread) /
+			WeakenSecurityLowerPerThread
+		if (growTime > weakenTime) {
+			let w1Start = growTime - weakenTime - BatchTick
+			let growStart = 0
+			if (w1Start < 0) {
+				growStart = Math.abs(w1Start)
+				w1Start = 0
+			}
+			return [
+				{
+					direction: 'weaken',
+					start: w1Start,
+					threads: w1Threads,
+				},
+				{
+					direction: 'grow',
+					start: growStart,
+					threads: growThreads,
+				},
+				{
+					direction: 'weaken',
+					start: growStart + growTime - weakenTime + BatchTick,
+					threads: w2Threads,
+				},
+			]
+		} else {
+			const growStart = weakenTime - growTime + BatchTick
+			return [
+				{
+					direction: 'weaken',
+					start: 0,
+					threads: w1Threads,
+				},
+				{
+					direction: 'grow',
+					start: growStart,
+					threads: growThreads,
+				},
+				{
+					direction: 'weaken',
+					start: 2 * BatchTick,
+					threads: w2Threads,
+				},
+			]
+		}
 	}
 }
