@@ -179,21 +179,25 @@ export class HwgwBatch implements Batch<'hwgw'> {
 			{
 				direction: 'hack',
 				start: startOffset + hackStart,
+				end: startOffset + hackStart + hackTime,
 				threads: hackThreads,
 			},
 			{
 				direction: 'weaken',
 				start: startOffset + w1Start,
+				end: startOffset + w1Start + weakenTime,
 				threads: w1Threads,
 			},
 			{
 				direction: 'grow',
 				start: startOffset + growStart,
+				end: startOffset + growStart + growTime,
 				threads: growThreads,
 			},
 			{
 				direction: 'weaken',
 				start: startOffset + w2Start,
+				end: startOffset + w2Start + weakenTime,
 				threads: w2Threads,
 			},
 		]

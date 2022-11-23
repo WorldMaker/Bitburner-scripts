@@ -140,16 +140,19 @@ export class WgwBatch implements Batch<'wgw'> {
 			{
 				direction: 'weaken',
 				start: startOffset + w1Start,
+				end: startOffset + w1Start + weakenTime,
 				threads: w1Threads,
 			},
 			{
 				direction: 'grow',
 				start: startOffset + growStart,
+				end: startOffset + growStart + growTime,
 				threads: growThreads,
 			},
 			{
 				direction: 'weaken',
 				start: startOffset + w2Start,
+				end: startOffset + w2Start + weakenTime,
 				threads: w2Threads,
 			},
 		]

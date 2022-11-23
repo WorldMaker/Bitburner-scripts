@@ -13,6 +13,7 @@ export interface BatchPlan {
 	direction: TargetDirection
 	threads: number
 	start: number
+	end: number
 }
 
 export interface Batch<T extends BatchType> {

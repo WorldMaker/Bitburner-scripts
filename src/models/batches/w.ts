@@ -49,6 +49,7 @@ export class WBatch implements Batch<'w'> {
 			{
 				direction: 'weaken',
 				start: 0,
+				end: this.ns.formulas.hacking.weakenTime(this.server, this.player),
 				threads,
 			},
 		]

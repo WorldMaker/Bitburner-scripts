@@ -69,6 +69,15 @@ buildSync({
 })
 
 buildSync({
+	entryPoints: ['./src/payload-b1.ts'],
+	bundle,
+	target,
+	format,
+	outfile: './dist/payload-b1.js',
+	logLevel,
+})
+
+buildSync({
 	entryPoints: ['./src/payload-bg.ts'],
 	bundle,
 	target,
