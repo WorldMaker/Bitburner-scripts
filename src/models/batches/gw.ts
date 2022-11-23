@@ -108,32 +108,24 @@ export class GwBatch implements Batch<'gw'> {
 		const weakenThreads =
 			(growThreads * GrowthSecurityRaisePerThread) /
 			WeakenSecurityLowerPerThread
-		if (growTime > weakenTime) {
-			return [
-				{
-					direction: 'grow',
-					start: 0,
-					threads: growThreads,
-				},
-				{
-					direction: 'weaken',
-					start: growTime - weakenTime + BatchTick,
-					threads: weakenThreads,
-				},
-			]
-		} else {
-			return [
-				{
-					direction: 'grow',
-					start: weakenTime - growTime,
-					threads: growThreads,
-				},
-				{
-					direction: 'weaken',
-					start: BatchTick,
-					threads: weakenThreads,
-				},
-			]
-		}
+
+		// timing with t=0 at end point
+		const growStart = -1*BatchTick - growTime
+		const weakenStart = 0*BatchTick - weakenTime
+		// offset for t=0 at batch start
+		const startOffset = -Math.min(growStart, weakenStart)
+
+		return [
+			{
+				direction: 'grow',
+				start: startOffset + growStart,
+				threads: growThreads,
+			},
+			{
+				direction: 'weaken',
+				start: startOffset + weakenStart,
+				threads: weakenThreads,
+			},
+		]
 	}
 }

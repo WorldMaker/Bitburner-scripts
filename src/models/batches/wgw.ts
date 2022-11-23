@@ -128,49 +128,30 @@ export class WgwBatch implements Batch<'wgw'> {
 		const w2Threads =
 			(growThreads * GrowthSecurityRaisePerThread) /
 			WeakenSecurityLowerPerThread
-		if (growTime > weakenTime) {
-			let w1Start = growTime - weakenTime - BatchTick
-			let growStart = 0
-			if (w1Start < 0) {
-				growStart = Math.abs(w1Start)
-				w1Start = 0
-			}
-			return [
-				{
-					direction: 'weaken',
-					start: w1Start,
-					threads: w1Threads,
-				},
-				{
-					direction: 'grow',
-					start: growStart,
-					threads: growThreads,
-				},
-				{
-					direction: 'weaken',
-					start: growStart + growTime - weakenTime + BatchTick,
-					threads: w2Threads,
-				},
-			]
-		} else {
-			const growStart = weakenTime - growTime + BatchTick
-			return [
-				{
-					direction: 'weaken',
-					start: 0,
-					threads: w1Threads,
-				},
-				{
-					direction: 'grow',
-					start: growStart,
-					threads: growThreads,
-				},
-				{
-					direction: 'weaken',
-					start: 2 * BatchTick,
-					threads: w2Threads,
-				},
-			]
-		}
+
+		// timing with t=0 at end point
+		const w1Start = -2 * BatchTick - weakenTime
+		const growStart = -1 * BatchTick - growTime
+		const w2Start = 0 * BatchTick - weakenTime
+		// offset for t=0 at batch start
+		const startOffset = -Math.min(w1Start, growStart, w2Start)
+
+		return [
+			{
+				direction: 'weaken',
+				start: startOffset + w1Start,
+				threads: w1Threads,
+			},
+			{
+				direction: 'grow',
+				start: startOffset + growStart,
+				threads: growThreads,
+			},
+			{
+				direction: 'weaken',
+				start: startOffset + w2Start,
+				threads: w2Threads,
+			},
+		]
 	}
 }
