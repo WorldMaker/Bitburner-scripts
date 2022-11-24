@@ -146,19 +146,35 @@ export class HwgwBatch implements Batch<'hwgw'> {
 		expectedMoneyAvailable: number,
 		expectedSecurityLevel: number
 	): Iterable<BatchPlan> {
-		const hackThreads =
-			(expectedMoneyAvailable * DesiredHackingSkim) /
-			this.ns.formulas.hacking.hackPercent(this.server, this.player)
-		const w1Threads =
-			(hackThreads * HackSecurityRaisePerThread) / WeakenSecurityLowerPerThread
+		const hackThreads = Math.max(
+			1,
+			Math.ceil(
+				(expectedMoneyAvailable * DesiredHackingSkim) /
+					this.ns.formulas.hacking.hackPercent(this.server, this.player)
+			)
+		)
+		const w1Threads = Math.max(
+			1,
+			Math.ceil(
+				(hackThreads * HackSecurityRaisePerThread) /
+					WeakenSecurityLowerPerThread
+			)
+		)
 		const expectedGrowMoney =
 			expectedMoneyAvailable - expectedMoneyAvailable * DesiredHackingSkim
 		const growAmount =
 			expectedGrowMoney / (expectedMoneyAvailable - expectedGrowMoney)
-		const growThreads = this.ns.growthAnalyze(this.server.hostname, growAmount)
-		const w2Threads =
-			(growThreads * GrowthSecurityRaisePerThread) /
-			WeakenSecurityLowerPerThread
+		const growThreads = Math.max(
+			1,
+			Math.ceil(this.ns.growthAnalyze(this.server.hostname, growAmount))
+		)
+		const w2Threads = Math.max(
+			1,
+			Math.ceil(
+				(growThreads * GrowthSecurityRaisePerThread) /
+					WeakenSecurityLowerPerThread
+			)
+		)
 
 		const hackTime = this.ns.formulas.hacking.hackTime(this.server, this.player)
 		const weakenTime = this.ns.formulas.hacking.weakenTime(

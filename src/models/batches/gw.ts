@@ -100,14 +100,21 @@ export class GwBatch implements Batch<'gw'> {
 		const growTime = this.ns.formulas.hacking.growTime(this.server, this.player)
 		const growAmount =
 			expectedMoneyAvailable / (this.server.moneyMax - expectedMoneyAvailable)
-		const growThreads = this.ns.growthAnalyze(this.server.hostname, growAmount)
+		const growThreads = Math.max(
+			1,
+			Math.ceil(this.ns.growthAnalyze(this.server.hostname, growAmount))
+		)
 		const weakenTime = this.ns.formulas.hacking.weakenTime(
 			this.server,
 			this.player
 		)
-		const weakenThreads =
-			(growThreads * GrowthSecurityRaisePerThread) /
-			WeakenSecurityLowerPerThread
+		const weakenThreads = Math.max(
+			1,
+			Math.ceil(
+				(growThreads * GrowthSecurityRaisePerThread) /
+					WeakenSecurityLowerPerThread
+			)
+		)
 
 		// timing with t=0 at end point
 		const growStart = -1 * BatchTick - growTime

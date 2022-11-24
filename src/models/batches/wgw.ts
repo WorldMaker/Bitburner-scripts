@@ -116,18 +116,28 @@ export class WgwBatch implements Batch<'wgw'> {
 		expectedSecurityLevel: number
 	): Iterable<BatchPlan> {
 		const desiredWeaken = expectedSecurityLevel - this.server.minDifficulty
-		const w1Threads = desiredWeaken / WeakenSecurityLowerPerThread
+		const w1Threads = Math.max(
+			1,
+			Math.ceil(desiredWeaken / WeakenSecurityLowerPerThread)
+		)
 		const growTime = this.ns.formulas.hacking.growTime(this.server, this.player)
 		const growAmount =
 			expectedMoneyAvailable / (this.server.moneyMax - expectedMoneyAvailable)
-		const growThreads = this.ns.growthAnalyze(this.server.hostname, growAmount)
+		const growThreads = Math.max(
+			1,
+			Math.ceil(this.ns.growthAnalyze(this.server.hostname, growAmount))
+		)
 		const weakenTime = this.ns.formulas.hacking.weakenTime(
 			this.server,
 			this.player
 		)
-		const w2Threads =
-			(growThreads * GrowthSecurityRaisePerThread) /
-			WeakenSecurityLowerPerThread
+		const w2Threads = Math.max(
+			1,
+			Math.ceil(
+				(growThreads * GrowthSecurityRaisePerThread) /
+					WeakenSecurityLowerPerThread
+			)
+		)
 
 		// timing with t=0 at end point
 		const w1Start = -2 * BatchTick - weakenTime

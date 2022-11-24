@@ -44,7 +44,10 @@ export class WBatch implements Batch<'w'> {
 		expectedSecurityLevel: number
 	): Iterable<BatchPlan> {
 		const desiredWeaken = expectedSecurityLevel - this.server.minDifficulty
-		const threads = desiredWeaken / WeakenSecurityLowerPerThread
+		const threads = Math.max(
+			1,
+			Math.ceil(desiredWeaken / WeakenSecurityLowerPerThread)
+		)
 		return [
 			{
 				direction: 'weaken',
