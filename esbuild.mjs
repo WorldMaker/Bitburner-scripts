@@ -75,6 +75,7 @@ buildSync({
 	format,
 	outfile: './dist/payload-b1.js',
 	logLevel,
+	define: { window: 'globalThis' },
 })
 
 buildSync({
