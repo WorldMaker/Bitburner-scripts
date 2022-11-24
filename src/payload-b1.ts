@@ -45,9 +45,8 @@ export async function main(ns: NS) {
 	const end = start + Math.max(...plan.map((p) => p.end))
 	const batchId = ulid()
 	for (const p of plan) {
-		ns.exec(
+		ns.run(
 			getPayloadName(p.direction),
-			ns.getHostname(),
 			p.threads,
 			'batch',
 			start,
