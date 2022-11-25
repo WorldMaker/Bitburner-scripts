@@ -53,24 +53,16 @@ export class SalvoAppSelector {
 	}
 }
 
-function areThreadsSufficient(
-	ns: NS,
-	player: Player,
-	target: Target,
-	threads: number
-) {
-	const server = ns.getServer(target.name)
+function areThreadsSufficient(ns: NS, target: Target, threads: number) {
 	switch (target.getTargetDirection()) {
 		case 'grow':
 			const moneyAvailable = target.checkMoneyAvailable()
-			const targetGrowPercent =
+			const targetGrowPercent = Math.max(
+				1,
 				moneyAvailable / (target.getWorth() - moneyAvailable)
-			const growPercent = ns.formulas.hacking.growPercent(
-				server,
-				threads,
-				player
 			)
-			if (growPercent >= targetGrowPercent) {
+			const targetThreads = ns.growthAnalyze(target.name, targetGrowPercent)
+			if (threads >= targetThreads) {
 				return true
 			}
 			return false
@@ -83,8 +75,7 @@ function areThreadsSufficient(
 			}
 			return false
 		case 'hack':
-			const hackPercent =
-				ns.formulas.hacking.hackPercent(server, player) * threads
+			const hackPercent = ns.hackAnalyze(target.name) * threads
 			if (hackPercent >= DesiredHackingSkim) {
 				return true
 			}
@@ -96,12 +87,10 @@ function areThreadsSufficient(
 
 function calculateTargetThreads(
 	ns: NS,
-	player: Player,
 	target: Target,
 	app: App,
 	ramBudget: number
 ) {
-	const server = ns.getServer(target.name)
 	switch (target.getTargetDirection()) {
 		case 'grow':
 			const moneyAvailable = target.checkMoneyAvailable()
@@ -132,7 +121,7 @@ function calculateTargetThreads(
 				)
 			)
 		case 'hack':
-			const hackPercent = ns.formulas.hacking.hackPercent(server, player)
+			const hackPercent = ns.hackAnalyze(target.name)
 			const totalPossibleHackThreads = Math.floor(ramBudget / app.ramCost)
 			return Math.max(
 				1,
@@ -248,7 +237,6 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 			// ideal number of threads up to 100% of total RAM
 			const targetThreads = calculateTargetThreads(
 				this.ns,
-				player,
 				target,
 				app,
 				this.totalRam
@@ -275,7 +263,7 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 						(acc, cur) => acc + cur.process.threads,
 						0
 					)
-					if (areThreadsSufficient(this.ns, player, target, appThreads)) {
+					if (areThreadsSufficient(this.ns, target, appThreads)) {
 						this.satisfiedTargets++
 					} else {
 						const threadsNeeded = Math.ceil(targetThreads - appThreads)
