@@ -50,7 +50,7 @@ export async function main(ns: NS) {
 			p.threads,
 			'batch',
 			targetName,
-			start,
+			start + p.start,
 			end,
 			batch.type,
 			batchId
