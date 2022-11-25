@@ -121,41 +121,37 @@ export class WgwBatch implements Batch<'wgw'> {
 			1,
 			Math.ceil(desiredWeaken / WeakenSecurityLowerPerThread)
 		)
-		const w1Server: Server = {
+		const expectedServer: Server = {
 			...this.server,
 			moneyAvailable: expectedMoneyAvailable,
 			hackDifficulty: expectedSecurityLevel,
 		}
-		const w1Time = this.ns.formulas.hacking.weakenTime(w1Server, this.player)
-		const growServer: Server = {
-			...this.server,
-			moneyAvailable: expectedMoneyAvailable,
-			hackDifficulty: this.server.minDifficulty,
-		}
-		const growTime = this.ns.formulas.hacking.growTime(growServer, this.player)
+		const weakenTime = this.ns.formulas.hacking.weakenTime(
+			expectedServer,
+			this.player
+		)
+		const growTime = this.ns.formulas.hacking.growTime(
+			expectedServer,
+			this.player
+		)
 		const growThreads = Math.max(
 			1,
-			calculateGrowThreads(this.ns.formulas.hacking, growServer, this.player)
+			calculateGrowThreads(
+				this.ns.formulas.hacking,
+				expectedServer,
+				this.player
+			)
 		)
 		const growSecurity = growThreads * GrowthSecurityRaisePerThread
-		const w2Server: Server = {
-			...this.server,
-			moneyAvailable: this.server.moneyMax,
-			hackDifficulty: this.server.minDifficulty + growSecurity,
-		}
-		const w2Time = this.ns.formulas.hacking.weakenTime(w2Server, this.player)
 		const w2Threads = Math.max(
 			1,
-			Math.ceil(
-				(w2Server.hackDifficulty - w2Server.minDifficulty) /
-					WeakenSecurityLowerPerThread
-			)
+			Math.ceil(growSecurity / WeakenSecurityLowerPerThread)
 		)
 
 		// timing with t=0 at end point
-		const w1Start = -2 * BatchTick - w1Time
+		const w1Start = -2 * BatchTick - weakenTime
 		const growStart = -1 * BatchTick - growTime
-		const w2Start = 0 * BatchTick - w2Time
+		const w2Start = 0 * BatchTick - weakenTime
 		// offset for t=0 at batch start
 		const startOffset = -Math.min(w1Start, growStart, w2Start)
 
@@ -163,7 +159,7 @@ export class WgwBatch implements Batch<'wgw'> {
 			{
 				direction: 'weaken',
 				start: startOffset + w1Start,
-				end: startOffset + w1Start + w1Time,
+				end: startOffset + w1Start + weakenTime,
 				threads: w1Threads,
 			},
 			{
@@ -175,7 +171,7 @@ export class WgwBatch implements Batch<'wgw'> {
 			{
 				direction: 'weaken',
 				start: startOffset + w2Start,
-				end: startOffset + w2Start + w2Time,
+				end: startOffset + w2Start + weakenTime,
 				threads: w2Threads,
 			},
 		]

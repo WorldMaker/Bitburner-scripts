@@ -98,32 +98,31 @@ export class GwBatch implements Batch<'gw'> {
 		expectedMoneyAvailable: number,
 		expectedSecurityLevel: number
 	): Iterable<BatchPlan> {
-		const growServer: Server = {
+		const expectedServer: Server = {
 			...this.server,
 			moneyAvailable: expectedMoneyAvailable,
 			hackDifficulty: expectedSecurityLevel,
 		}
-		const growTime = this.ns.formulas.hacking.growTime(growServer, this.player)
+		const growTime = this.ns.formulas.hacking.growTime(
+			expectedServer,
+			this.player
+		)
 		const growThreads = Math.max(
 			1,
-			calculateGrowThreads(this.ns.formulas.hacking, growServer, this.player)
+			calculateGrowThreads(
+				this.ns.formulas.hacking,
+				expectedServer,
+				this.player
+			)
 		)
 		const growSecurity = growThreads * GrowthSecurityRaisePerThread
-		const weakenServer: Server = {
-			...this.server,
-			moneyAvailable: this.server.moneyMax,
-			hackDifficulty: expectedSecurityLevel + growSecurity,
-		}
 		const weakenTime = this.ns.formulas.hacking.weakenTime(
-			weakenServer,
+			expectedServer,
 			this.player
 		)
 		const weakenThreads = Math.max(
 			1,
-			Math.ceil(
-				(weakenServer.hackDifficulty - weakenServer.minDifficulty) /
-					WeakenSecurityLowerPerThread
-			)
+			Math.ceil(growSecurity / WeakenSecurityLowerPerThread)
 		)
 
 		// timing with t=0 at end point
