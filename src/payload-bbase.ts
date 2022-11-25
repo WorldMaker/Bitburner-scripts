@@ -16,7 +16,7 @@ export async function payload<T>(
 		ns.tprint(`WARN late script execute: ${target} at ${start}`)
 		return
 	} else if (startTime > now) {
-		const sleepTime = startTime - now
+		const sleepTime = Math.floor(startTime - now)
 		if (sleepTime >= 20 /* ms */) {
 			await ns.sleep(sleepTime)
 		}
@@ -30,7 +30,7 @@ export async function payload<T>(
 	const endTime = end.getTime()
 	const now2 = new Date().getTime()
 	if (endTime > now) {
-		const sleepTime = endTime - now2
+		const sleepTime = Math.ceil(endTime - now2)
 		if (sleepTime >= 20 /* ms */) {
 			await ns.sleep(sleepTime)
 		}

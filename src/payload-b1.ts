@@ -57,7 +57,7 @@ export async function main(ns: NS) {
 		)
 	}
 
-	await ns.sleep(end - new Date().getTime() + 1000 /* ms */)
+	await ns.sleep(Math.ceil(end - new Date().getTime()) + 1000 /* ms */)
 
 	const moneyAvailable = target.checkMoneyAvailable()
 	const securityLevel = target.checkSecurityLevel()
