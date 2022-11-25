@@ -146,7 +146,10 @@ export class WgwBatch implements Batch<'wgw'> {
 		const w2Time = this.ns.formulas.hacking.weakenTime(w2Server, this.player)
 		const w2Threads = Math.max(
 			1,
-			Math.ceil(growSecurity / WeakenSecurityLowerPerThread)
+			Math.ceil(
+				(w2Server.hackDifficulty - w2Server.minDifficulty) /
+					WeakenSecurityLowerPerThread
+			)
 		)
 
 		// timing with t=0 at end point

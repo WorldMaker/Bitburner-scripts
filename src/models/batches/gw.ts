@@ -120,7 +120,10 @@ export class GwBatch implements Batch<'gw'> {
 		)
 		const weakenThreads = Math.max(
 			1,
-			Math.ceil(growSecurity / WeakenSecurityLowerPerThread)
+			Math.ceil(
+				(weakenServer.hackDifficulty - weakenServer.minDifficulty) /
+					WeakenSecurityLowerPerThread
+			)
 		)
 
 		// timing with t=0 at end point

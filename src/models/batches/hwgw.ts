@@ -170,7 +170,10 @@ export class HwgwBatch implements Batch<'hwgw'> {
 		const w1Time = this.ns.formulas.hacking.weakenTime(w1Server, this.player)
 		const w1Threads = Math.max(
 			1,
-			Math.ceil(hackSecurity / WeakenSecurityLowerPerThread)
+			Math.ceil(
+				(w1Server.hackDifficulty - w1Server.minDifficulty) /
+					WeakenSecurityLowerPerThread
+			)
 		)
 		const growServer: Server = {
 			...this.server,
@@ -191,7 +194,10 @@ export class HwgwBatch implements Batch<'hwgw'> {
 		const w2Time = this.ns.formulas.hacking.weakenTime(w2Server, this.player)
 		const w2Threads = Math.max(
 			1,
-			Math.ceil(growSecurity / WeakenSecurityLowerPerThread)
+			Math.ceil(
+				(w2Server.hackDifficulty - w2Server.minDifficulty) /
+					WeakenSecurityLowerPerThread
+			)
 		)
 
 		// timing with t=0 at end point
