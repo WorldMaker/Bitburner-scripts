@@ -2,6 +2,7 @@ import { Batch, BatchPlan, BatchTick } from '../batch'
 import {
 	WeakenSecurityLowerPerThread,
 	GrowthSecurityRaisePerThread,
+	calculateGrowThreads,
 } from '../hackmath'
 
 export class GwBatch implements Batch<'gw'> {
@@ -97,23 +98,29 @@ export class GwBatch implements Batch<'gw'> {
 		expectedMoneyAvailable: number,
 		expectedSecurityLevel: number
 	): Iterable<BatchPlan> {
-		const growTime = this.ns.formulas.hacking.growTime(this.server, this.player)
-		const growAmount =
-			expectedMoneyAvailable / (this.server.moneyMax - expectedMoneyAvailable)
+		const growServer: Server = {
+			...this.server,
+			moneyAvailable: expectedMoneyAvailable,
+			hackDifficulty: expectedSecurityLevel,
+		}
+		const growTime = this.ns.formulas.hacking.growTime(growServer, this.player)
 		const growThreads = Math.max(
 			1,
-			Math.ceil(this.ns.growthAnalyze(this.server.hostname, growAmount))
+			calculateGrowThreads(this.ns.formulas.hacking, growServer, this.player)
 		)
+		const growSecurity = growThreads * GrowthSecurityRaisePerThread
+		const weakenServer: Server = {
+			...this.server,
+			moneyAvailable: this.server.moneyMax,
+			hackDifficulty: expectedSecurityLevel + growSecurity,
+		}
 		const weakenTime = this.ns.formulas.hacking.weakenTime(
-			this.server,
+			weakenServer,
 			this.player
 		)
 		const weakenThreads = Math.max(
 			1,
-			Math.ceil(
-				(growThreads * GrowthSecurityRaisePerThread) /
-					WeakenSecurityLowerPerThread
-			)
+			Math.ceil(growSecurity / WeakenSecurityLowerPerThread)
 		)
 
 		// timing with t=0 at end point
