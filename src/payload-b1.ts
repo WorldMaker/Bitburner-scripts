@@ -49,6 +49,7 @@ export async function main(ns: NS) {
 			getPayloadName(p.direction),
 			p.threads,
 			'batch',
+			targetName,
 			start,
 			end,
 			batch.type,
