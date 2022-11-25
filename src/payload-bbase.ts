@@ -11,7 +11,7 @@ export async function payload<T>(
 		typeof ns.args[2] !== 'boolean' ? ns.args[2] : new Date()
 	)
 	const startTime = start.getTime()
-	const now = performance.now()
+	const now = new Date().getTime()
 	if (startTime < now) {
 		ns.tprint(`WARN late script execute: ${target} at ${start}`)
 		return
@@ -28,7 +28,7 @@ export async function payload<T>(
 		typeof ns.args[3] !== 'boolean' ? ns.args[3] : new Date()
 	)
 	const endTime = end.getTime()
-	const now2 = performance.now()
+	const now2 = new Date().getTime()
 	if (endTime > now) {
 		const sleepTime = endTime - now2
 		if (sleepTime >= 20 /* ms */) {
