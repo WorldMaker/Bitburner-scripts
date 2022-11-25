@@ -162,6 +162,9 @@ export class HwgwBatch implements Batch<'hwgw'> {
 			this.player
 		)
 		const hackSecurity = hackThreads * HackSecurityRaisePerThread
+		const postHackMoney =
+			expectedServer.moneyAvailable -
+			expectedServer.moneyAvailable * hackThreads * hackPercent
 		const weakenTime = this.ns.formulas.hacking.weakenTime(
 			expectedServer,
 			this.player
@@ -178,7 +181,10 @@ export class HwgwBatch implements Batch<'hwgw'> {
 			1,
 			calculateGrowThreads(
 				this.ns.formulas.hacking,
-				expectedServer,
+				{
+					...expectedServer,
+					moneyAvailable: postHackMoney,
+				},
 				this.player
 			)
 		)
