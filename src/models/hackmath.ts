@@ -1,3 +1,5 @@
+import { Logger } from './logger'
+
 export const GrowthSecurityRaisePerThread = 0.004
 export const HackSecurityRaisePerThread = 0.002
 export const WeakenSecurityLowerPerThread = 0.05
@@ -20,10 +22,14 @@ function binarySearchGrowThreads(
 	maxThreads: number,
 	server: Server,
 	player: Player,
+	logger?: Logger,
 	cores?: number
 ): number {
-	if (minThreads === maxThreads) {
-		return minThreads
+	if (logger) {
+		logger.log(`searching growth between ${minThreads} and ${maxThreads}`)
+	}
+	if (minThreads >= maxThreads) {
+		return maxThreads
 	}
 
 	const midThreads = Math.ceil(minThreads + (maxThreads - minThreads) / 2)
@@ -41,6 +47,7 @@ function binarySearchGrowThreads(
 			midThreads - 1,
 			server,
 			player,
+			logger,
 			cores
 		)
 	} else if (newMoney < server.moneyMax) {
@@ -50,6 +57,7 @@ function binarySearchGrowThreads(
 			maxThreads,
 			server,
 			player,
+			logger,
 			cores
 		)
 	} else {
@@ -61,6 +69,7 @@ export function calculateGrowThreads(
 	formulas: HackingFormulas,
 	server: Server,
 	player: Player,
+	logger?: Logger,
 	cores?: number
 ): number {
 	if (server.moneyAvailable >= server.moneyMax) {
@@ -81,6 +90,7 @@ export function calculateGrowThreads(
 		maxThreads,
 		server,
 		player,
+		logger,
 		cores
 	)
 
