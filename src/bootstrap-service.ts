@@ -6,10 +6,6 @@ import { DeploymentService } from './services/deployment.js'
 import { HackerService } from './services/hacker.js'
 import { MultiTargetDirectionalFormulatedPlanner } from './services/payload-planners/multi-target-directional-formulated.js'
 import { MultiTargetDirectionalRoundRobinPlanner } from './services/payload-planners/multi-target-directional-round-robin.js'
-import { MultiTargetRoundRobinPlanner } from './services/payload-planners/multi-target-round-robin.js'
-import { MultiTargetUpgradePlanner } from './services/payload-planners/multi-target-upgrade.js'
-import { SingleTargetDirectionalPayloadPlanner } from './services/payload-planners/single-target-directional-payload.js'
-import { SingleTargetSinglePayloadPlanner } from './services/payload-planners/single-target-single-payload.js'
 import { PayloadService } from './services/payload.js'
 import { PurchaseService } from './services/purchase.js'
 import { ScannerService } from './services/scanner.js'
@@ -84,14 +80,12 @@ export async function main(ns: NS) {
 					apps
 				)
 			case 'formulated':
+			default:
 				return new MultiTargetDirectionalFormulatedPlanner(
 					ns,
 					targetService,
 					apps
 				)
-			case 'multiup':
-			default:
-				return new MultiTargetUpgradePlanner(ns, logger, targetService, apps)
 		}
 	}
 
