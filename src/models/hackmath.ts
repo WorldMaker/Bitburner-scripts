@@ -78,7 +78,7 @@ export function calculateGrowThreads(
 	const minThreads = 1
 
 	// Calculate a raw theoretical maximum threads
-	const growFactor = 1 / (1 / ((server.moneyMax - 1) / server.moneyMax))
+	const growFactor = 1 / (1 - (server.moneyMax - 1) / server.moneyMax)
 	const maxThreads = Math.ceil(
 		Math.log(growFactor) /
 			Math.log(formulas.growPercent(server, 1, player, cores))
