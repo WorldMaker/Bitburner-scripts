@@ -149,7 +149,7 @@ export class HwgwBatch implements Batch<'hwgw'> {
 		const hackThreads = Math.max(
 			1,
 			Math.ceil(
-				(expectedMoneyAvailable * DesiredHackingSkim) /
+				DesiredHackingSkim /
 					this.ns.formulas.hacking.hackPercent(this.server, this.player)
 			)
 		)
