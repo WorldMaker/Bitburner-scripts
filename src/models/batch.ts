@@ -1,4 +1,8 @@
-import { GroupedIterable } from '@reactivex/ix-esnext-esm/iterable/operators/groupby'
+import {
+	groupBy,
+	GroupedIterable,
+} from '@reactivex/ix-esnext-esm/iterable/operators/groupby'
+import { orderBy } from '@reactivex/ix-esnext-esm/iterable/operators/orderby'
 import { reduce } from '@reactivex/ix-esnext-esm/iterable/reduce'
 import { BadBatch } from './batches/bad'
 import { GwBatch } from './batches/gw'
@@ -45,6 +49,37 @@ export function reduceBatchPlan(
 		return undefined
 	}
 	return reduce(group, batchPlanReducer, batchPlanSeed(group.key))
+}
+
+export function reduceDoubleWeakens(
+	group: GroupedIterable<TargetDirection | undefined, RunningProcess>
+) {
+	if (group.key !== 'weaken') {
+		return undefined
+	}
+	const processesByStart = [
+		...group.pipe(
+			groupBy((process) => process.process.args[2] as number),
+			orderBy((g) => g.key)
+		),
+	]
+	if (processesByStart.length !== 2) {
+		return false
+	}
+	const w1Process = reduce(
+		processesByStart[0],
+		batchPlanReducer,
+		batchPlanSeed('weaken')
+	)
+	const w2Process = reduce(
+		processesByStart[1],
+		batchPlanReducer,
+		batchPlanSeed('weaken')
+	)
+	return {
+		w1Process,
+		w2Process,
+	}
 }
 
 export interface BatchPlans {

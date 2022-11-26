@@ -1,17 +1,14 @@
 import { IterableX } from '@reactivex/ix-esnext-esm/iterable/iterablex'
 import { groupBy } from '@reactivex/ix-esnext-esm/iterable/operators/groupby'
-import { orderBy } from '@reactivex/ix-esnext-esm/iterable/operators/orderby'
-import { reduce } from '@reactivex/ix-esnext-esm/iterable/reduce'
 import { ulid } from 'ulid'
 import { getBatchPayloadDirection } from '../app'
 import {
 	Batch,
 	BatchPlan,
-	batchPlanReducer,
 	BatchPlans,
-	batchPlanSeed,
 	BatchTick,
 	reduceBatchPlan,
+	reduceDoubleWeakens,
 } from '../batch'
 import {
 	calculateGrowThreads,
@@ -56,25 +53,11 @@ export class WgwBatch implements Batch<'wgw'> {
 				case 'hack':
 					return false
 				case 'weaken':
-					const processesByStart = [
-						...group.pipe(
-							groupBy((process) => process.process.args[2] as number),
-							orderBy((g) => g.key)
-						),
-					]
-					if (processesByStart.length !== 2) {
-						return false
+					const result = reduceDoubleWeakens(group)
+					if (result) {
+						this.w1Process = result.w1Process
+						this.w2Process = result.w2Process
 					}
-					this.w1Process = reduce(
-						processesByStart[0],
-						batchPlanReducer,
-						batchPlanSeed('weaken')
-					)
-					this.w2Process = reduce(
-						processesByStart[1],
-						batchPlanReducer,
-						batchPlanSeed('weaken')
-					)
 					break
 				default:
 					return false
