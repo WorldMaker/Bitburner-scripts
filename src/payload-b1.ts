@@ -1,7 +1,7 @@
 // Test a single batch
 
 import { ulid } from 'ulid'
-import { createBatch, getNextBatchType } from './models/batch'
+import { createBatch, getBatchArgs, getNextBatchType } from './models/batch'
 import { Logger } from './models/logger'
 import { SimpleTarget, TargetDirection } from './models/target'
 
@@ -33,30 +33,26 @@ export async function main(ns: NS) {
 		server.hackDifficulty
 	)
 	const batch = createBatch(ns, nextBatch, player, server)
-	const plan = [...batch.plan(server.moneyAvailable, server.hackDifficulty)]
+	const plan = batch.plan(server.moneyAvailable, server.hackDifficulty)
 
-	const planOverview = plan
+	const planOverview = plan.plans
 		.map((p) => `${p.direction} ${p.threads} @ ${p.start}`)
 		.join(', ')
 
 	logger.log(`INFO planned a ${nextBatch} batch with ${planOverview}`)
 
-	const start = new Date().getTime() + 1000 /* ms */
-	const end = start + Math.max(...plan.map((p) => p.end))
-	const batchId = ulid()
-	for (const p of plan) {
+	const start = new Date(new Date().getTime() + 1000 /* ms */)
+	for (const p of plan.plans) {
 		ns.run(
 			getPayloadName(p.direction),
 			p.threads,
 			'batch',
 			targetName,
-			start + p.start,
-			end,
-			batch.type,
-			batchId
+			...getBatchArgs(plan, start)
 		)
 	}
 
+	const end = start.getTime() + plan.end
 	await ns.sleep(Math.ceil(end - new Date().getTime()) + 1000 /* ms */)
 
 	const moneyAvailable = target.checkMoneyAvailable()

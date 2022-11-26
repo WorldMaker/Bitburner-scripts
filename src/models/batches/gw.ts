@@ -1,4 +1,5 @@
-import { Batch, BatchPlan, BatchTick } from '../batch'
+import { ulid } from 'ulid'
+import { Batch, BatchPlans, BatchTick } from '../batch'
 import {
 	WeakenSecurityLowerPerThread,
 	GrowthSecurityRaisePerThread,
@@ -97,7 +98,7 @@ export class GwBatch implements Batch<'gw'> {
 	plan(
 		expectedMoneyAvailable: number,
 		expectedSecurityLevel: number
-	): Iterable<BatchPlan> {
+	): BatchPlans {
 		const expectedServer: Server = {
 			...this.server,
 			moneyAvailable: expectedMoneyAvailable,
@@ -131,19 +132,25 @@ export class GwBatch implements Batch<'gw'> {
 		// offset for t=0 at batch start
 		const startOffset = -Math.min(growStart, weakenStart)
 
-		return [
-			{
-				direction: 'grow',
-				start: startOffset + growStart,
-				end: startOffset + growStart + growTime,
-				threads: growThreads,
-			},
-			{
-				direction: 'weaken',
-				start: startOffset + weakenStart,
-				end: startOffset + weakenStart + weakenTime,
-				threads: weakenThreads,
-			},
-		]
+		return {
+			type: this.type,
+			id: ulid(),
+			start: 0,
+			end: startOffset + weakenStart + weakenTime,
+			plans: [
+				{
+					direction: 'grow',
+					start: startOffset + growStart,
+					end: startOffset + growStart + growTime,
+					threads: growThreads,
+				},
+				{
+					direction: 'weaken',
+					start: startOffset + weakenStart,
+					end: startOffset + weakenStart + weakenTime,
+					threads: weakenThreads,
+				},
+			],
+		}
 	}
 }

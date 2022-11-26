@@ -1,4 +1,5 @@
-import { Batch, BatchPlan } from '../batch'
+import { ulid } from 'ulid'
+import { Batch, BatchPlans } from '../batch'
 import { WeakenSecurityLowerPerThread } from '../hackmath'
 
 export class WBatch implements Batch<'w'> {
@@ -42,26 +43,33 @@ export class WBatch implements Batch<'w'> {
 	plan(
 		expectedMoneyAvailable: number,
 		expectedSecurityLevel: number
-	): Iterable<BatchPlan> {
+	): BatchPlans {
 		const desiredWeaken = expectedSecurityLevel - this.server.minDifficulty
 		const threads = Math.max(
 			1,
 			Math.ceil(desiredWeaken / WeakenSecurityLowerPerThread)
 		)
-		return [
+		const weakenTime = this.ns.formulas.hacking.weakenTime(
 			{
-				direction: 'weaken',
-				start: 0,
-				end: this.ns.formulas.hacking.weakenTime(
-					{
-						...this.server,
-						moneyAvailable: expectedMoneyAvailable,
-						hackDifficulty: expectedSecurityLevel,
-					},
-					this.player
-				),
-				threads,
+				...this.server,
+				moneyAvailable: expectedMoneyAvailable,
+				hackDifficulty: expectedSecurityLevel,
 			},
-		]
+			this.player
+		)
+		return {
+			type: this.type,
+			id: ulid(),
+			start: 0,
+			end: weakenTime,
+			plans: [
+				{
+					direction: 'weaken',
+					start: 0,
+					end: weakenTime,
+					threads,
+				},
+			],
+		}
 	}
 }

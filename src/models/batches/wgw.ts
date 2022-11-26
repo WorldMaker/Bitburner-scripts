@@ -1,4 +1,5 @@
-import { Batch, BatchPlan, BatchTick } from '../batch'
+import { ulid } from 'ulid'
+import { Batch, BatchPlans, BatchTick } from '../batch'
 import {
 	WeakenSecurityLowerPerThread,
 	GrowthSecurityRaisePerThread,
@@ -115,7 +116,7 @@ export class WgwBatch implements Batch<'wgw'> {
 	plan(
 		expectedMoneyAvailable: number,
 		expectedSecurityLevel: number
-	): Iterable<BatchPlan> {
+	): BatchPlans {
 		const desiredWeaken = expectedSecurityLevel - this.server.minDifficulty
 		const w1Threads = Math.max(
 			1,
@@ -155,25 +156,31 @@ export class WgwBatch implements Batch<'wgw'> {
 		// offset for t=0 at batch start
 		const startOffset = -Math.min(w1Start, growStart, w2Start)
 
-		return [
-			{
-				direction: 'weaken',
-				start: startOffset + w1Start,
-				end: startOffset + w1Start + weakenTime,
-				threads: w1Threads,
-			},
-			{
-				direction: 'grow',
-				start: startOffset + growStart,
-				end: startOffset + growStart + growTime,
-				threads: growThreads,
-			},
-			{
-				direction: 'weaken',
-				start: startOffset + w2Start,
-				end: startOffset + w2Start + weakenTime,
-				threads: w2Threads,
-			},
-		]
+		return {
+			type: this.type,
+			id: ulid(),
+			start: 0,
+			end: startOffset + w2Start + weakenTime,
+			plans: [
+				{
+					direction: 'weaken',
+					start: startOffset + w1Start,
+					end: startOffset + w1Start + weakenTime,
+					threads: w1Threads,
+				},
+				{
+					direction: 'grow',
+					start: startOffset + growStart,
+					end: startOffset + growStart + growTime,
+					threads: growThreads,
+				},
+				{
+					direction: 'weaken',
+					start: startOffset + w2Start,
+					end: startOffset + w2Start + weakenTime,
+					threads: w2Threads,
+				},
+			],
+		}
 	}
 }

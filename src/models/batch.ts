@@ -16,6 +16,14 @@ export interface BatchPlan {
 	end: number
 }
 
+export interface BatchPlans {
+	type: BatchType
+	id: string
+	plans: BatchPlan[]
+	start: number
+	end: number
+}
+
 export interface Batch<T extends BatchType> {
 	type: T
 	server: Server
@@ -27,7 +35,7 @@ export interface Batch<T extends BatchType> {
 	plan(
 		expectedMoneyAvailable: number,
 		expectedSecurityLevel: number
-	): Iterable<BatchPlan>
+	): BatchPlans
 }
 
 export function getNextBatchType<T extends BatchType>(
@@ -88,4 +96,9 @@ export function createBatch(
 		case 'hwgw':
 			return new HwgwBatch(ns, player, server, ...args)
 	}
+}
+
+export function getBatchArgs(plans: BatchPlans, start: Date) {
+	const startTime = start.getTime()
+	return [startTime + plans.start, startTime + plans.end, plans.type, plans.id]
 }

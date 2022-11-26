@@ -217,8 +217,6 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 			}
 		}
 
-		const player = this.ns.getPlayer()
-
 		const processesByTarget = new Map(
 			from(allProcesses).pipe(
 				// all current payloads are ["start", target, ...]

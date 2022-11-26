@@ -1,4 +1,5 @@
-import { Batch, BatchPlan, BatchTick } from '../batch'
+import { ulid } from 'ulid'
+import { Batch, BatchPlans, BatchTick } from '../batch'
 import {
 	DesiredHackingSkim,
 	HackSecurityRaisePerThread,
@@ -146,7 +147,7 @@ export class HwgwBatch implements Batch<'hwgw'> {
 	plan(
 		expectedMoneyAvailable: number,
 		expectedSecurityLevel: number
-	): Iterable<BatchPlan> {
+	): BatchPlans {
 		const expectedServer: Server = {
 			...this.server,
 			moneyAvailable: expectedMoneyAvailable,
@@ -202,31 +203,37 @@ export class HwgwBatch implements Batch<'hwgw'> {
 		// offset for t=0 at batch start
 		const startOffset = -Math.min(hackStart, w1Start, growStart, w2Start)
 
-		return [
-			{
-				direction: 'hack',
-				start: startOffset + hackStart,
-				end: startOffset + hackStart + hackTime,
-				threads: hackThreads,
-			},
-			{
-				direction: 'weaken',
-				start: startOffset + w1Start,
-				end: startOffset + w1Start + weakenTime,
-				threads: w1Threads,
-			},
-			{
-				direction: 'grow',
-				start: startOffset + growStart,
-				end: startOffset + growStart + growTime,
-				threads: growThreads,
-			},
-			{
-				direction: 'weaken',
-				start: startOffset + w2Start,
-				end: startOffset + w2Start + weakenTime,
-				threads: w2Threads,
-			},
-		]
+		return {
+			type: this.type,
+			id: ulid(),
+			start: 0,
+			end: startOffset + w2Start + weakenTime,
+			plans: [
+				{
+					direction: 'hack',
+					start: startOffset + hackStart,
+					end: startOffset + hackStart + hackTime,
+					threads: hackThreads,
+				},
+				{
+					direction: 'weaken',
+					start: startOffset + w1Start,
+					end: startOffset + w1Start + weakenTime,
+					threads: w1Threads,
+				},
+				{
+					direction: 'grow',
+					start: startOffset + growStart,
+					end: startOffset + growStart + growTime,
+					threads: growThreads,
+				},
+				{
+					direction: 'weaken',
+					start: startOffset + w2Start,
+					end: startOffset + w2Start + weakenTime,
+					threads: w2Threads,
+				},
+			],
+		}
 	}
 }
