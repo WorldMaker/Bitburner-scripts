@@ -17,7 +17,7 @@ export class HackerService {
 		this.sqlInjectExists = this.ns.fileExists('SQLInject.exe')
 	}
 
-	hack(server: Target) {
+	rootServer(server: Target) {
 		if (server.checkRooted()) {
 			return true
 		}

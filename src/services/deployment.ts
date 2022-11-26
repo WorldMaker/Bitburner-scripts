@@ -26,7 +26,7 @@ export class DeploymentService {
 		let rooted = new Set<Target>()
 
 		for (const server of servers) {
-			if (this.hackerService.hack(server)) {
+			if (this.hackerService.rootServer(server)) {
 				rooted.add(server)
 			}
 		}
