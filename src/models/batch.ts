@@ -18,6 +18,24 @@ export interface BatchPlan {
 	end: number
 }
 
+export function batchPlanReducer(acc: BatchPlan, cur: RunningProcess) {
+	return {
+		direction: acc.direction,
+		start: Math.min(acc.start, cur.process.args[2] as number),
+		end: Math.max(acc.end, cur.process.args[3] as number),
+		threads: acc.threads + cur.process.threads,
+	}
+}
+
+export function batchPlanSeed(direction: TargetDirection) {
+	return {
+		direction,
+		start: -Infinity,
+		end: Infinity,
+		threads: 0,
+	}
+}
+
 export interface BatchPlans {
 	type: BatchType
 	id: string
