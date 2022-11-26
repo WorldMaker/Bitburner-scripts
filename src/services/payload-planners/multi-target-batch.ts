@@ -193,15 +193,18 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 			} else {
 				const batches = targetProcesses.pipe(
 					// ['batch', target, start, end, type, batchId]
-					groupBy((process) => process.process.args[5]?.toString()),
+					groupBy(
+						(process) => process.process.args[5]?.toString() ?? 'unknown'
+					),
 					map((group) => {
 						// TODO: Composite processes by [payload, start]
 						const processes = [...group]
-						const batchType =
-							processes[0].process.args[4]?.toString() as BatchType
+						const batchType = processes[0].process.args[4]?.toString() as
+							| BatchType
+							| undefined
 						return createBatch(
 							this.ns,
-							batchType,
+							batchType ?? 'bad',
 							player,
 							target.getServer(),
 							processes.map(({ process }) => process)
@@ -215,8 +218,9 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 				for (const batch of batches) {
 					if (!batch.isSafe()) {
 						this.logger.log(`WARN desync ${target.name}`)
-						const killlist = killProcesses.get(target.name) ?? []
-						killlist.concat(...batch.getProcesses()!)
+						let killlist = killProcesses.get(target.name) ?? []
+						killlist = killlist.concat(...batch.getProcesses()!)
+						killProcesses.set(target.name, killlist)
 					} else {
 						safeBatchCount++
 						const batchEnd = batch.getEndTime()
@@ -225,6 +229,10 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 							lastBatch = batch
 						}
 					}
+				}
+
+				if (safeBatchCount > 0) {
+					this.attackedTargets++
 				}
 
 				if (
@@ -298,8 +306,6 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 
 		// *** Use freelist to find new deployments ***
 
-		this.attackedTargets = this.satisfiedTargets
-
 		const deployments = new Map<string, DeployPlan[]>()
 		let curfreelist = from(freelist)
 		for (const { target, batch, start } of needsBatches) {
@@ -314,16 +320,22 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 
 			for (const { server, available } of curfreelist) {
 				// TODO: Support for splitting batches across multiple servers
+				if (attacked) {
+					nextfreelist.push({ server, available })
+					continue
+				}
 				if (available < batchDeployments.totalRam) {
 					nextfreelist.push({ server, available })
 					// when sorting these we could break here, but we want to track all free RAM
 					continue
 				}
-				if (start.getTime() + batch.end >= TotalTimeWindowToPlan) {
+				if (start.getTime() + batch.end >= now + TotalTimeWindowToPlan) {
 					this.satisfiedTargets++
 				}
-				const serverDeployments = deployments.get(server.name) ?? []
-				serverDeployments.concat(...batchDeployments.deploys)
+				let serverDeployments = deployments.get(server.name) ?? []
+				serverDeployments = serverDeployments.concat(
+					...batchDeployments.deploys
+				)
 				deployments.set(server.name, serverDeployments)
 				const remainingAvailable = available - batchDeployments.totalRam
 				if (remainingAvailable > 0) {
