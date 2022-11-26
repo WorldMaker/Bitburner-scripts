@@ -19,6 +19,10 @@ export class LazyTarget extends DeployTarget implements Target {
 		this.purchasedNumber = purchased ? Number(this.name.split('-')[1]) : null
 	}
 
+	getServer() {
+		return this.ns.getServer(this.name)
+	}
+
 	getHackingPorts() {
 		if (this.hackingPorts === null) {
 			this.hackingPorts = this.ns.getServerNumPortsRequired(this.name)

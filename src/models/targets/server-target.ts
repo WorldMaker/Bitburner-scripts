@@ -23,6 +23,11 @@ export class ServerTarget extends DeployTarget implements Target {
 			: null
 	}
 
+	getServer() {
+		this.server = this.ns.getServer(this.name)
+		return this.server
+	}
+
 	getHackingPorts() {
 		return this.server.numOpenPortsRequired
 	}
