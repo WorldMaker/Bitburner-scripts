@@ -11,7 +11,9 @@ export const SalvoPayloadG = 'payload-sg.js'
 export const SalvoPayloadH = 'payload-sh.js'
 export const SalvoPayloadW = 'payload-sw.js'
 
-export function getBatchPayloadDirection(payloadName: string): TargetDirection | undefined {
+export function getBatchPayloadDirection(
+	payloadName: string
+): TargetDirection | undefined {
 	switch (payloadName) {
 		case BatchPayloadG:
 			return 'grow'
