@@ -307,48 +307,63 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 		const deployments = new Map<string, DeployPlan[]>()
 		let curfreelist = from(freelist)
 		for (const { target, batch, start } of needsBatches) {
-			let nextfreelist: FreeRam[] = []
-			let attacked = false
 			const batchDeployments = getBatchDeployments(
 				this.appSelector,
 				target,
 				batch,
 				start
 			)
+			const totalFree = reduce(
+				curfreelist,
+				(acc, cur) => acc + cur.available,
+				0
+			)
+			if (batchDeployments.totalRam > totalFree) {
+				this.logger.log(
+					`WARN not enough RAM available for ${target.name} ${batch.type}`
+				)
+				continue
+			}
 
-			for (const { server, available } of curfreelist) {
-				// TODO: Support for splitting batches across multiple servers
-				if (attacked) {
-					nextfreelist.push({ server, available })
-					continue
+			let lastfreelist = curfreelist
+
+			const deployServers: Array<{ server: Target; deploy: DeployPlan }> = []
+			for (const deploy of batchDeployments.deploys) {
+				let nextfreelist: FreeRam[] = []
+				let deployPlanned = false
+				for (const { server, available } of curfreelist) {
+					// TODO: Support for splitting single direction deployments across multiple servers
+					if (deployPlanned) {
+						nextfreelist.push({ server, available })
+						continue
+					}
+					if (available < deploy.app.ramCost * deploy.threads) {
+						nextfreelist.push({ server, available })
+						continue
+					}
+					deployServers.push({ server, deploy })
+					deployPlanned = true
 				}
-				if (available < batchDeployments.totalRam) {
-					nextfreelist.push({ server, available })
-					// when sorting these we could break here, but we want to track all free RAM
-					continue
-				}
+				curfreelist = from(nextfreelist).pipe(
+					orderByDescending((f) => f.available)
+				)
+			}
+			if (deployServers.length === batchDeployments.deploys.length) {
+				this.attackedTargets++
 				if (start.getTime() + batch.end >= now + TotalTimeWindowToPlan) {
 					this.satisfiedTargets++
 				}
-				let serverDeployments = deployments.get(server.name) ?? []
-				serverDeployments = serverDeployments.concat(
-					...batchDeployments.deploys
-				)
-				deployments.set(server.name, serverDeployments)
-				const remainingAvailable = available - batchDeployments.totalRam
-				if (remainingAvailable > 0) {
-					nextfreelist.push({ server, available: remainingAvailable })
+				for (const deployServer of deployServers) {
+					const deploylist = deployments.get(deployServer.server.name) ?? []
+					deploylist.push(deployServer.deploy)
+					deployments.set(deployServer.server.name, deploylist)
 				}
-				attacked = true
+			} else {
+				curfreelist = lastfreelist
+				this.logger.log(
+					`WARN not enough contiguous RAM available for ${target.name} ${batch.type}`
+				)
 			}
-
-			if (attacked) {
-				this.attackedTargets++
-			}
-
-			curfreelist = from(nextfreelist).pipe(
-				orderByDescending((f) => f.available)
-			)
 		}
 
 		this.freeRam += reduce(curfreelist, (acc, cur) => acc + cur.available, 0)
