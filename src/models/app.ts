@@ -1,5 +1,16 @@
 import { Target } from './target'
 
+export const BatchPayloadG = 'payload-bg.js'
+export const BatchPayloadH = 'payload-bh.js'
+export const BatchPayloadW = 'payload-bw.js'
+export const PayloadAll = 'payload-all.js'
+export const PayloadG = 'payload-g.js'
+export const PayloadH = 'payload-h.js'
+export const PayloadW = 'payload-w.js'
+export const SalvoPayloadG = 'payload-sg.js'
+export const SalvoPayloadH = 'payload-sh.js'
+export const SalvoPayloadW = 'payload-sw.js'
+
 export class App {
 	public readonly ramCost: number
 

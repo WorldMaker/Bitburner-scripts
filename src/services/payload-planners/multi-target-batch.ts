@@ -3,7 +3,12 @@ import { groupBy } from '@reactivex/ix-esnext-esm/iterable/operators/groupby'
 import { map } from '@reactivex/ix-esnext-esm/iterable/operators/map'
 import { orderByDescending } from '@reactivex/ix-esnext-esm/iterable/operators/orderby'
 import { reduce } from '@reactivex/ix-esnext-esm/iterable/reduce'
-import { App } from '../../models/app'
+import {
+	App,
+	BatchPayloadG,
+	BatchPayloadH,
+	BatchPayloadW,
+} from '../../models/app'
 import {
 	Batch,
 	BatchPlans,
@@ -20,12 +25,7 @@ import {
 	PayloadPlanner,
 } from '../../models/payload-plan'
 import { Target, TargetDirection } from '../../models/target'
-import {
-	AppCacheService,
-	BatchPayloadG,
-	BatchPayloadH,
-	BatchPayloadW,
-} from '../app-cache'
+import { AppCacheService } from '../app-cache'
 import { TargetService } from '../target'
 
 const { from } = IterableX
