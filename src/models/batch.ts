@@ -3,6 +3,7 @@ import { GwBatch } from './batches/gw'
 import { HwgwBatch } from './batches/hwgw'
 import { WBatch } from './batches/w'
 import { WgwBatch } from './batches/wgw'
+import { RunningProcess } from './memory'
 import { SimpleTarget, TargetDirection } from './target'
 
 export const StartDelay = 200 /* ms */
@@ -29,8 +30,8 @@ export interface BatchPlans {
 export interface Batch<T extends BatchType> {
 	type: T
 	server: Server
-	getProcesses(): ProcessInfo[] | undefined
-	applyProcesses(processes: ProcessInfo[]): boolean
+	getProcesses(): RunningProcess[] | undefined
+	applyProcesses(processes: RunningProcess[]): boolean
 	expectedGrowth(): number | undefined
 	getEndTime(): number | undefined
 	getStartTime(): number | undefined
@@ -88,7 +89,7 @@ export function createBatch(
 	type: BatchType,
 	player: Player,
 	server: Server,
-	processes?: ProcessInfo[]
+	processes?: RunningProcess[]
 ) {
 	switch (type) {
 		case 'w':

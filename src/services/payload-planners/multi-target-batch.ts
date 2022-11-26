@@ -13,6 +13,7 @@ import {
 	getNextBatchType,
 } from '../../models/batch'
 import { Logger } from '../../models/logger'
+import { RunningProcess } from '../../models/memory'
 import {
 	DeployPlan,
 	PayloadPlan,
@@ -58,11 +59,6 @@ export class BatchAppSelector {
 interface FreeRam {
 	server: Target
 	available: number
-}
-
-interface RunningProcess {
-	server: Target
-	process: ProcessInfo
 }
 
 interface NeedsBatches {
@@ -207,7 +203,7 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 							batchType ?? 'bad',
 							player,
 							target.getServer(),
-							processes.map(({ process }) => process)
+							processes
 						)
 					})
 				)
@@ -218,9 +214,11 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 				for (const batch of batches) {
 					if (!batch.isSafe()) {
 						this.logger.log(`WARN desync ${target.name}`)
-						let killlist = killProcesses.get(target.name) ?? []
-						killlist = killlist.concat(...batch.getProcesses()!)
-						killProcesses.set(target.name, killlist)
+						for (const { server, process } of batch.getProcesses()!) {
+							let killlist = killProcesses.get(server.name) ?? []
+							killlist.push(process)
+							killProcesses.set(server.name, killlist)
+						}
 					} else {
 						safeBatchCount++
 						const batchEnd = batch.getEndTime()

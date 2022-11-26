@@ -6,40 +6,44 @@ import {
 	GrowthSecurityRaisePerThread,
 	calculateGrowThreads,
 } from '../hackmath'
+import { RunningProcess } from '../memory'
 
 export class WgwBatch implements Batch<'wgw'> {
 	public readonly type = 'wgw'
-	private w1Process?: ProcessInfo
-	private growProcess?: ProcessInfo
-	private w2Process?: ProcessInfo
+	private w1Process?: RunningProcess
+	private growProcess?: RunningProcess
+	private w2Process?: RunningProcess
 
 	constructor(
 		private readonly ns: NS,
 		public readonly player: Player,
 		public readonly server: Server,
-		private processes?: ProcessInfo[]
+		private processes?: RunningProcess[]
 	) {
 		if (processes) {
 			this.applyProcesses(processes)
 		}
 	}
 
-	getProcesses(): ProcessInfo[] | undefined {
+	getProcesses(): RunningProcess[] | undefined {
 		return this.processes
 	}
 
-	applyProcesses(processes: ProcessInfo[]) {
+	applyProcesses(processes: RunningProcess[]) {
 		this.processes = processes
 		if (processes.length !== 3) {
 			return false
 		}
 		this.growProcess = processes.find(
-			(process) => process.filename === BatchPayloadG
+			({ process }) => process.filename === BatchPayloadG
 		)
 		const weakenProcesses = processes
-			.filter((process) => process.filename === BatchPayloadW)
+			.filter(({ process }) => process.filename === BatchPayloadW)
 			// ['batch', target, start, ...]
-			.sort((a, b) => Number(a.args[2]) - Number(b.args[2]))
+			.sort(
+				({ process: aProcess }, { process: bProcess }) =>
+					Number(aProcess.args[2]) - Number(bProcess.args[2])
+			)
 		if (weakenProcesses.length != 2) {
 			return false
 		}
@@ -54,7 +58,7 @@ export class WgwBatch implements Batch<'wgw'> {
 		}
 		return this.ns.formulas.hacking.growPercent(
 			this.server,
-			this.growProcess.threads,
+			this.growProcess.process.threads,
 			this.player
 		)
 	}
@@ -63,7 +67,7 @@ export class WgwBatch implements Batch<'wgw'> {
 		if (!this.w1Process) {
 			return undefined
 		}
-		const [, , start] = this.w1Process.args
+		const [, , start] = this.w1Process.process.args
 		return Number(start)
 	}
 
@@ -71,7 +75,7 @@ export class WgwBatch implements Batch<'wgw'> {
 		if (!this.growProcess) {
 			return undefined
 		}
-		const [, , start] = this.growProcess.args
+		const [, , start] = this.growProcess.process.args
 		return Number(start)
 	}
 
@@ -79,7 +83,7 @@ export class WgwBatch implements Batch<'wgw'> {
 		if (!this.w2Process) {
 			return undefined
 		}
-		const [, , start] = this.w2Process.args
+		const [, , start] = this.w2Process.process.args
 		return Number(start)
 	}
 
@@ -97,7 +101,7 @@ export class WgwBatch implements Batch<'wgw'> {
 		if (!this.w2Process) {
 			return undefined
 		}
-		const [, , w2Start] = this.w2Process.args
+		const [, , w2Start] = this.w2Process.process.args
 		return (
 			Number(w2Start) +
 			this.ns.formulas.hacking.weakenTime(this.server, this.player)
@@ -130,10 +134,10 @@ export class WgwBatch implements Batch<'wgw'> {
 			return false
 		}
 		const growSecurityGrowth =
-			this.growProcess.threads * GrowthSecurityRaisePerThread
+			this.growProcess.process.threads * GrowthSecurityRaisePerThread
 		const w2ThreadsNeeded = growSecurityGrowth / WeakenSecurityLowerPerThread
 		// w2 should be enough to recoup grow security raise
-		if (w2ThreadsNeeded < this.w2Process.threads) {
+		if (w2ThreadsNeeded < this.w2Process.process.threads) {
 			return false
 		}
 		return true

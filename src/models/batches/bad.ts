@@ -1,15 +1,16 @@
 import { Batch, BatchPlans } from '../batch'
+import { RunningProcess } from '../memory'
 
 export class BadBatch implements Batch<'bad'> {
 	public readonly type = 'bad'
 
-	constructor(public server: Server, private processes?: ProcessInfo[]) {}
+	constructor(public server: Server, private processes?: RunningProcess[]) {}
 
-	getProcesses(): ProcessInfo[] | undefined {
+	getProcesses(): RunningProcess[] | undefined {
 		return this.processes
 	}
 
-	applyProcesses(processes: ProcessInfo[]): boolean {
+	applyProcesses(processes: RunningProcess[]): boolean {
 		this.processes = processes
 		return false
 	}

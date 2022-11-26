@@ -1,27 +1,28 @@
 import { ulid } from 'ulid'
 import { Batch, BatchPlans } from '../batch'
 import { WeakenSecurityLowerPerThread } from '../hackmath'
+import { RunningProcess } from '../memory'
 
 export class WBatch implements Batch<'w'> {
 	public readonly type = 'w'
-	private wProcess?: ProcessInfo
+	private wProcess?: RunningProcess
 
 	constructor(
 		private readonly ns: NS,
 		public readonly player: Player,
 		public readonly server: Server,
-		private processes?: ProcessInfo[]
+		private processes?: RunningProcess[]
 	) {
 		if (processes) {
 			this.applyProcesses(processes)
 		}
 	}
 
-	getProcesses(): ProcessInfo[] | undefined {
+	getProcesses(): RunningProcess[] | undefined {
 		return this.processes
 	}
 
-	applyProcesses(processes: ProcessInfo[]) {
+	applyProcesses(processes: RunningProcess[]) {
 		this.processes = processes
 		if (processes.length !== 1) {
 			return false
@@ -38,7 +39,7 @@ export class WBatch implements Batch<'w'> {
 		if (!this.wProcess) {
 			return undefined
 		}
-		const [, , start] = this.wProcess.args
+		const [, , start] = this.wProcess.process.args
 		return Number(start)
 	}
 
