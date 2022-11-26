@@ -1,4 +1,10 @@
-import { Batch, BatchPlan, BatchTick } from '../batch'
+import { ulid } from 'ulid'
+import {
+	BatchPayloadG,
+	BatchPayloadH,
+	BatchPayloadW,
+} from '../../services/app-cache'
+import { Batch, BatchPlans, BatchTick } from '../batch'
 import {
 	DesiredHackingSkim,
 	HackSecurityRaisePerThread,
@@ -6,19 +12,57 @@ import {
 	GrowthSecurityRaisePerThread,
 	calculateGrowThreads,
 } from '../hackmath'
+import { RunningProcess } from '../memory'
 
 export class HwgwBatch implements Batch<'hwgw'> {
 	public readonly type = 'hwgw'
+	private hackProcess?: RunningProcess
+	private w1Process?: RunningProcess
+	private growProcess?: RunningProcess
+	private w2Process?: RunningProcess
 
 	constructor(
 		private readonly ns: NS,
 		public readonly player: Player,
 		public readonly server: Server,
-		private hackProcess?: ProcessInfo,
-		private w1Process?: ProcessInfo,
-		private growProcess?: ProcessInfo,
-		private w2Process?: ProcessInfo
-	) {}
+		private processes?: RunningProcess[]
+	) {
+		if (processes) {
+			this.applyProcesses(processes)
+		}
+	}
+
+	getProcesses(): RunningProcess[] | undefined {
+		return this.processes
+	}
+
+	applyProcesses(processes: RunningProcess[]) {
+		this.processes = processes
+		if (processes.length !== 3) {
+			return false
+		}
+		this.hackProcess = processes.find(
+			({ process }) => process.filename === BatchPayloadH
+		)
+		this.growProcess = processes.find(
+			({ process }) => process.filename === BatchPayloadG
+		)
+		const weakenProcesses = processes
+			.filter(({ process }) => process.filename === BatchPayloadW)
+			// ['batch', target, start, ...]
+			.sort(
+				({ process: aProcess }, { process: bProcess }) =>
+					Number(aProcess.args[2]) - Number(bProcess.args[2])
+			)
+		if (weakenProcesses.length != 2) {
+			return false
+		}
+		this.w1Process = weakenProcesses[0]
+		this.w2Process = weakenProcesses[1]
+		return Boolean(
+			this.hackProcess && this.growProcess && this.w1Process && this.w2Process
+		)
+	}
 
 	expectedGrowth(): number | undefined {
 		return undefined
@@ -29,7 +73,7 @@ export class HwgwBatch implements Batch<'hwgw'> {
 			return undefined
 		}
 		// batch args: [cmd, target, startTime, batchId?]
-		const [, , start] = this.hackProcess.args
+		const [, , start] = this.hackProcess.process.args
 		return Number(start)
 	}
 
@@ -37,7 +81,7 @@ export class HwgwBatch implements Batch<'hwgw'> {
 		if (!this.w1Process) {
 			return undefined
 		}
-		const [, , start] = this.w1Process.args
+		const [, , start] = this.w1Process.process.args
 		return Number(start)
 	}
 
@@ -45,7 +89,7 @@ export class HwgwBatch implements Batch<'hwgw'> {
 		if (!this.growProcess) {
 			return undefined
 		}
-		const [, , start] = this.growProcess.args
+		const [, , start] = this.growProcess.process.args
 		return Number(start)
 	}
 
@@ -53,7 +97,7 @@ export class HwgwBatch implements Batch<'hwgw'> {
 		if (!this.w2Process) {
 			return undefined
 		}
-		const [, , start] = this.w2Process.args
+		const [, , start] = this.w2Process.process.args
 		return Number(start)
 	}
 
@@ -72,7 +116,7 @@ export class HwgwBatch implements Batch<'hwgw'> {
 		if (!this.w2Process) {
 			return undefined
 		}
-		const [, , w2Start] = this.w2Process.args
+		const [, , w2Start] = this.w2Process.process.args
 		return (
 			Number(w2Start) +
 			this.ns.formulas.hacking.weakenTime(this.server, this.player)
@@ -104,16 +148,16 @@ export class HwgwBatch implements Batch<'hwgw'> {
 		}
 		const hackSkim =
 			this.ns.formulas.hacking.hackPercent(this.server, this.player) *
-			this.hackProcess.threads
+			this.hackProcess.process.threads
 		// hack shouldn't skim too much
 		if (hackSkim > DesiredHackingSkim) {
 			return false
 		}
 		const hackSecurityGrowth =
-			this.hackProcess.threads * HackSecurityRaisePerThread
+			this.hackProcess.process.threads * HackSecurityRaisePerThread
 		const w1ThreadsNeeded = hackSecurityGrowth / WeakenSecurityLowerPerThread
 		// w1 should be enough to recoup hack security raise
-		if (w1ThreadsNeeded < this.w1Process.threads) {
+		if (w1ThreadsNeeded < this.w1Process.process.threads) {
 			return false
 		}
 		const growStart = this.getGrowStart()!
@@ -130,10 +174,10 @@ export class HwgwBatch implements Batch<'hwgw'> {
 			return false
 		}
 		const growSecurityGrowth =
-			this.growProcess.threads * GrowthSecurityRaisePerThread
+			this.growProcess.process.threads * GrowthSecurityRaisePerThread
 		const w2ThreadsNeeded = growSecurityGrowth / WeakenSecurityLowerPerThread
 		// w2 should be enough to recoup grow security raise
-		if (w2ThreadsNeeded < this.w2Process.threads) {
+		if (w2ThreadsNeeded < this.w2Process.process.threads) {
 			return false
 		}
 		return true
@@ -146,7 +190,7 @@ export class HwgwBatch implements Batch<'hwgw'> {
 	plan(
 		expectedMoneyAvailable: number,
 		expectedSecurityLevel: number
-	): Iterable<BatchPlan> {
+	): BatchPlans {
 		const expectedServer: Server = {
 			...this.server,
 			moneyAvailable: expectedMoneyAvailable,
@@ -202,31 +246,38 @@ export class HwgwBatch implements Batch<'hwgw'> {
 		// offset for t=0 at batch start
 		const startOffset = -Math.min(hackStart, w1Start, growStart, w2Start)
 
-		return [
-			{
-				direction: 'hack',
-				start: startOffset + hackStart,
-				end: startOffset + hackStart + hackTime,
-				threads: hackThreads,
-			},
-			{
-				direction: 'weaken',
-				start: startOffset + w1Start,
-				end: startOffset + w1Start + weakenTime,
-				threads: w1Threads,
-			},
-			{
-				direction: 'grow',
-				start: startOffset + growStart,
-				end: startOffset + growStart + growTime,
-				threads: growThreads,
-			},
-			{
-				direction: 'weaken',
-				start: startOffset + w2Start,
-				end: startOffset + w2Start + weakenTime,
-				threads: w2Threads,
-			},
-		]
+		return {
+			type: this.type,
+			id: ulid(),
+			start: 0,
+			end: startOffset + w2Start + weakenTime,
+			endTicks: 4,
+			plans: [
+				{
+					direction: 'hack',
+					start: startOffset + hackStart,
+					end: startOffset + hackStart + hackTime,
+					threads: hackThreads,
+				},
+				{
+					direction: 'weaken',
+					start: startOffset + w1Start,
+					end: startOffset + w1Start + weakenTime,
+					threads: w1Threads,
+				},
+				{
+					direction: 'grow',
+					start: startOffset + growStart,
+					end: startOffset + growStart + growTime,
+					threads: growThreads,
+				},
+				{
+					direction: 'weaken',
+					start: startOffset + w2Start,
+					end: startOffset + w2Start + weakenTime,
+					threads: w2Threads,
+				},
+			],
+		}
 	}
 }

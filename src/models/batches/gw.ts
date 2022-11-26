@@ -1,20 +1,46 @@
-import { Batch, BatchPlan, BatchTick } from '../batch'
+import { ulid } from 'ulid'
+import { BatchPayloadG, BatchPayloadW } from '../../services/app-cache'
+import { Batch, BatchPlans, BatchTick } from '../batch'
 import {
 	WeakenSecurityLowerPerThread,
 	GrowthSecurityRaisePerThread,
 	calculateGrowThreads,
 } from '../hackmath'
+import { RunningProcess } from '../memory'
 
 export class GwBatch implements Batch<'gw'> {
 	public readonly type = 'gw'
+	private growProcess?: RunningProcess
+	private wProcess?: RunningProcess
 
 	constructor(
 		private readonly ns: NS,
 		public readonly player: Player,
 		public readonly server: Server,
-		private growProcess?: ProcessInfo,
-		private wProcess?: ProcessInfo
-	) {}
+		private processes?: RunningProcess[]
+	) {
+		if (processes) {
+			this.applyProcesses(processes)
+		}
+	}
+
+	getProcesses() {
+		return this.processes
+	}
+
+	applyProcesses(processes: RunningProcess[]) {
+		this.processes = processes
+		if (processes.length !== 2) {
+			return false
+		}
+		this.growProcess = processes.find(
+			({ process }) => process.filename === BatchPayloadG
+		)
+		this.wProcess = processes.find(
+			({ process }) => process.filename === BatchPayloadW
+		)
+		return Boolean(this.growProcess && this.wProcess)
+	}
 
 	expectedGrowth(): number | undefined {
 		if (!this.growProcess) {
@@ -22,7 +48,7 @@ export class GwBatch implements Batch<'gw'> {
 		}
 		return this.ns.formulas.hacking.growPercent(
 			this.server,
-			this.growProcess.threads,
+			this.growProcess.process.threads,
 			this.player
 		)
 	}
@@ -31,7 +57,7 @@ export class GwBatch implements Batch<'gw'> {
 		if (!this.growProcess) {
 			return undefined
 		}
-		const [, , start] = this.growProcess.args
+		const [, , start] = this.growProcess.process.args
 		return Number(start)
 	}
 
@@ -39,7 +65,7 @@ export class GwBatch implements Batch<'gw'> {
 		if (!this.wProcess) {
 			return undefined
 		}
-		const [, , start] = this.wProcess.args
+		const [, , start] = this.wProcess.process.args
 		return Number(start)
 	}
 
@@ -56,7 +82,7 @@ export class GwBatch implements Batch<'gw'> {
 		if (!this.wProcess) {
 			return undefined
 		}
-		const [, , wStart] = this.wProcess.args
+		const [, , wStart] = this.wProcess.process.args
 		return (
 			Number(wStart) +
 			this.ns.formulas.hacking.weakenTime(this.server, this.player)
@@ -81,10 +107,10 @@ export class GwBatch implements Batch<'gw'> {
 			return false
 		}
 		const growSecurityGrowth =
-			this.growProcess.threads * GrowthSecurityRaisePerThread
+			this.growProcess.process.threads * GrowthSecurityRaisePerThread
 		const wThreadsNeeded = growSecurityGrowth / WeakenSecurityLowerPerThread
 		// weaken should be enough to recoup grow security raise
-		if (wThreadsNeeded < this.wProcess.threads) {
+		if (wThreadsNeeded < this.wProcess.process.threads) {
 			return false
 		}
 		return true
@@ -97,7 +123,7 @@ export class GwBatch implements Batch<'gw'> {
 	plan(
 		expectedMoneyAvailable: number,
 		expectedSecurityLevel: number
-	): Iterable<BatchPlan> {
+	): BatchPlans {
 		const expectedServer: Server = {
 			...this.server,
 			moneyAvailable: expectedMoneyAvailable,
@@ -131,19 +157,26 @@ export class GwBatch implements Batch<'gw'> {
 		// offset for t=0 at batch start
 		const startOffset = -Math.min(growStart, weakenStart)
 
-		return [
-			{
-				direction: 'grow',
-				start: startOffset + growStart,
-				end: startOffset + growStart + growTime,
-				threads: growThreads,
-			},
-			{
-				direction: 'weaken',
-				start: startOffset + weakenStart,
-				end: startOffset + weakenStart + weakenTime,
-				threads: weakenThreads,
-			},
-		]
+		return {
+			type: this.type,
+			id: ulid(),
+			start: 0,
+			end: startOffset + weakenStart + weakenTime,
+			endTicks: 2,
+			plans: [
+				{
+					direction: 'grow',
+					start: startOffset + growStart,
+					end: startOffset + growStart + growTime,
+					threads: growThreads,
+				},
+				{
+					direction: 'weaken',
+					start: startOffset + weakenStart,
+					end: startOffset + weakenStart + weakenTime,
+					threads: weakenThreads,
+				},
+			],
+		}
 	}
 }

@@ -217,8 +217,6 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 			}
 		}
 
-		const player = this.ns.getPlayer()
-
 		const processesByTarget = new Map(
 			from(allProcesses).pipe(
 				// all current payloads are ["start", target, ...]
@@ -229,6 +227,8 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 
 		const needsThreads: ThreadsNeeded[] = []
 		const killProcesses = new Map<string, ProcessInfo[]>()
+		const satisfied = new Set<string>()
+		const attackedSet = new Set<string>()
 
 		for (const target of targets) {
 			target.updateTargetDirection()
@@ -263,8 +263,9 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 						(acc, cur) => acc + cur.process.threads,
 						0
 					)
+					attackedSet.add(target.name)
 					if (areThreadsSufficient(this.ns, target, appThreads)) {
-						this.satisfiedTargets++
+						satisfied.add(target.name)
 					} else {
 						const threadsNeeded = Math.ceil(targetThreads - appThreads)
 						if (threadsNeeded >= 1) {
@@ -299,8 +300,6 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 
 		// *** Use freelist to find new deployments ***
 
-		this.attackedTargets = this.satisfiedTargets
-
 		const deployments = new Map<string, DeployPlan[]>()
 		let curfreelist = from(freelist)
 		for (const { target, app, threads: targetThreads } of needsThreads) {
@@ -310,6 +309,10 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 
 			for (const { server, available, running } of curfreelist) {
 				if (running.has(`${app.name}|${target.name}`)) {
+					nextfreelist.push({ server, available, running })
+					continue
+				}
+				if (needFulfilled <= 0) {
 					nextfreelist.push({ server, available, running })
 					continue
 				}
@@ -337,7 +340,7 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 					threads,
 				})
 				deployments.set(server.name, serverDeployments)
-				running.add(app.name)
+				running.add(`${app.name}|${target.name}`)
 				const remainingAvailable = available - threads * app.ramCost
 				if (remainingAvailable > 0) {
 					nextfreelist.push({ server, available: remainingAvailable, running })
@@ -346,7 +349,7 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 			}
 
 			if (attacked) {
-				this.attackedTargets++
+				attackedSet.add(target.name)
 			}
 
 			curfreelist = from(nextfreelist).pipe(
@@ -354,6 +357,8 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 			)
 		}
 
+		this.satisfiedTargets = satisfied.size
+		this.attackedTargets = attackedSet.size
 		this.freeRam += reduce(curfreelist, (acc, cur) => acc + cur.available, 0)
 
 		// *** Merge kills and deployments to yield current plans ***

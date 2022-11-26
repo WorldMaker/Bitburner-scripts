@@ -4,6 +4,7 @@ import { LazyTarget } from './models/target.js'
 import { AppCacheService, PayloadAll } from './services/app-cache.js'
 import { DeploymentService } from './services/deployment.js'
 import { HackerService } from './services/hacker.js'
+import { MultiTargetBatchPlanner } from './services/payload-planners/multi-target-batch.js'
 import { MultiTargetDirectionalFormulatedPlanner } from './services/payload-planners/multi-target-directional-formulated.js'
 import { MultiTargetDirectionalRoundRobinPlanner } from './services/payload-planners/multi-target-directional-round-robin.js'
 import { PayloadService } from './services/payload.js'
@@ -67,6 +68,8 @@ export async function main(ns: NS) {
 
 	const getPayloadPlanner = () => {
 		switch (strategy) {
+			case 'batch':
+				return new MultiTargetBatchPlanner(ns, logger, targetService, apps)
 			case 'multidirectional':
 				return new MultiTargetDirectionalRoundRobinPlanner(
 					logger,

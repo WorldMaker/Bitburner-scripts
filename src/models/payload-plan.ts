@@ -1,10 +1,13 @@
 import { App } from './app'
+import { BatchPlans } from './batch'
 import { Target } from './target'
 
 export interface DeployPlan {
 	target: Target
 	app: App
 	threads: number
+	batch?: BatchPlans
+	batchStart?: Date
 }
 
 export interface KillPlan {

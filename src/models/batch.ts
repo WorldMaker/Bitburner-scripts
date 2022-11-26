@@ -1,13 +1,15 @@
+import { BadBatch } from './batches/bad'
 import { GwBatch } from './batches/gw'
 import { HwgwBatch } from './batches/hwgw'
 import { WBatch } from './batches/w'
 import { WgwBatch } from './batches/wgw'
+import { RunningProcess } from './memory'
 import { SimpleTarget, TargetDirection } from './target'
 
 export const StartDelay = 200 /* ms */
 export const BatchTick = 1 /* s */ * 1000 /* ms */
 
-export type BatchType = 'w' | 'gw' | 'wgw' | 'hwgw'
+export type BatchType = 'w' | 'gw' | 'wgw' | 'hwgw' | 'bad'
 
 export interface BatchPlan {
 	direction: TargetDirection
@@ -16,9 +18,20 @@ export interface BatchPlan {
 	end: number
 }
 
+export interface BatchPlans {
+	type: BatchType
+	id: string
+	plans: BatchPlan[]
+	start: number
+	end: number
+	endTicks: number
+}
+
 export interface Batch<T extends BatchType> {
 	type: T
 	server: Server
+	getProcesses(): RunningProcess[] | undefined
+	applyProcesses(processes: RunningProcess[]): boolean
 	expectedGrowth(): number | undefined
 	getEndTime(): number | undefined
 	getStartTime(): number | undefined
@@ -27,7 +40,7 @@ export interface Batch<T extends BatchType> {
 	plan(
 		expectedMoneyAvailable: number,
 		expectedSecurityLevel: number
-	): Iterable<BatchPlan>
+	): BatchPlans
 }
 
 export function getNextBatchType<T extends BatchType>(
@@ -76,16 +89,24 @@ export function createBatch(
 	type: BatchType,
 	player: Player,
 	server: Server,
-	...args: any[]
+	processes?: RunningProcess[]
 ) {
 	switch (type) {
 		case 'w':
-			return new WBatch(ns, player, server, ...args)
+			return new WBatch(ns, player, server, processes)
 		case 'gw':
-			return new GwBatch(ns, player, server, ...args)
+			return new GwBatch(ns, player, server, processes)
 		case 'wgw':
-			return new WgwBatch(ns, player, server, ...args)
+			return new WgwBatch(ns, player, server, processes)
 		case 'hwgw':
-			return new HwgwBatch(ns, player, server, ...args)
+			return new HwgwBatch(ns, player, server, processes)
+		case 'bad':
+		default:
+			return new BadBatch(server, processes)
 	}
+}
+
+export function getBatchArgs(plans: BatchPlans, start: Date) {
+	const startTime = start.getTime()
+	return [startTime + plans.start, startTime + plans.end, plans.type, plans.id]
 }

@@ -131,5 +131,5 @@ buildSync({
 	format,
 	outfile: './dist/boot.js',
 	logLevel,
-	define: { window: `{}`, document: `{ "nodeType": 9 }` },
+	define: { window: `globalThis`, document: `{ "nodeType": 9 }` },
 })
