@@ -331,7 +331,7 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 				}
 				needFulfilled -= threads
 				if (needFulfilled <= 0) {
-					this.satisfiedTargets++
+					satisfied.add(target.name)
 				}
 				const serverDeployments = deployments.get(server.name) ?? []
 				serverDeployments.push({
