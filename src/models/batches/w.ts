@@ -80,6 +80,7 @@ export class WBatch implements Batch<'w'> {
 			id: ulid(),
 			start: 0,
 			end: weakenTime,
+			endTicks: 1,
 			plans: [
 				{
 					direction: 'weaken',

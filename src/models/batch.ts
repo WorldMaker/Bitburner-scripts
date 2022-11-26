@@ -1,3 +1,4 @@
+import { BadBatch } from './batches/bad'
 import { GwBatch } from './batches/gw'
 import { HwgwBatch } from './batches/hwgw'
 import { WBatch } from './batches/w'
@@ -7,7 +8,7 @@ import { SimpleTarget, TargetDirection } from './target'
 export const StartDelay = 200 /* ms */
 export const BatchTick = 1 /* s */ * 1000 /* ms */
 
-export type BatchType = 'w' | 'gw' | 'wgw' | 'hwgw'
+export type BatchType = 'w' | 'gw' | 'wgw' | 'hwgw' | 'bad'
 
 export interface BatchPlan {
 	direction: TargetDirection
@@ -22,6 +23,7 @@ export interface BatchPlans {
 	plans: BatchPlan[]
 	start: number
 	end: number
+	endTicks: number
 }
 
 export interface Batch<T extends BatchType> {
@@ -97,6 +99,9 @@ export function createBatch(
 			return new WgwBatch(ns, player, server, processes)
 		case 'hwgw':
 			return new HwgwBatch(ns, player, server, processes)
+		case 'bad':
+		default:
+			return new BadBatch(server, processes)
 	}
 }
 

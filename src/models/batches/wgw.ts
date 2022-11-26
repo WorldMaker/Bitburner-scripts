@@ -191,6 +191,7 @@ export class WgwBatch implements Batch<'wgw'> {
 			id: ulid(),
 			start: 0,
 			end: startOffset + w2Start + weakenTime,
+			endTicks: 3,
 			plans: [
 				{
 					direction: 'weaken',

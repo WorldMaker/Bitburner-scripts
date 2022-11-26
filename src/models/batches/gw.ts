@@ -161,6 +161,7 @@ export class GwBatch implements Batch<'gw'> {
 			id: ulid(),
 			start: 0,
 			end: startOffset + weakenStart + weakenTime,
+			endTicks: 2,
 			plans: [
 				{
 					direction: 'grow',

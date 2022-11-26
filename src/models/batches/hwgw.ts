@@ -247,6 +247,7 @@ export class HwgwBatch implements Batch<'hwgw'> {
 			id: ulid(),
 			start: 0,
 			end: startOffset + w2Start + weakenTime,
+			endTicks: 4,
 			plans: [
 				{
 					direction: 'hack',
