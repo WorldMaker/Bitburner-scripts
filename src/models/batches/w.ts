@@ -4,13 +4,26 @@ import { WeakenSecurityLowerPerThread } from '../hackmath'
 
 export class WBatch implements Batch<'w'> {
 	public readonly type = 'w'
+	private wProcess?: ProcessInfo
 
 	constructor(
 		private readonly ns: NS,
 		public readonly player: Player,
 		public readonly server: Server,
-		private wProcess?: ProcessInfo
-	) {}
+		processes?: ProcessInfo[]
+	) {
+		if (processes) {
+			this.applyProcesses(processes)
+		}
+	}
+
+	applyProcesses(processes: ProcessInfo[]) {
+		if (processes.length !== 1) {
+			return false
+		}
+		this.wProcess = processes[0]
+		return true
+	}
 
 	expectedGrowth(): number | undefined {
 		return undefined

@@ -27,6 +27,7 @@ export interface BatchPlans {
 export interface Batch<T extends BatchType> {
 	type: T
 	server: Server
+	applyProcesses(processes: ProcessInfo[]): boolean
 	expectedGrowth(): number | undefined
 	getEndTime(): number | undefined
 	getStartTime(): number | undefined
@@ -84,17 +85,17 @@ export function createBatch(
 	type: BatchType,
 	player: Player,
 	server: Server,
-	...args: any[]
+	processes?: ProcessInfo[]
 ) {
 	switch (type) {
 		case 'w':
-			return new WBatch(ns, player, server, ...args)
+			return new WBatch(ns, player, server, processes)
 		case 'gw':
-			return new GwBatch(ns, player, server, ...args)
+			return new GwBatch(ns, player, server, processes)
 		case 'wgw':
-			return new WgwBatch(ns, player, server, ...args)
+			return new WgwBatch(ns, player, server, processes)
 		case 'hwgw':
-			return new HwgwBatch(ns, player, server, ...args)
+			return new HwgwBatch(ns, player, server, processes)
 	}
 }
 

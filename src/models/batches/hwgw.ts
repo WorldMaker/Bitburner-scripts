@@ -1,4 +1,9 @@
 import { ulid } from 'ulid'
+import {
+	BatchPayloadG,
+	BatchPayloadH,
+	BatchPayloadW,
+} from '../../services/app-cache'
 import { Batch, BatchPlans, BatchTick } from '../batch'
 import {
 	DesiredHackingSkim,
@@ -10,16 +15,45 @@ import {
 
 export class HwgwBatch implements Batch<'hwgw'> {
 	public readonly type = 'hwgw'
+	private hackProcess?: ProcessInfo
+	private w1Process?: ProcessInfo
+	private growProcess?: ProcessInfo
+	private w2Process?: ProcessInfo
 
 	constructor(
 		private readonly ns: NS,
 		public readonly player: Player,
 		public readonly server: Server,
-		private hackProcess?: ProcessInfo,
-		private w1Process?: ProcessInfo,
-		private growProcess?: ProcessInfo,
-		private w2Process?: ProcessInfo
-	) {}
+		processes?: ProcessInfo[]
+	) {
+		if (processes) {
+			this.applyProcesses(processes)
+		}
+	}
+
+	applyProcesses(processes: ProcessInfo[]) {
+		if (processes.length !== 3) {
+			return false
+		}
+		this.hackProcess = processes.find(
+			(process) => process.filename === BatchPayloadH
+		)
+		this.growProcess = processes.find(
+			(process) => process.filename === BatchPayloadG
+		)
+		const weakenProcesses = processes
+			.filter((process) => process.filename === BatchPayloadW)
+			// ['batch', target, start, ...]
+			.sort((a, b) => Number(a.args[2]) - Number(b.args[2]))
+		if (weakenProcesses.length != 2) {
+			return false
+		}
+		this.w1Process = weakenProcesses[0]
+		this.w2Process = weakenProcesses[1]
+		return Boolean(
+			this.hackProcess && this.growProcess && this.w1Process && this.w2Process
+		)
+	}
 
 	expectedGrowth(): number | undefined {
 		return undefined

@@ -1,4 +1,5 @@
 import { ulid } from 'ulid'
+import { BatchPayloadG, BatchPayloadW } from '../../services/app-cache'
 import { Batch, BatchPlans, BatchTick } from '../batch'
 import {
 	WeakenSecurityLowerPerThread,
@@ -8,14 +9,32 @@ import {
 
 export class GwBatch implements Batch<'gw'> {
 	public readonly type = 'gw'
+	private growProcess?: ProcessInfo
+	private wProcess?: ProcessInfo
 
 	constructor(
 		private readonly ns: NS,
 		public readonly player: Player,
 		public readonly server: Server,
-		private growProcess?: ProcessInfo,
-		private wProcess?: ProcessInfo
-	) {}
+		processes?: ProcessInfo[]
+	) {
+		if (processes) {
+			this.applyProcesses(processes)
+		}
+	}
+
+	applyProcesses(processes: ProcessInfo[]) {
+		if (processes.length !== 2) {
+			return false
+		}
+		this.growProcess = processes.find(
+			(process) => process.filename === BatchPayloadG
+		)
+		this.wProcess = processes.find(
+			(process) => process.filename === BatchPayloadW
+		)
+		return Boolean(this.growProcess && this.wProcess)
+	}
 
 	expectedGrowth(): number | undefined {
 		if (!this.growProcess) {
