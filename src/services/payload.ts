@@ -1,3 +1,4 @@
+import { getBatchArgs } from '../models/batch.js'
 import { PayloadPlan } from '../models/payload-plan.js'
 
 export class PayloadService {
@@ -32,7 +33,10 @@ export class PayloadService {
 			const started = plan.server.exec(
 				deploy.app.name,
 				deploy.threads,
-				...deploy.app.getArgs(deploy.target)
+				...deploy.app.getArgs(deploy.target),
+				...(deploy.app.batch
+					? getBatchArgs(deploy.batch!, deploy.batchStart!)
+					: [])
 			)
 			if (!started) {
 				deployed = false
