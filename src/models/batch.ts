@@ -27,6 +27,7 @@ export interface BatchPlans {
 export interface Batch<T extends BatchType> {
 	type: T
 	server: Server
+	getProcesses(): ProcessInfo[] | undefined
 	applyProcesses(processes: ProcessInfo[]): boolean
 	expectedGrowth(): number | undefined
 	getEndTime(): number | undefined

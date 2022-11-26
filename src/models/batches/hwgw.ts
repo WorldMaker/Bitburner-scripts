@@ -24,14 +24,19 @@ export class HwgwBatch implements Batch<'hwgw'> {
 		private readonly ns: NS,
 		public readonly player: Player,
 		public readonly server: Server,
-		processes?: ProcessInfo[]
+		private processes?: ProcessInfo[]
 	) {
 		if (processes) {
 			this.applyProcesses(processes)
 		}
 	}
 
+	getProcesses(): ProcessInfo[] | undefined {
+		return this.processes
+	}
+
 	applyProcesses(processes: ProcessInfo[]) {
+		this.processes = processes
 		if (processes.length !== 3) {
 			return false
 		}
