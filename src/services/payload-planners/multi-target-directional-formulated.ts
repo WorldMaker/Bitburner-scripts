@@ -311,6 +311,10 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 					nextfreelist.push({ server, available, running })
 					continue
 				}
+				if (needFulfilled <= 0) {
+					nextfreelist.push({ server, available, running })
+					continue
+				}
 				if (available < app.ramCost) {
 					nextfreelist.push({ server, available, running })
 					// when sorting these we could break here, but we want to track all free RAM
