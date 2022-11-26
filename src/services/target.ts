@@ -30,7 +30,7 @@ export class TargetService {
 				filter((server) => !server.purchased), // skip own servers
 				filter((server) => server.getWorth() > 0), // skip servers with no money
 				filter((server) => stats.isTargetHackable(server)),
-				orderByDescending((server) => server.getWorth()),
+				orderByDescending((server) => stats.getTargetEfficiency(server)),
 				thenByDescending((server) => server.hackingLevel),
 				thenByDescending((server) => server.name)
 			),
