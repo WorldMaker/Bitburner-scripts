@@ -335,7 +335,7 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 					threads,
 				})
 				deployments.set(server.name, serverDeployments)
-				running.add(app.name)
+				running.add(`${app.name}|${target.name}`)
 				const remainingAvailable = available - threads * app.ramCost
 				if (remainingAvailable > 0) {
 					nextfreelist.push({ server, available: remainingAvailable, running })
