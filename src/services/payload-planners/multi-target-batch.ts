@@ -327,22 +327,28 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 
 			let lastfreelist = curfreelist
 
-			const deployServers: Array<{ server: Target; deploy: DeployPlan }> = []
+			const deployServers: Array<{ server: Target; deploy: DeployPlan }>[] = []
 			for (const deploy of batchDeployments.deploys) {
 				let nextfreelist: FreeRam[] = []
-				let deployPlanned = false
+				let threadsNeeded = deploy.threads
+				const curDeployServers: Array<{ server: Target; deploy: DeployPlan }> =
+					[]
 				for (const { server, available } of curfreelist) {
-					// TODO: Support for splitting single direction deployments across multiple servers
-					if (deployPlanned) {
+					if (threadsNeeded <= 0) {
 						nextfreelist.push({ server, available })
 						continue
 					}
-					if (available < deploy.app.ramCost * deploy.threads) {
+					if (available < deploy.app.ramCost) {
 						nextfreelist.push({ server, available })
 						continue
 					}
-					deployServers.push({ server, deploy })
-					deployPlanned = true
+					const threads = Math.floor(available / deploy.app.ramCost)
+					curDeployServers.push({ server, deploy: { ...deploy, threads } })
+					threadsNeeded -= threads
+				}
+				if (threadsNeeded > 0) {
+					// not enough contiguous RAM even spread across all available free room
+					break
 				}
 				curfreelist = from(nextfreelist).pipe(
 					orderByDescending((f) => f.available)
@@ -353,7 +359,7 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 				if (start.getTime() + batch.end >= now + TotalTimeWindowToPlan) {
 					this.satisfiedTargets++
 				}
-				for (const deployServer of deployServers) {
+				for (const deployServer of deployServers.flat()) {
 					const deploylist = deployments.get(deployServer.server.name) ?? []
 					deploylist.push(deployServer.deploy)
 					deployments.set(deployServer.server.name, deploylist)
