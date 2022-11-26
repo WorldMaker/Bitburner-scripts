@@ -65,8 +65,7 @@ export class SimpleTarget {
 	 * weaken [start]
 	 * weaken -> grow [low on money]
 	 * weaken -> hack [has enough money]
-	 * grow -> weaken [high security]
-	 * grow -> hack [has enough money]
+	 * grow -> weaken [has enough money or high security]
 	 * hack -> weaken [low on money or high security; cycle]
 	 * ```
 	 *
@@ -78,7 +77,7 @@ export class SimpleTarget {
 		switch (this.targetDirection) {
 			case 'weaken':
 				if (Math.round(securityLevel) === this.getMinSecurityLevel()) {
-					if (money > this.getMoneyThreshold()) {
+					if (money >= this.getWorth()) {
 						this.targetDirection = 'hack'
 						return true
 					} else {
@@ -92,13 +91,8 @@ export class SimpleTarget {
 					securityLevel > this.getSecurityThreshold() ||
 					money >= this.getWorth()
 				) {
-					if (money > this.getMoneyThreshold()) {
-						this.targetDirection = 'hack'
-						return true
-					} else {
-						this.targetDirection = 'weaken'
-						return true
-					}
+					this.targetDirection = 'weaken'
+					return true
 				}
 				break
 			case 'hack':
