@@ -11,6 +11,7 @@ import {
 	BatchPlans,
 	batchPlanSeed,
 	BatchTick,
+	reduceBatchPlan,
 } from '../batch'
 import {
 	calculateGrowThreads,
@@ -50,11 +51,7 @@ export class WgwBatch implements Batch<'wgw'> {
 		for (const group of processesByDirection) {
 			switch (group.key) {
 				case 'grow':
-					this.growProcess = reduce(
-						group,
-						batchPlanReducer,
-						batchPlanSeed('grow')
-					)
+					this.growProcess = reduceBatchPlan(group)
 					break
 				case 'hack':
 					return false

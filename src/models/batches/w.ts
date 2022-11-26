@@ -1,14 +1,10 @@
 import { IterableX } from '@reactivex/ix-esnext-esm/iterable/iterablex'
 import { groupBy } from '@reactivex/ix-esnext-esm/iterable/operators/groupby'
-import { reduce } from '@reactivex/ix-esnext-esm/iterable/reduce'
 import { ulid } from 'ulid'
 import { getBatchPayloadDirection } from '../app'
 import {
 	Batch,
-	BatchPlan,
-	batchPlanReducer,
-	BatchPlans,
-	batchPlanSeed,
+	BatchPlan, BatchPlans, reduceBatchPlan
 } from '../batch'
 import { WeakenSecurityLowerPerThread } from '../hackmath'
 import { RunningProcess } from '../memory'
@@ -46,11 +42,7 @@ export class WBatch implements Batch<'w'> {
 				case 'hack':
 					return false
 				case 'weaken':
-					this.wProcess = reduce(
-						group,
-						batchPlanReducer,
-						batchPlanSeed('weaken')
-					)
+					this.wProcess = reduceBatchPlan(group)
 					break
 				default:
 					return false

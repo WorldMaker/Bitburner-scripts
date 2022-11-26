@@ -1,15 +1,13 @@
 import { IterableX } from '@reactivex/ix-esnext-esm/iterable/iterablex'
 import { groupBy } from '@reactivex/ix-esnext-esm/iterable/operators/groupby'
-import { reduce } from '@reactivex/ix-esnext-esm/iterable/reduce'
 import { ulid } from 'ulid'
 import { getBatchPayloadDirection } from '../app'
 import {
 	Batch,
 	BatchPlan,
-	batchPlanReducer,
 	BatchPlans,
-	batchPlanSeed,
 	BatchTick,
+	reduceBatchPlan,
 } from '../batch'
 import {
 	calculateGrowThreads,
@@ -48,20 +46,12 @@ export class GwBatch implements Batch<'gw'> {
 		for (const group of processesByDirection) {
 			switch (group.key) {
 				case 'grow':
-					this.growProcess = reduce(
-						group,
-						batchPlanReducer,
-						batchPlanSeed('grow')
-					)
+					this.growProcess = reduceBatchPlan(group)
 					break
 				case 'hack':
 					return false
 				case 'weaken':
-					this.wProcess = reduce(
-						group,
-						batchPlanReducer,
-						batchPlanSeed('weaken')
-					)
+					this.wProcess = reduceBatchPlan(group)
 					break
 				default:
 					return false

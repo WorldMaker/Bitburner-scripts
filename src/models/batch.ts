@@ -1,3 +1,5 @@
+import { GroupedIterable } from '@reactivex/ix-esnext-esm/iterable/operators/groupby'
+import { reduce } from '@reactivex/ix-esnext-esm/iterable/reduce'
 import { BadBatch } from './batches/bad'
 import { GwBatch } from './batches/gw'
 import { HwgwBatch } from './batches/hwgw'
@@ -34,6 +36,15 @@ export function batchPlanSeed(direction: TargetDirection) {
 		end: Infinity,
 		threads: 0,
 	}
+}
+
+export function reduceBatchPlan(
+	group: GroupedIterable<TargetDirection | undefined, RunningProcess>
+) {
+	if (!group.key) {
+		return undefined
+	}
+	return reduce(group, batchPlanReducer, batchPlanSeed(group.key))
 }
 
 export interface BatchPlans {
