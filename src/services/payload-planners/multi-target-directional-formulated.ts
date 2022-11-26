@@ -11,6 +11,7 @@ import {
 	SalvoPayloadW,
 } from '../../models/app'
 import {
+	calculateGrowThreads,
 	DesiredHackingSkim,
 	GrowthSecurityRaisePerThread,
 	WeakenSecurityLowerPerThread,
@@ -91,6 +92,7 @@ function calculateTargetThreads(
 	app: App,
 	ramBudget: number
 ) {
+	const formulasExist = ns.fileExists('Formulas.exe')
 	switch (target.getTargetDirection()) {
 		case 'grow':
 			const moneyAvailable = target.checkMoneyAvailable()
@@ -102,6 +104,14 @@ function calculateTargetThreads(
 				ramBudget / app.ramCost,
 				securityAvailable / GrowthSecurityRaisePerThread
 			)
+			if (formulasExist) {
+				const player = ns.getPlayer()
+				const server = ns.getServer(target.name)
+				return Math.min(
+					totalPossibleGrowThreads,
+					calculateGrowThreads(ns.formulas.hacking, server, player)
+				)
+			}
 			if (targetGrowPercent <= 1) {
 				return 1
 			}
