@@ -115,6 +115,16 @@ buildSync({
 })
 
 buildSync({
+	entryPoints: ['./src/score-targets.ts'],
+	bundle,
+	target,
+	format,
+	outfile: './dist/score-targets.js',
+	logLevel,
+	define: { window: `{}`, document: `{ "nodeType": 9 }` },
+})
+
+buildSync({
 	entryPoints: ['./src/bootstrap-service.ts'],
 	bundle,
 	target,

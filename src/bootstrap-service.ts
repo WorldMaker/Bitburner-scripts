@@ -20,7 +20,6 @@ let forceMaxDepth: number | null = null
 export async function main(ns: NS) {
 	const command = ns.args[0]?.toString()
 	let hacknetNodes = 5
-	let suggestedTarget = new LazyTarget(ns, 'n00dles', false)
 
 	if (command) {
 		switch (command) {
@@ -32,11 +31,6 @@ export async function main(ns: NS) {
 				running = false
 				strategy = ns.args[1]?.toString() ?? strategy
 				hacknetNodes = Number(ns.args[2]) || hacknetNodes
-				suggestedTarget = new LazyTarget(
-					ns,
-					ns.args[3]?.toString() ?? 'n00dles',
-					false
-				)
 				break
 
 			case 'maxdepth':
@@ -61,7 +55,7 @@ export async function main(ns: NS) {
 
 	const apps = new AppCacheService(ns)
 	const logger = new Logger(ns)
-	const targetService = new TargetService(suggestedTarget)
+	const targetService = new TargetService()
 	const payloadService = new PayloadService()
 	const servers = new ServerCacheService(ns)
 	const purchaseService = new PurchaseService(ns, servers, hacknetNodes)

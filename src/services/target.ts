@@ -12,8 +12,8 @@ const { from } = IterableX
 export class TargetService {
 	private targets: Target[]
 
-	constructor(startingTarget: Target) {
-		this.targets = [startingTarget]
+	constructor() {
+		this.targets = []
 	}
 
 	getTopTarget() {
