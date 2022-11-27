@@ -135,18 +135,24 @@ export class HwgwBatch implements Batch<'hwgw'> {
 		) {
 			return false
 		}
+		// assuming this batch started at a stable point
+		const assumedServer: Server = {
+			...this.server,
+			hackDifficulty: this.server.minDifficulty,
+			moneyAvailable: this.server.moneyAvailable,
+		}
 		const hackStart = this.getHackStart()!
 		const hackFinish =
-			hackStart + this.ns.formulas.hacking.hackTime(this.server, this.player)
+			hackStart + this.ns.formulas.hacking.hackTime(assumedServer, this.player)
 		const w1Start = this.getW1Start()!
 		const w1Finish =
-			w1Start + this.ns.formulas.hacking.weakenTime(this.server, this.player)
+			w1Start + this.ns.formulas.hacking.weakenTime(assumedServer, this.player)
 		// hack should finish before w1
 		if (hackFinish > w1Finish) {
 			return false
 		}
 		const hackSkim =
-			this.ns.formulas.hacking.hackPercent(this.server, this.player) *
+			this.ns.formulas.hacking.hackPercent(assumedServer, this.player) *
 			this.hackProcess.threads
 		// hack shouldn't skim too much
 		if (hackSkim > DesiredHackingSkim) {
@@ -161,7 +167,7 @@ export class HwgwBatch implements Batch<'hwgw'> {
 		}
 		const growStart = this.getGrowStart()!
 		const growFinish =
-			growStart + this.ns.formulas.hacking.growTime(this.server, this.player)
+			growStart + this.ns.formulas.hacking.growTime(assumedServer, this.player)
 		// w1 should finish before grow start
 		if (w1Finish > growFinish) {
 			return false

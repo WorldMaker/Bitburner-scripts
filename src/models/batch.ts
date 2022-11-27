@@ -137,7 +137,7 @@ export function getNextBatchType<T extends BatchType>(
 	}
 	if (expectedMoneyAvailable < target.getWorth()) {
 		if (expectedSecurityLevel > target.getMinSecurityLevel()) {
-			return 'wgw'
+			return 'w' // 'wgw' may be too hard to prove stable
 		} else {
 			return 'gw'
 		}

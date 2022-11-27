@@ -109,9 +109,14 @@ export class GwBatch implements Batch<'gw'> {
 		if (!this.growProcess || !this.wProcess) {
 			return false
 		}
+		// assuming this batch kicked off at a relatively stable point
+		const assumedServer: Server = {
+			...this.server,
+			hackDifficulty: this.server.minDifficulty,
+		}
 		const growStart = this.getGrowStart()!
 		const growFinish =
-			growStart + this.ns.formulas.hacking.growTime(this.server, this.player)
+			growStart + this.ns.formulas.hacking.growTime(assumedServer, this.player)
 		// TODO: check grow should be big enough?
 		const wFinish = this.getWFinish()!
 		// grow should finish before w2 start
