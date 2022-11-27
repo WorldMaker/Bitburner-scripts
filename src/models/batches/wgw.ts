@@ -1,18 +1,29 @@
+import { IterableX } from '@reactivex/ix-esnext-esm/iterable/iterablex'
+import { groupBy } from '@reactivex/ix-esnext-esm/iterable/operators/groupby'
 import { ulid } from 'ulid'
-import { BatchPayloadG, BatchPayloadW } from '../../services/app-cache'
-import { Batch, BatchPlans, BatchTick } from '../batch'
+import { getBatchPayloadDirection } from '../app'
 import {
-	WeakenSecurityLowerPerThread,
-	GrowthSecurityRaisePerThread,
+	Batch,
+	BatchPlan,
+	BatchPlans,
+	BatchTick,
+	reduceBatchPlan,
+	reduceDoubleWeakens,
+} from '../batch'
+import {
 	calculateGrowThreads,
+	GrowthSecurityRaisePerThread,
+	WeakenSecurityLowerPerThread,
 } from '../hackmath'
 import { RunningProcess } from '../memory'
 
+const { from } = IterableX
+
 export class WgwBatch implements Batch<'wgw'> {
 	public readonly type = 'wgw'
-	private w1Process?: RunningProcess
-	private growProcess?: RunningProcess
-	private w2Process?: RunningProcess
+	private w1Process?: BatchPlan
+	private growProcess?: BatchPlan
+	private w2Process?: BatchPlan
 
 	constructor(
 		private readonly ns: NS,
@@ -31,24 +42,27 @@ export class WgwBatch implements Batch<'wgw'> {
 
 	applyProcesses(processes: RunningProcess[]) {
 		this.processes = processes
-		if (processes.length !== 3) {
-			return false
-		}
-		this.growProcess = processes.find(
-			({ process }) => process.filename === BatchPayloadG
+		const processesByDirection = from(processes).pipe(
+			groupBy((process) => getBatchPayloadDirection(process.process.filename))
 		)
-		const weakenProcesses = processes
-			.filter(({ process }) => process.filename === BatchPayloadW)
-			// ['batch', target, start, ...]
-			.sort(
-				({ process: aProcess }, { process: bProcess }) =>
-					Number(aProcess.args[2]) - Number(bProcess.args[2])
-			)
-		if (weakenProcesses.length != 2) {
-			return false
+		for (const group of processesByDirection) {
+			switch (group.key) {
+				case 'grow':
+					this.growProcess = reduceBatchPlan(group)
+					break
+				case 'hack':
+					return false
+				case 'weaken':
+					const result = reduceDoubleWeakens(group)
+					if (result) {
+						this.w1Process = result.w1Process
+						this.w2Process = result.w2Process
+					}
+					break
+				default:
+					return false
+			}
 		}
-		this.w1Process = weakenProcesses[0]
-		this.w2Process = weakenProcesses[1]
 		return Boolean(this.growProcess && this.w1Process && this.w2Process)
 	}
 
@@ -58,7 +72,7 @@ export class WgwBatch implements Batch<'wgw'> {
 		}
 		return this.ns.formulas.hacking.growPercent(
 			this.server,
-			this.growProcess.process.threads,
+			this.growProcess.threads,
 			this.player
 		)
 	}
@@ -67,24 +81,21 @@ export class WgwBatch implements Batch<'wgw'> {
 		if (!this.w1Process) {
 			return undefined
 		}
-		const [, , start] = this.w1Process.process.args
-		return Number(start)
+		return this.w1Process.start
 	}
 
 	getGrowStart() {
 		if (!this.growProcess) {
 			return undefined
 		}
-		const [, , start] = this.growProcess.process.args
-		return Number(start)
+		return this.growProcess.start
 	}
 
 	getW2Start() {
 		if (!this.w2Process) {
 			return undefined
 		}
-		const [, , start] = this.w2Process.process.args
-		return Number(start)
+		return this.w2Process.start
 	}
 
 	getStartTime(): number | undefined {
@@ -101,11 +112,7 @@ export class WgwBatch implements Batch<'wgw'> {
 		if (!this.w2Process) {
 			return undefined
 		}
-		const [, , w2Start] = this.w2Process.process.args
-		return (
-			Number(w2Start) +
-			this.ns.formulas.hacking.weakenTime(this.server, this.player)
-		)
+		return this.w2Process.end
 	}
 
 	getEndTime(): number | undefined {
@@ -114,7 +121,8 @@ export class WgwBatch implements Batch<'wgw'> {
 
 	isSafe() {
 		if (!this.w1Process || !this.growProcess || !this.w2Process) {
-			return false
+			// it may be partially complete; TODO: add "stable point" timing checks
+			return true
 		}
 		const w1Start = this.getW1Start()!
 		const w1Finish =
@@ -134,10 +142,10 @@ export class WgwBatch implements Batch<'wgw'> {
 			return false
 		}
 		const growSecurityGrowth =
-			this.growProcess.process.threads * GrowthSecurityRaisePerThread
+			this.growProcess.threads * GrowthSecurityRaisePerThread
 		const w2ThreadsNeeded = growSecurityGrowth / WeakenSecurityLowerPerThread
 		// w2 should be enough to recoup grow security raise
-		if (w2ThreadsNeeded < this.w2Process.process.threads) {
+		if (w2ThreadsNeeded < this.w2Process.threads) {
 			return false
 		}
 		return true

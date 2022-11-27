@@ -3,7 +3,12 @@ import { groupBy } from '@reactivex/ix-esnext-esm/iterable/operators/groupby'
 import { map } from '@reactivex/ix-esnext-esm/iterable/operators/map'
 import { orderByDescending } from '@reactivex/ix-esnext-esm/iterable/operators/orderby'
 import { reduce } from '@reactivex/ix-esnext-esm/iterable/reduce'
-import { App } from '../../models/app'
+import {
+	App,
+	BatchPayloadG,
+	BatchPayloadH,
+	BatchPayloadW,
+} from '../../models/app'
 import {
 	Batch,
 	BatchPlans,
@@ -20,12 +25,7 @@ import {
 	PayloadPlanner,
 } from '../../models/payload-plan'
 import { Target, TargetDirection } from '../../models/target'
-import {
-	AppCacheService,
-	BatchPayloadG,
-	BatchPayloadH,
-	BatchPayloadW,
-} from '../app-cache'
+import { AppCacheService } from '../app-cache'
 import { TargetService } from '../target'
 
 const { from } = IterableX
@@ -65,6 +65,7 @@ interface NeedsBatches {
 	target: Target
 	batch: BatchPlans
 	start: Date
+	satisifiesCount: boolean
 }
 
 function getBatchDeployments(
@@ -167,6 +168,8 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 		const player = this.ns.getPlayer()
 		const now = new Date().getTime()
 		const nextBatchTick = new Date(now + BatchTick)
+		const attackedTargets = new Set<string>()
+		const satisfied = new Set<string>()
 
 		for (const target of targets) {
 			const targetProcesses = processesByTarget.get(target.name)
@@ -185,6 +188,7 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 						target.getServer()
 					).plan(server.moneyAvailable, server.hackDifficulty),
 					start: nextBatchTick,
+					satisifiesCount: false,
 				})
 			} else {
 				const batches = targetProcesses.pipe(
@@ -213,7 +217,7 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 				let lastBatch: Batch<any> | null = null
 				for (const batch of batches) {
 					if (!batch.isSafe()) {
-						this.logger.log(`WARN desync ${target.name}`)
+						this.logger.log(`WARN desync ${target.name} ${batch.type}`)
 						for (const { server, process } of batch.getProcesses()!) {
 							let killlist = killProcesses.get(server.name) ?? []
 							killlist.push(process)
@@ -230,14 +234,14 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 				}
 
 				if (safeBatchCount > 0) {
-					this.attackedTargets++
+					attackedTargets.add(target.name)
 				}
 
 				if (
 					safeBatchCount >= TotalBatchesPerTargetToPlan ||
 					lastBatchEnd >= now + TotalTimeWindowToPlan
 				) {
-					this.satisfiedTargets++
+					satisfied.add(target.name)
 				} else {
 					const server = target.getServer()
 					if (lastBatch?.isStableHack()) {
@@ -262,6 +266,7 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 							target,
 							batch: plan,
 							start,
+							satisifiesCount: safeBatchCount === 9,
 						})
 					} else {
 						const start = new Date(
@@ -287,6 +292,7 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 								server.minDifficulty
 							),
 							start,
+							satisifiesCount: safeBatchCount === 9,
 						})
 					}
 					processesByTarget.delete(target.name)
@@ -305,8 +311,8 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 		// *** Use freelist to find new deployments ***
 
 		const deployments = new Map<string, DeployPlan[]>()
-		let curfreelist = from(freelist)
-		for (const { target, batch, start } of needsBatches) {
+		let curfreelist = [...from(freelist)]
+		for (const { target, batch, start, satisifiesCount } of needsBatches) {
 			const batchDeployments = getBatchDeployments(
 				this.appSelector,
 				target,
@@ -325,35 +331,53 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 				continue
 			}
 
-			let lastfreelist = curfreelist
+			let lastfreelist = [...curfreelist]
 
-			const deployServers: Array<{ server: Target; deploy: DeployPlan }> = []
+			const deployServers: Array<{ server: Target; deploy: DeployPlan }>[] = []
 			for (const deploy of batchDeployments.deploys) {
 				let nextfreelist: FreeRam[] = []
-				let deployPlanned = false
+				let threadsNeeded = deploy.threads
+				const curDeployServers: Array<{ server: Target; deploy: DeployPlan }> =
+					[]
 				for (const { server, available } of curfreelist) {
-					// TODO: Support for splitting single direction deployments across multiple servers
-					if (deployPlanned) {
+					if (threadsNeeded <= 0) {
 						nextfreelist.push({ server, available })
 						continue
 					}
-					if (available < deploy.app.ramCost * deploy.threads) {
+					if (available < deploy.app.ramCost) {
 						nextfreelist.push({ server, available })
 						continue
 					}
-					deployServers.push({ server, deploy })
-					deployPlanned = true
+					const threads = Math.floor(available / deploy.app.ramCost)
+					curDeployServers.push({ server, deploy: { ...deploy, threads } })
+					threadsNeeded -= threads
+					const remainingAvailable = available - threads * deploy.app.ramCost
+					if (remainingAvailable > 0) {
+						nextfreelist.push({
+							server,
+							available: remainingAvailable,
+						})
+					}
 				}
-				curfreelist = from(nextfreelist).pipe(
-					orderByDescending((f) => f.available)
-				)
+				if (threadsNeeded > 0) {
+					// not enough contiguous RAM even spread across all available free room
+					break
+				}
+				deployServers.push(curDeployServers)
+				curfreelist = [
+					...from(nextfreelist).pipe(orderByDescending((f) => f.available)),
+				]
+				lastfreelist = [...curfreelist]
 			}
 			if (deployServers.length === batchDeployments.deploys.length) {
-				this.attackedTargets++
-				if (start.getTime() + batch.end >= now + TotalTimeWindowToPlan) {
-					this.satisfiedTargets++
+				attackedTargets.add(target.name)
+				if (
+					satisifiesCount ||
+					start.getTime() + batch.end >= now + TotalTimeWindowToPlan
+				) {
+					satisfied.add(target.name)
 				}
-				for (const deployServer of deployServers) {
+				for (const deployServer of deployServers.flat()) {
 					const deploylist = deployments.get(deployServer.server.name) ?? []
 					deploylist.push(deployServer.deploy)
 					deployments.set(deployServer.server.name, deploylist)
@@ -367,6 +391,8 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 		}
 
 		this.freeRam += reduce(curfreelist, (acc, cur) => acc + cur.available, 0)
+		this.satisfiedTargets = satisfied.size
+		this.attackedTargets = attackedTargets.size
 
 		// *** Merge kills and deployments to yield current plans ***
 

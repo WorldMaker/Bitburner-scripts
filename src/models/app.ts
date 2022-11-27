@@ -1,4 +1,30 @@
-import { Target } from './target'
+import { Target, TargetDirection } from './target'
+
+export const BatchPayloadG = 'payload-bg.js'
+export const BatchPayloadH = 'payload-bh.js'
+export const BatchPayloadW = 'payload-bw.js'
+export const PayloadAll = 'payload-all.js'
+export const PayloadG = 'payload-g.js'
+export const PayloadH = 'payload-h.js'
+export const PayloadW = 'payload-w.js'
+export const SalvoPayloadG = 'payload-sg.js'
+export const SalvoPayloadH = 'payload-sh.js'
+export const SalvoPayloadW = 'payload-sw.js'
+
+export function getBatchPayloadDirection(
+	payloadName: string
+): TargetDirection | undefined {
+	switch (payloadName) {
+		case BatchPayloadG:
+			return 'grow'
+		case BatchPayloadH:
+			return 'hack'
+		case BatchPayloadW:
+			return 'weaken'
+		default:
+			return undefined
+	}
+}
 
 export class App {
 	public readonly ramCost: number

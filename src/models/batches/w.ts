@@ -1,11 +1,16 @@
+import { IterableX } from '@reactivex/ix-esnext-esm/iterable/iterablex'
+import { groupBy } from '@reactivex/ix-esnext-esm/iterable/operators/groupby'
 import { ulid } from 'ulid'
-import { Batch, BatchPlans } from '../batch'
+import { getBatchPayloadDirection } from '../app'
+import { Batch, BatchPlan, BatchPlans, reduceBatchPlan } from '../batch'
 import { WeakenSecurityLowerPerThread } from '../hackmath'
 import { RunningProcess } from '../memory'
 
+const { from } = IterableX
+
 export class WBatch implements Batch<'w'> {
 	public readonly type = 'w'
-	private wProcess?: RunningProcess
+	private wProcess?: BatchPlan
 
 	constructor(
 		private readonly ns: NS,
@@ -24,10 +29,22 @@ export class WBatch implements Batch<'w'> {
 
 	applyProcesses(processes: RunningProcess[]) {
 		this.processes = processes
-		if (processes.length !== 1) {
-			return false
+		const processesByDirection = from(processes).pipe(
+			groupBy((process) => getBatchPayloadDirection(process.process.filename))
+		)
+		for (const group of processesByDirection) {
+			switch (group.key) {
+				case 'grow':
+					return false
+				case 'hack':
+					return false
+				case 'weaken':
+					this.wProcess = reduceBatchPlan(group)
+					break
+				default:
+					return false
+			}
 		}
-		this.wProcess = processes[0]
 		return true
 	}
 
@@ -39,16 +56,14 @@ export class WBatch implements Batch<'w'> {
 		if (!this.wProcess) {
 			return undefined
 		}
-		const [, , start] = this.wProcess.process.args
-		return Number(start)
+		return this.wProcess.start
 	}
 
 	getEndTime(): number | undefined {
-		const start = this.getStartTime()
-		if (!start) {
+		if (!this.wProcess) {
 			return undefined
 		}
-		return start + this.ns.formulas.hacking.weakenTime(this.server, this.player)
+		return this.wProcess.end
 	}
 
 	isStableHack(): boolean {
@@ -56,7 +71,8 @@ export class WBatch implements Batch<'w'> {
 	}
 
 	isSafe(): boolean {
-		return Boolean(this.wProcess)
+		// weakens are always safe
+		return true
 	}
 
 	plan(

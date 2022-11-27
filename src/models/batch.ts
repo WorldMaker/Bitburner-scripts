@@ -1,3 +1,9 @@
+import {
+	groupBy,
+	GroupedIterable,
+} from '@reactivex/ix-esnext-esm/iterable/operators/groupby'
+import { orderBy } from '@reactivex/ix-esnext-esm/iterable/operators/orderby'
+import { reduce } from '@reactivex/ix-esnext-esm/iterable/reduce'
 import { BadBatch } from './batches/bad'
 import { GwBatch } from './batches/gw'
 import { HwgwBatch } from './batches/hwgw'
@@ -16,6 +22,64 @@ export interface BatchPlan {
 	threads: number
 	start: number
 	end: number
+}
+
+export function batchPlanReducer(acc: BatchPlan, cur: RunningProcess) {
+	return {
+		direction: acc.direction,
+		start: Math.min(acc.start, cur.process.args[2] as number),
+		end: Math.max(acc.end, cur.process.args[3] as number),
+		threads: acc.threads + cur.process.threads,
+	}
+}
+
+export function batchPlanSeed(direction: TargetDirection) {
+	return {
+		direction,
+		start: -Infinity,
+		end: Infinity,
+		threads: 0,
+	}
+}
+
+export function reduceBatchPlan(
+	group: GroupedIterable<TargetDirection | undefined, RunningProcess>
+) {
+	if (!group.key) {
+		return undefined
+	}
+	return reduce(group, batchPlanReducer, batchPlanSeed(group.key))
+}
+
+export function reduceDoubleWeakens(
+	group: GroupedIterable<TargetDirection | undefined, RunningProcess>
+) {
+	if (group.key !== 'weaken') {
+		return undefined
+	}
+	const processesByStart = [
+		...group.pipe(
+			groupBy((process) => process.process.args[2] as number),
+			orderBy((g) => g.key)
+		),
+	]
+	if (processesByStart.length !== 2) {
+		return false
+	}
+	const w1Process = reduce(
+		processesByStart[0],
+		batchPlanReducer,
+		batchPlanSeed('weaken')
+	)
+	const w2Process = reduce(
+		processesByStart[1],
+		batchPlanReducer,
+		batchPlanSeed('weaken')
+	)
+	return {
+		w1Process,
+		w2Process,
+	}
 }
 
 export interface BatchPlans {
@@ -73,7 +137,7 @@ export function getNextBatchType<T extends BatchType>(
 	}
 	if (expectedMoneyAvailable < target.getWorth()) {
 		if (expectedSecurityLevel > target.getMinSecurityLevel()) {
-			return 'wgw'
+			return 'w' // 'wgw' may be too hard to prove stable
 		} else {
 			return 'gw'
 		}
@@ -102,6 +166,9 @@ export function createBatch(
 			return new HwgwBatch(ns, player, server, processes)
 		case 'bad':
 		default:
+			ns.print(
+				`WARN bad batch discovered with ${type} and ${processes?.length} processes`
+			)
 			return new BadBatch(server, processes)
 	}
 }

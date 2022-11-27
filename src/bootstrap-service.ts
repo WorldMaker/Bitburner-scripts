@@ -1,7 +1,6 @@
 import { Logger } from './models/logger.js'
 import { PlayerStats } from './models/stats.js'
-import { LazyTarget } from './models/target.js'
-import { AppCacheService, PayloadAll } from './services/app-cache.js'
+import { AppCacheService } from './services/app-cache.js'
 import { DeploymentService } from './services/deployment.js'
 import { HackerService } from './services/hacker.js'
 import { MultiTargetBatchPlanner } from './services/payload-planners/multi-target-batch.js'
@@ -21,6 +20,10 @@ let forceMaxDepth: number | null = null
 export async function main(ns: NS) {
 	const command = ns.args[0]?.toString()
 	let hacknetNodes = 5
+
+	ns.disableLog('scp')
+	ns.disableLog('kill')
+	ns.disableLog('exec')
 
 	if (command) {
 		switch (command) {

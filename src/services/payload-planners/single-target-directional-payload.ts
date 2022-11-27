@@ -1,14 +1,8 @@
-import { App } from '../../models/app'
+import { App, PayloadAll, PayloadG, PayloadH, PayloadW } from '../../models/app'
 import { Logger } from '../../models/logger'
 import { PayloadPlan, PayloadPlanner } from '../../models/payload-plan'
 import { Target, TargetDirection } from '../../models/target'
-import {
-	AppCacheService,
-	PayloadAll,
-	PayloadG,
-	PayloadH,
-	PayloadW,
-} from '../app-cache'
+import { AppCacheService } from '../app-cache'
 import { TargetService } from '../target'
 
 const PurchasedServerPayloads: Array<TargetDirection | null> = [

@@ -1,17 +1,27 @@
+import { IterableX } from '@reactivex/ix-esnext-esm/iterable/iterablex'
+import { groupBy } from '@reactivex/ix-esnext-esm/iterable/operators/groupby'
 import { ulid } from 'ulid'
-import { BatchPayloadG, BatchPayloadW } from '../../services/app-cache'
-import { Batch, BatchPlans, BatchTick } from '../batch'
+import { getBatchPayloadDirection } from '../app'
 import {
-	WeakenSecurityLowerPerThread,
-	GrowthSecurityRaisePerThread,
+	Batch,
+	BatchPlan,
+	BatchPlans,
+	BatchTick,
+	reduceBatchPlan,
+} from '../batch'
+import {
 	calculateGrowThreads,
+	GrowthSecurityRaisePerThread,
+	WeakenSecurityLowerPerThread,
 } from '../hackmath'
 import { RunningProcess } from '../memory'
 
+const { from } = IterableX
+
 export class GwBatch implements Batch<'gw'> {
 	public readonly type = 'gw'
-	private growProcess?: RunningProcess
-	private wProcess?: RunningProcess
+	private growProcess?: BatchPlan
+	private wProcess?: BatchPlan
 
 	constructor(
 		private readonly ns: NS,
@@ -30,15 +40,23 @@ export class GwBatch implements Batch<'gw'> {
 
 	applyProcesses(processes: RunningProcess[]) {
 		this.processes = processes
-		if (processes.length !== 2) {
-			return false
+		const processesByDirection = from(processes).pipe(
+			groupBy((process) => getBatchPayloadDirection(process.process.filename))
+		)
+		for (const group of processesByDirection) {
+			switch (group.key) {
+				case 'grow':
+					this.growProcess = reduceBatchPlan(group)
+					break
+				case 'hack':
+					return false
+				case 'weaken':
+					this.wProcess = reduceBatchPlan(group)
+					break
+				default:
+					return false
+			}
 		}
-		this.growProcess = processes.find(
-			({ process }) => process.filename === BatchPayloadG
-		)
-		this.wProcess = processes.find(
-			({ process }) => process.filename === BatchPayloadW
-		)
 		return Boolean(this.growProcess && this.wProcess)
 	}
 
@@ -48,7 +66,7 @@ export class GwBatch implements Batch<'gw'> {
 		}
 		return this.ns.formulas.hacking.growPercent(
 			this.server,
-			this.growProcess.process.threads,
+			this.growProcess.threads,
 			this.player
 		)
 	}
@@ -57,16 +75,14 @@ export class GwBatch implements Batch<'gw'> {
 		if (!this.growProcess) {
 			return undefined
 		}
-		const [, , start] = this.growProcess.process.args
-		return Number(start)
+		return this.growProcess.start
 	}
 
 	getWStart() {
 		if (!this.wProcess) {
 			return undefined
 		}
-		const [, , start] = this.wProcess.process.args
-		return Number(start)
+		return this.wProcess.start
 	}
 
 	getStartTime(): number | undefined {
@@ -82,11 +98,7 @@ export class GwBatch implements Batch<'gw'> {
 		if (!this.wProcess) {
 			return undefined
 		}
-		const [, , wStart] = this.wProcess.process.args
-		return (
-			Number(wStart) +
-			this.ns.formulas.hacking.weakenTime(this.server, this.player)
-		)
+		return this.wProcess.end
 	}
 
 	getEndTime(): number | undefined {
@@ -95,11 +107,17 @@ export class GwBatch implements Batch<'gw'> {
 
 	isSafe() {
 		if (!this.growProcess || !this.wProcess) {
-			return false
+			// it may be partially complete; TODO: add "stable point" timing checks
+			return true
+		}
+		// assuming this batch kicked off at a relatively stable point
+		const assumedServer: Server = {
+			...this.server,
+			hackDifficulty: this.server.minDifficulty,
 		}
 		const growStart = this.getGrowStart()!
 		const growFinish =
-			growStart + this.ns.formulas.hacking.growTime(this.server, this.player)
+			growStart + this.ns.formulas.hacking.growTime(assumedServer, this.player)
 		// TODO: check grow should be big enough?
 		const wFinish = this.getWFinish()!
 		// grow should finish before w2 start
@@ -107,10 +125,10 @@ export class GwBatch implements Batch<'gw'> {
 			return false
 		}
 		const growSecurityGrowth =
-			this.growProcess.process.threads * GrowthSecurityRaisePerThread
+			this.growProcess.threads * GrowthSecurityRaisePerThread
 		const wThreadsNeeded = growSecurityGrowth / WeakenSecurityLowerPerThread
 		// weaken should be enough to recoup grow security raise
-		if (wThreadsNeeded < this.wProcess.process.threads) {
+		if (wThreadsNeeded < this.wProcess.threads) {
 			return false
 		}
 		return true

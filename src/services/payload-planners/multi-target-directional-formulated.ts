@@ -3,8 +3,15 @@ import { groupBy } from '@reactivex/ix-esnext-esm/iterable/operators/groupby'
 import { map } from '@reactivex/ix-esnext-esm/iterable/operators/map'
 import { orderByDescending } from '@reactivex/ix-esnext-esm/iterable/operators/orderby'
 import { reduce } from '@reactivex/ix-esnext-esm/iterable/reduce'
-import { App } from '../../models/app'
 import {
+	App,
+	PayloadAll,
+	SalvoPayloadG,
+	SalvoPayloadH,
+	SalvoPayloadW,
+} from '../../models/app'
+import {
+	calculateGrowThreads,
 	DesiredHackingSkim,
 	GrowthSecurityRaisePerThread,
 	WeakenSecurityLowerPerThread,
@@ -15,13 +22,7 @@ import {
 	PayloadPlanner,
 } from '../../models/payload-plan'
 import { Target, TargetDirection } from '../../models/target'
-import {
-	AppCacheService,
-	PayloadAll,
-	SalvoPayloadG,
-	SalvoPayloadH,
-	SalvoPayloadW,
-} from '../app-cache'
+import { AppCacheService } from '../app-cache'
 import { TargetService } from '../target'
 
 const { from } = IterableX
@@ -91,6 +92,7 @@ function calculateTargetThreads(
 	app: App,
 	ramBudget: number
 ) {
+	const formulasExist = ns.fileExists('Formulas.exe')
 	switch (target.getTargetDirection()) {
 		case 'grow':
 			const moneyAvailable = target.checkMoneyAvailable()
@@ -102,6 +104,14 @@ function calculateTargetThreads(
 				ramBudget / app.ramCost,
 				securityAvailable / GrowthSecurityRaisePerThread
 			)
+			if (formulasExist) {
+				const player = ns.getPlayer()
+				const server = ns.getServer(target.name)
+				return Math.min(
+					totalPossibleGrowThreads,
+					calculateGrowThreads(ns.formulas.hacking, server, player)
+				)
+			}
 			if (targetGrowPercent <= 1) {
 				return 1
 			}
@@ -331,7 +341,7 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 				}
 				needFulfilled -= threads
 				if (needFulfilled <= 0) {
-					this.satisfiedTargets++
+					satisfied.add(target.name)
 				}
 				const serverDeployments = deployments.get(server.name) ?? []
 				serverDeployments.push({
