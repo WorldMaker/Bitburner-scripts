@@ -217,7 +217,7 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 				let lastBatch: Batch<any> | null = null
 				for (const batch of batches) {
 					if (!batch.isSafe()) {
-						this.logger.log(`WARN desync ${target.name}`)
+						this.logger.log(`WARN desync ${target.name} ${batch.type}`)
 						for (const { server, process } of batch.getProcesses()!) {
 							let killlist = killProcesses.get(server.name) ?? []
 							killlist.push(process)
