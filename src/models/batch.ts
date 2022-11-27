@@ -166,6 +166,9 @@ export function createBatch(
 			return new HwgwBatch(ns, player, server, processes)
 		case 'bad':
 		default:
+			ns.print(
+				`WARN bad batch discovered with ${type} and ${processes?.length} processes`
+			)
 			return new BadBatch(server, processes)
 	}
 }
