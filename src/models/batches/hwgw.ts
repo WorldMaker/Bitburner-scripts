@@ -133,7 +133,8 @@ export class HwgwBatch implements Batch<'hwgw'> {
 			!this.growProcess ||
 			!this.w2Process
 		) {
-			return false
+			// it may be partially complete; TODO: add "stable point" timing checks
+			return true
 		}
 		// assuming this batch started at a stable point
 		const assumedServer: Server = {

@@ -121,7 +121,8 @@ export class WgwBatch implements Batch<'wgw'> {
 
 	isSafe() {
 		if (!this.w1Process || !this.growProcess || !this.w2Process) {
-			return false
+			// it may be partially complete; TODO: add "stable point" timing checks
+			return true
 		}
 		const w1Start = this.getW1Start()!
 		const w1Finish =

@@ -71,7 +71,8 @@ export class WBatch implements Batch<'w'> {
 	}
 
 	isSafe(): boolean {
-		return Boolean(this.wProcess)
+		// weakens are always safe
+		return true
 	}
 
 	plan(

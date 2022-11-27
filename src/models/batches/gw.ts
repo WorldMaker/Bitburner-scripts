@@ -107,7 +107,8 @@ export class GwBatch implements Batch<'gw'> {
 
 	isSafe() {
 		if (!this.growProcess || !this.wProcess) {
-			return false
+			// it may be partially complete; TODO: add "stable point" timing checks
+			return true
 		}
 		// assuming this batch kicked off at a relatively stable point
 		const assumedServer: Server = {
