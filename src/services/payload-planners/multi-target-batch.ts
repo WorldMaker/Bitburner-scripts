@@ -351,12 +351,19 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 					const threads = Math.floor(available / deploy.app.ramCost)
 					curDeployServers.push({ server, deploy: { ...deploy, threads } })
 					threadsNeeded -= threads
+					const remainingAvailable = available - threads * deploy.app.ramCost
+					if (remainingAvailable > 0) {
+						nextfreelist.push({
+							server,
+							available: remainingAvailable,
+						})
+					}
 				}
 				if (threadsNeeded > 0) {
 					// not enough contiguous RAM even spread across all available free room
 					break
 				}
-				curfreelist = from(nextfreelist).pipe(
+				lastfreelist = curfreelist = from(nextfreelist).pipe(
 					orderByDescending((f) => f.available)
 				)
 			}
