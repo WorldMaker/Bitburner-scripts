@@ -311,7 +311,7 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 		// *** Use freelist to find new deployments ***
 
 		const deployments = new Map<string, DeployPlan[]>()
-		let curfreelist = from(freelist)
+		let curfreelist = [...from(freelist)]
 		for (const { target, batch, start, satisifiesCount } of needsBatches) {
 			const batchDeployments = getBatchDeployments(
 				this.appSelector,
@@ -331,7 +331,7 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 				continue
 			}
 
-			let lastfreelist = curfreelist
+			let lastfreelist = [...curfreelist]
 
 			const deployServers: Array<{ server: Target; deploy: DeployPlan }>[] = []
 			for (const deploy of batchDeployments.deploys) {
@@ -363,9 +363,11 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 					// not enough contiguous RAM even spread across all available free room
 					break
 				}
-				lastfreelist = curfreelist = from(nextfreelist).pipe(
-					orderByDescending((f) => f.available)
-				)
+				deployServers.push(curDeployServers)
+				curfreelist = [
+					...from(nextfreelist).pipe(orderByDescending((f) => f.available)),
+				]
+				lastfreelist = [...curfreelist]
 			}
 			if (deployServers.length === batchDeployments.deploys.length) {
 				attackedTargets.add(target.name)
