@@ -12,6 +12,7 @@ export class SimpleTarget {
 	private securityThreshold: number | null = null
 	private minSecurityLevel: number | null = null
 	private targetDirection: TargetDirection = 'weaken'
+	private readonly parents = new Set<string>()
 
 	constructor(protected ns: NS, public readonly name: string) {}
 
@@ -50,6 +51,14 @@ export class SimpleTarget {
 
 	checkMoneyAvailable() {
 		return this.ns.getServerMoneyAvailable(this.name)
+	}
+
+	addParent(name: string): void {
+		this.parents.add(name)
+	}
+
+	getParents(): Iterable<string> {
+		return this.parents.values()
 	}
 
 	getTargetDirection() {

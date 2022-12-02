@@ -10,7 +10,6 @@ export class LazyTarget extends DeployTarget implements Target {
 	private maxRam: number | null = null
 	private isRooted: boolean
 	public readonly purchasedNumber: number | null
-	private readonly parents = new Set<string>()
 
 	constructor(ns: NS, name: string, public readonly purchased: boolean) {
 		super(ns, name)
@@ -51,13 +50,5 @@ export class LazyTarget extends DeployTarget implements Target {
 
 	checkUsedRam() {
 		return this.ns.getServerUsedRam(this.name)
-	}
-
-	addParent(name: string): void {
-		this.parents.add(name)
-	}
-
-	getParents(): Iterable<string> {
-		return this.parents.values()
 	}
 }
