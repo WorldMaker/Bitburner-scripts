@@ -5,17 +5,19 @@ import { Target } from './target'
  * Lazy Target is entirely "pay-per-play" when looking up Server information
  */
 export class LazyTarget extends DeployTarget implements Target {
-	public readonly hackingLevel: number
 	private hackingPorts: number | null = null
 	private maxRam: number | null = null
 	private isRooted: boolean
-	public readonly purchasedNumber: number | null
 
-	constructor(ns: NS, name: string, public readonly purchased: boolean) {
-		super(ns, name)
-		this.hackingLevel = this.ns.getServerRequiredHackingLevel(this.name)
+	constructor(ns: NS, name: string, purchased: boolean) {
+		super(
+			ns,
+			name,
+			ns.getServerRequiredHackingLevel(name),
+			purchased ? Number(name.split('-')[1]) : null,
+			purchased
+		)
 		this.isRooted = this.ns.hasRootAccess(this.name)
-		this.purchasedNumber = purchased ? Number(this.name.split('-')[1]) : null
 	}
 
 	getServer() {

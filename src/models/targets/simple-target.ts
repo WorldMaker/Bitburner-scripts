@@ -14,7 +14,13 @@ export class SimpleTarget {
 	private targetDirection: TargetDirection = 'weaken'
 	private readonly parents = new Set<string>()
 
-	constructor(protected ns: NS, public readonly name: string) {}
+	constructor(
+		protected ns: NS,
+		public readonly name: string,
+		public readonly hackingLevel: number = Infinity,
+		public readonly purchasedNumber: number | null = null,
+		public readonly purchased: boolean = false
+	) {}
 
 	getWorth() {
 		if (this.worth === null) {
@@ -115,5 +121,25 @@ export class SimpleTarget {
 				break
 		}
 		return false
+	}
+
+	// *** Not Implemented ***
+	getServer(): Server {
+		throw new Error('Not implemented in base Target')
+	}
+	getHackingPorts(): number {
+		throw new Error('Not implemented in base Target')
+	}
+	getMaxRam(): number {
+		throw new Error('Not implemented in base Target')
+	}
+	getRooted(): boolean {
+		throw new Error('Not implemented in base Target')
+	}
+	checkRooted(): boolean {
+		throw new Error('Not implemented in base Target')
+	}
+	checkUsedRam(): number {
+		throw new Error('Not implemented in base Target')
 	}
 }

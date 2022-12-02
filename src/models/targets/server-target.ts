@@ -6,20 +6,20 @@ import { Target } from './target'
  */
 export class ServerTarget extends DeployTarget implements Target {
 	private server: Server
-	public readonly hackingLevel: number
-	public readonly purchasedNumber: number | null
-	public readonly purchased: boolean
 
 	constructor(ns: NS, name: string, _purchased: boolean) {
-		super(ns, name)
+		const server = ns.getServer(name)
+		const purchased = server.purchasedByPlayer
 
-		this.server = this.ns.getServer(this.name)
-		this.purchased = this.server.purchasedByPlayer
+		super(
+			ns,
+			name,
+			server.requiredHackingSkill,
+			purchased ? Number(name.split('-')[1]) : null,
+			purchased
+		)
 
-		this.hackingLevel = this.server.requiredHackingSkill
-		this.purchasedNumber = this.purchased
-			? Number(this.name.split('-')[1])
-			: null
+		this.server = server
 	}
 
 	getServer() {
