@@ -1,10 +1,9 @@
 import { DeployTarget } from './deploy-target'
-import { Target } from './target'
 
 /**
  * Server Target uses get server to bulk load server information
  */
-export class ServerTarget extends DeployTarget implements Target {
+export class ServerTarget extends DeployTarget {
 	private server: Server
 
 	constructor(ns: NS, name: string, _purchased: boolean) {

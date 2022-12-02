@@ -1,10 +1,9 @@
 import { DeployTarget } from './deploy-target'
-import { Target } from './target'
 
 /**
  * Lazy Target is entirely "pay-per-play" when looking up Server information
  */
-export class LazyTarget extends DeployTarget implements Target {
+export class LazyTarget extends DeployTarget {
 	private hackingPorts: number | null = null
 	private maxRam: number | null = null
 	private isRooted: boolean

@@ -1,9 +1,9 @@
-import { SimpleTarget } from './simple-target'
+import { Target } from './target'
 
 /**
  * Deploy Target has useful functions for deployment
  */
-export class DeployTarget extends SimpleTarget {
+export class DeployTarget extends Target {
 	checkRunning(
 		script: FilenameOrPID,
 		...args: (string | number | boolean)[]

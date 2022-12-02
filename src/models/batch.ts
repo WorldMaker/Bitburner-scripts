@@ -10,7 +10,7 @@ import { HwgwBatch } from './batches/hwgw'
 import { WBatch } from './batches/w'
 import { WgwBatch } from './batches/wgw'
 import { RunningProcess } from './memory'
-import { SimpleTarget, TargetDirection } from './target'
+import { Target, TargetDirection } from './target'
 
 export const StartDelay = 200 /* ms */
 export const BatchTick = 1 /* s */ * 1000 /* ms */
@@ -108,7 +108,7 @@ export interface Batch<T extends BatchType> {
 }
 
 export function getNextBatchType<T extends BatchType>(
-	target: SimpleTarget,
+	target: Target,
 	expectedMoneyAvailable: number,
 	expectedSecurityLevel: number,
 	batch?: Batch<T>
