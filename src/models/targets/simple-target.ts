@@ -124,22 +124,58 @@ export class SimpleTarget {
 	}
 
 	// *** Not Implemented ***
+
 	getServer(): Server {
 		throw new Error('Not implemented in base Target')
 	}
+
 	getHackingPorts(): number {
 		throw new Error('Not implemented in base Target')
 	}
+
 	getMaxRam(): number {
 		throw new Error('Not implemented in base Target')
 	}
+
 	getRooted(): boolean {
 		throw new Error('Not implemented in base Target')
 	}
+
 	checkRooted(): boolean {
 		throw new Error('Not implemented in base Target')
 	}
+
 	checkUsedRam(): number {
+		throw new Error('Not implemented in base Target')
+	}
+
+	checkRunning(
+		script: FilenameOrPID,
+		...args: (string | number | boolean)[]
+	): boolean {
+		throw new Error('Not implemented in base Target')
+	}
+
+	copyFiles(files: string | string[], source?: string): boolean {
+		throw new Error('Not implemented in base Target')
+	}
+
+	clearProcesses(safetyGuard?: boolean): boolean {
+		throw new Error('Not implemented in base Target')
+	}
+
+	clearProcess(
+		script: string,
+		...args: (string | number | boolean)[]
+	): boolean {
+		throw new Error('Not implemented in base Target')
+	}
+
+	startProcess(
+		script: string,
+		threads = 1,
+		...args: (string | number | boolean)[]
+	): number {
 		throw new Error('Not implemented in base Target')
 	}
 }
