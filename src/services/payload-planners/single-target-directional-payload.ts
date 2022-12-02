@@ -87,7 +87,7 @@ export class SingleTargetDirectionalPayloadPlanner implements PayloadPlanner {
 				continue
 			}
 
-			if (server.isRunning(app.name, ...app.getArgs(target))) {
+			if (server.checkRunning(app.name, ...app.getArgs(target))) {
 				yield {
 					type: 'existing',
 					server,
