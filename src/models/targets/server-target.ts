@@ -10,13 +10,7 @@ export class ServerTarget extends DeployTarget {
 		const server = ns.getServer(name)
 		const purchased = server.purchasedByPlayer
 
-		super(
-			ns,
-			name,
-			server.requiredHackingSkill,
-			purchased ? Number(name.split('-')[1]) : null,
-			purchased
-		)
+		super(ns, name, server.requiredHackingSkill, purchased)
 
 		this.server = server
 	}

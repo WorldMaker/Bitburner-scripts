@@ -9,13 +9,7 @@ export class LazyTarget extends DeployTarget {
 	private isRooted: boolean
 
 	constructor(ns: NS, name: string, purchased: boolean) {
-		super(
-			ns,
-			name,
-			ns.getServerRequiredHackingLevel(name),
-			purchased ? Number(name.split('-')[1]) : null,
-			purchased
-		)
+		super(ns, name, ns.getServerRequiredHackingLevel(name), purchased)
 		this.isRooted = this.ns.hasRootAccess(this.name)
 	}
 

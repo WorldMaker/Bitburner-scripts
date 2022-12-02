@@ -13,14 +13,16 @@ export class Target {
 	private minSecurityLevel: number | null = null
 	private targetDirection: TargetDirection = 'weaken'
 	private readonly parents = new Set<string>()
+	public readonly purchasedNumber: number | null
 
 	constructor(
 		protected ns: NS,
 		public readonly name: string,
 		public readonly hackingLevel: number = Infinity,
-		public readonly purchasedNumber: number | null = null,
 		public readonly purchased: boolean = false
-	) {}
+	) {
+		this.purchasedNumber = purchased ? Number(name.split('-')[1]) : null
+	}
 
 	getWorth() {
 		if (this.worth === null) {
