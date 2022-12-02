@@ -1,4 +1,4 @@
-import { SimpleTarget, TargetDirection } from './models/target'
+import { Target } from './models/target'
 
 const currentTargetActions = 10
 
@@ -34,7 +34,7 @@ export async function main(ns: NS) {
 
 	running = true
 
-	let target = new SimpleTarget(ns, nextTarget)
+	let target = new Target(ns, nextTarget)
 	while (running) {
 		let hacked = false
 		let action = 0
@@ -64,6 +64,6 @@ export async function main(ns: NS) {
 			}
 		}
 
-		target = new SimpleTarget(ns, nextTarget)
+		target = new Target(ns, nextTarget)
 	}
 }

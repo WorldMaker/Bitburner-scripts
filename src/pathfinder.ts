@@ -1,4 +1,5 @@
 import { Logger } from './models/logger'
+import { simpleTargetFactory } from './models/target'
 import { PathfinderService } from './services/pathfinder'
 import { ScannerService } from './services/scanner'
 import { ServerCacheService } from './services/server-cache'
@@ -7,8 +8,13 @@ export async function main(ns: NS) {
 	const targetName = ns.args[0].toString()
 	const depth = Number(ns.args[1]) ?? 10
 
-	const servers = new ServerCacheService(ns)
-	const scannerService = new ScannerService(ns, servers, depth)
+	const servers = new ServerCacheService(ns, simpleTargetFactory)
+	const scannerService = new ScannerService(
+		ns,
+		servers,
+		simpleTargetFactory,
+		depth
+	)
 
 	scannerService.scan()
 

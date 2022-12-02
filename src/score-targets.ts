@@ -1,6 +1,6 @@
 import { Logger } from './models/logger'
 import { PlayerStats } from './models/stats'
-import { Target } from './models/target'
+import { simpleTargetFactory, Target } from './models/target'
 import { HackerService } from './services/hacker'
 import { ScannerService } from './services/scanner'
 import { ServerCacheService } from './services/server-cache'
@@ -9,8 +9,12 @@ import { TargetService } from './services/target'
 export async function main(ns: NS) {
 	const [command] = ns.args
 
-	const serverCache = new ServerCacheService(ns)
-	const scannerService = new ScannerService(ns, serverCache)
+	const serverCache = new ServerCacheService(ns, simpleTargetFactory)
+	const scannerService = new ScannerService(
+		ns,
+		serverCache,
+		simpleTargetFactory
+	)
 	const stats = new PlayerStats(ns)
 	const logger = new Logger(ns)
 
