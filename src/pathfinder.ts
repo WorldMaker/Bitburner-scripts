@@ -27,7 +27,7 @@ export async function main(ns: NS) {
 	ns.tprint(
 		`INFO ${
 			target.name
-		} valued at ${target.getWorth()}; rooted ${target.checkRooted()}`
+		} valued at ${target.getWorth()}; rooted ${ns.hasRootAccess(target.name)}`
 	)
 
 	const logger = new Logger(ns)
