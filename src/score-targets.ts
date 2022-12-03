@@ -1,7 +1,6 @@
 import { Logger } from './models/logger'
 import { PlayerStats } from './models/stats'
 import { simpleTargetFactory, Target } from './models/target'
-import { HackerService } from './services/hacker'
 import { ScannerService } from './services/scanner'
 import { ServerCacheService } from './services/server-cache'
 import { TargetService } from './services/target'
@@ -27,11 +26,10 @@ export async function main(ns: NS) {
 			}
 		case 'targets':
 		default:
-			const hackerService = new HackerService(ns, logger, stats)
 			let rooted = new Set<Target>()
 
 			for (const server of servers) {
-				if (hackerService.rootServer(server)) {
+				if (ns.hasRootAccess(server.name)) {
 					rooted.add(server)
 				}
 			}
