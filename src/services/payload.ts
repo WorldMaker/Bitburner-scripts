@@ -20,17 +20,17 @@ export class PayloadService {
 		}
 
 		if (plan.killall) {
-			plan.server.killall()
+			plan.server.clearProcesses()
 		} else if (plan.kills) {
 			for (const kill of plan.kills) {
-				plan.server.kill(kill.filename, ...kill.args)
+				plan.server.clearProcess(kill.filename, ...kill.args)
 			}
 		}
 
 		let deployed = true
 		for (const deploy of plan.deployments) {
-			plan.server.scp(deploy.app.name)
-			const started = plan.server.exec(
+			plan.server.copyFiles(deploy.app.name)
+			const started = plan.server.startProcess(
 				deploy.app.name,
 				deploy.threads,
 				...deploy.app.getArgs(deploy.target),

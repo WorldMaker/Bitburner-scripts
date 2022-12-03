@@ -1,26 +1,36 @@
-import { SimpleTarget } from './simple-target'
+import { Target } from './target'
 
 /**
  * Deploy Target has useful functions for deployment
  */
-export class DeployTarget extends SimpleTarget {
-	isRunning(script: FilenameOrPID, ...args: (string | number | boolean)[]) {
+export class DeployTarget extends Target {
+	checkRunning(
+		script: FilenameOrPID,
+		...args: (string | number | boolean)[]
+	): boolean {
 		return this.ns.isRunning(script, this.name, ...args)
 	}
 
-	scp(files: string | string[], source?: string) {
+	copyFiles(files: string | string[], source?: string): boolean {
 		return this.ns.scp(files, this.name, source)
 	}
 
-	killall(safetyGuard?: boolean) {
+	clearProcesses(safetyGuard?: boolean): boolean {
 		return this.ns.killall(this.name, safetyGuard)
 	}
 
-	kill(script: string, ...args: (string | number | boolean)[]) {
+	clearProcess(
+		script: string,
+		...args: (string | number | boolean)[]
+	): boolean {
 		return this.ns.kill(script, this.name, ...args)
 	}
 
-	exec(script: string, threads = 1, ...args: (string | number | boolean)[]) {
+	startProcess(
+		script: string,
+		threads = 1,
+		...args: (string | number | boolean)[]
+	): number {
 		return this.ns.exec(script, this.name, threads, ...args)
 	}
 }

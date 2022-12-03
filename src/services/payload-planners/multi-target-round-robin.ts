@@ -39,7 +39,7 @@ export class MultiTargetRoundRobinPlanner implements PayloadPlanner {
 				)
 				continue
 			}
-			if (server.isRunning(this.app.name, ...this.app.getArgs(target))) {
+			if (server.checkRunning(this.app.name, ...this.app.getArgs(target))) {
 				yield {
 					type: 'existing',
 					server,

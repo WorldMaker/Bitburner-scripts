@@ -1,26 +1,18 @@
 import { DeployTarget } from './deploy-target'
-import { Target } from './target'
 
 /**
  * Server Target uses get server to bulk load server information
  */
-export class ServerTarget extends DeployTarget implements Target {
+export class ServerTarget extends DeployTarget {
 	private server: Server
-	public readonly hackingLevel: number
-	public readonly purchasedNumber: number | null
-	public readonly purchased: boolean
-	private readonly parents = new Set<string>()
 
 	constructor(ns: NS, name: string, _purchased: boolean) {
-		super(ns, name)
+		const server = ns.getServer(name)
+		const purchased = server.purchasedByPlayer
 
-		this.server = this.ns.getServer(this.name)
-		this.purchased = this.server.purchasedByPlayer
+		super(ns, name, server.requiredHackingSkill, purchased)
 
-		this.hackingLevel = this.server.requiredHackingSkill
-		this.purchasedNumber = this.purchased
-			? Number(this.name.split('-')[1])
-			: null
+		this.server = server
 	}
 
 	getServer() {
@@ -71,13 +63,5 @@ export class ServerTarget extends DeployTarget implements Target {
 	checkSecurityLevel(): number {
 		this.server = this.ns.getServer(this.name)
 		return this.server.hackDifficulty
-	}
-
-	addParent(name: string): void {
-		this.parents.add(name)
-	}
-
-	getParents(): Iterable<string> {
-		return this.parents.values()
 	}
 }

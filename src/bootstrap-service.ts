@@ -1,5 +1,6 @@
 import { Logger } from './models/logger.js'
 import { PlayerStats } from './models/stats.js'
+import { deployTargetFactory } from './models/target.js'
 import { AppCacheService } from './services/app-cache.js'
 import { DeploymentService } from './services/deployment.js'
 import { HackerService } from './services/hacker.js'
@@ -61,7 +62,8 @@ export async function main(ns: NS) {
 	const logger = new Logger(ns)
 	const targetService = new TargetService()
 	const payloadService = new PayloadService()
-	const servers = new ServerCacheService(ns)
+	const targetFactory = deployTargetFactory
+	const servers = new ServerCacheService(ns, targetFactory)
 	const purchaseService = new PurchaseService(ns, servers, hacknetNodes)
 	const toyPurchaseService = new ToyPurchaseService(ns, logger, servers, 0)
 
@@ -97,7 +99,12 @@ export async function main(ns: NS) {
 		// *** hacking and deploying payloads ***
 		const stats = new PlayerStats(ns)
 		const hackerService = new HackerService(ns, logger, stats)
-		const scannerService = new ScannerService(ns, servers, forceMaxDepth)
+		const scannerService = new ScannerService(
+			ns,
+			servers,
+			targetFactory,
+			forceMaxDepth
+		)
 		const deploymentService = new DeploymentService(
 			hackerService,
 			logger,

@@ -1,9 +1,8 @@
 // Test a single batch
 
-import { ulid } from 'ulid'
 import { createBatch, getBatchArgs, getNextBatchType } from './models/batch'
 import { Logger } from './models/logger'
-import { SimpleTarget, TargetDirection } from './models/target'
+import { Target, TargetDirection } from './models/target'
 
 function getPayloadName(direction: TargetDirection) {
 	switch (direction) {
@@ -22,7 +21,7 @@ export async function main(ns: NS) {
 		throw new Error(`Unknown command for payload '${command}'`)
 	}
 	const targetName = ns.args[1].toString()
-	const target = new SimpleTarget(ns, targetName)
+	const target = new Target(ns, targetName)
 	const player = ns.getPlayer()
 	const server = ns.getServer(targetName)
 	const logger = new Logger(ns)

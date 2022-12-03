@@ -1,4 +1,4 @@
-import { LazyTarget, ServerTarget } from '../models/target.js'
+import { TargetFactory } from '../models/target.js'
 import { ServerCacheService } from './server-cache.js'
 
 const ignorelist = new Set(['home'])
@@ -9,6 +9,7 @@ export class ScannerService {
 	constructor(
 		private ns: NS,
 		private servers: ServerCacheService,
+		private targetFactory: TargetFactory,
 		forceMaxDepth: number | null = null
 	) {
 		const deepScanV1 = this.ns.fileExists('DeepscanV1.exe')
@@ -37,7 +38,7 @@ export class ScannerService {
 				continue
 			}
 			if (!this.servers.has(server)) {
-				this.servers.set(new LazyTarget(this.ns, server, false))
+				this.servers.set(this.targetFactory(this.ns, server, false))
 			}
 			const target = this.servers.get(server)!
 			target.addParent(currentServer)
