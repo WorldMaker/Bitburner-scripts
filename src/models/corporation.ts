@@ -42,14 +42,20 @@ export type CompanyState =
 	| 'Public'
 
 export class Company {
+	private corp: CorporationInfo
 	private state: CompanyState = 'Unknown'
 
 	constructor(private ns: NS) {
-		const corp = ns.corporation.getCorporation()
-		if (corp.public) {
+		this.corp = this.ns.corporation.getCorporation()
+		this.updateState()
+	}
+
+	updateState() {
+		this.corp = this.ns.corporation.getCorporation()
+		if (this.corp.public) {
 			this.state = 'Public'
-		} else if (corp.divisions.length === 2) {
-			const nextOffer = ns.corporation.getInvestmentOffer()
+		} else if (this.corp.divisions.length === 2) {
+			const nextOffer = this.ns.corporation.getInvestmentOffer()
 			switch (nextOffer.round) {
 				case 4:
 					this.state = 'Tobacco3Round'
@@ -59,9 +65,10 @@ export class Company {
 					break
 				default:
 					this.state = 'Tobacco4Round'
+					break
 			}
-		} else if (corp.divisions.length === 1) {
-			const nextOffer = ns.corporation.getInvestmentOffer()
+		} else if (this.corp.divisions.length === 1) {
+			const nextOffer = this.ns.corporation.getInvestmentOffer()
 			switch (nextOffer.round) {
 				case 3:
 					this.state = 'Agriculture2Round'
@@ -71,8 +78,12 @@ export class Company {
 					break
 				case 1:
 					this.state = 'Agriculture0Round'
+					break
+				default:
+					this.state = 'Unknown'
+					break
 			}
-		} else if (corp.divisions.length === 0) {
+		} else if (this.corp.divisions.length === 0) {
 			this.state = 'Unstarted'
 		} else {
 			this.state = 'Unknown'
