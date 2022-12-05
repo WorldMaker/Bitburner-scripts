@@ -35,14 +35,23 @@ export async function main(ns: NS) {
 
 	running = true
 
+	const logger = new Logger(ns)
+
 	while (running) {
 		const company = new Company(ns)
-		const logger = new Logger(ns)
 		const productManager = new ProductManager(ns, company)
 
 		productManager.manage()
 
 		logger.log(productManager.summarize())
+		logger.log(
+			`INFO ${
+				company.name
+			} is ${company.getState()}; funds ${company.funds.toLocaleString(
+				undefined,
+				{ style: 'currency', currency: 'USD' }
+			)}`
+		)
 
 		await ns.sleep(10 /* s */ * 1000 /* ms */)
 	}

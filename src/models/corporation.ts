@@ -60,6 +60,14 @@ export class Company {
 	private divisionsByType = new Map<string, Division>()
 	private state: CompanyState = 'Unknown'
 
+	get name() {
+		return this.corp.name
+	}
+
+	get funds() {
+		return this.corp.funds
+	}
+
 	constructor(private ns: NS) {
 		this.corp = this.ns.corporation.getCorporation()
 		this.updateState()
