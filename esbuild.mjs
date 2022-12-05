@@ -125,6 +125,16 @@ buildSync({
 })
 
 buildSync({
+	entryPoints: ['./src/corporate-service.ts'],
+	bundle,
+	target,
+	format,
+	outfile: './dist/corp.js',
+	logLevel,
+	define: { window: `globalThis`, document: `{ "nodeType": 9 }` },
+})
+
+buildSync({
 	entryPoints: ['./src/bootstrap-service.ts'],
 	bundle,
 	target,
