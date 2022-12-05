@@ -30,6 +30,9 @@ export const LevelUpgrades = [
 	'Speech Processor Implants',
 	'Nuoptimal Nootropic Injector Implants',
 	'Wilson Analytics',
+	'DreamSense',
+	'ABC SalesBots',
+	'Project Insight',
 ]
 export const AnalyticsLevelUpgrade = 'Wilson Analytics'
 export const Cities = [
