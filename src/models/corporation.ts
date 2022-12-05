@@ -22,6 +22,7 @@ export const LevelUpgrades = [
 	'Nuoptimal Nootropic Injector Implants',
 	'Wilson Analytics',
 ]
+export const AnalyticsLevelUpgrade = 'Wilson Analytics'
 export const Cities = [
 	'Aevum',
 	'Congqing',
@@ -31,7 +32,10 @@ export const Cities = [
 	'Volhaven',
 ]
 export const StartingCity = 'Sector-12'
-export const ProductDevelopmentCity = 'Aevum'
+export const ProductDevelopment = Object.freeze({
+	City: 'Aevum',
+	OfficeSizeUpgrade: 15,
+})
 
 /**
  * Company State
@@ -59,6 +63,7 @@ export class Company {
 	private corp: CorporationInfo
 	private divisionsByType = new Map<string, Division>()
 	private state: CompanyState = 'Unknown'
+	private developedProduct = false
 
 	get name() {
 		return this.corp.name
@@ -126,5 +131,20 @@ export class Company {
 
 	getProductDivision() {
 		return this.divisionsByType.get(MyProductDivisionType)
+	}
+
+	hasDevelopedProduct() {
+		const productDivision = this.getProductDivision()
+		if (!productDivision) {
+			return false
+		}
+		this.developedProduct ||=
+			Boolean(productDivision.products.length) &&
+			productDivision.products.some(
+				(p) =>
+					this.ns.corporation.getProduct(productDivision.name, p)
+						.developmentProgress >= 100
+			)
+		return this.developedProduct
 	}
 }

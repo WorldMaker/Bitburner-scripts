@@ -4,10 +4,9 @@ import { map } from '@reactivex/ix-esnext-esm/iterable/operators/map'
 import { orderBy } from '@reactivex/ix-esnext-esm/iterable/operators/orderby'
 import { ulid } from 'ulid'
 import {
-	Cities,
 	Company,
 	MyProductBaseName,
-	ProductDevelopmentCity,
+	ProductDevelopment,
 } from '../../models/corporation'
 import { Logger } from '../../models/logger'
 
@@ -68,7 +67,7 @@ export class ProductManager {
 			}
 			this.ns.corporation.makeProduct(
 				productDivision.name,
-				ProductDevelopmentCity,
+				ProductDevelopment.City,
 				`${MyProductBaseName}-${ulid()}`,
 				DesignInvestment,
 				MarketingInvestment
@@ -81,7 +80,7 @@ export class ProductManager {
 			if (product.sCost === 0 || product.sCost === '') {
 				this.ns.corporation.sellProduct(
 					productDivision.name,
-					ProductDevelopmentCity,
+					ProductDevelopment.City,
 					product.name,
 					'MAX',
 					'MP',
