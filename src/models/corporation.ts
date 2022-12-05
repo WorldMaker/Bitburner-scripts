@@ -85,6 +85,7 @@ export class Company {
 	constructor(private ns: NS) {
 		this.corp = this.ns.corporation.getCorporation()
 		this.updateState()
+		this.hasDevelopedProduct()
 	}
 
 	updateState() {
