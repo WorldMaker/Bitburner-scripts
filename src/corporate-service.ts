@@ -1,6 +1,7 @@
 import { Company } from './models/corporation'
 import { Logger } from './models/logger'
 import { ProductManager } from './services/corporation/product'
+import { ProductOfficeManager } from './services/corporation/product-office'
 import { ProductPurchaseService } from './services/corporation/product-purchase'
 
 let running = false
@@ -35,12 +36,15 @@ export async function main(ns: NS) {
 
 	while (running) {
 		const company = new Company(ns)
+		const officeManager = new ProductOfficeManager(ns, logger, company)
 		const productManager = new ProductManager(ns, logger, company)
 		const productPurchaseService = new ProductPurchaseService(ns, company)
 
+		officeManager.manage()
 		productManager.manage()
 		productPurchaseService.purchase()
 
+		logger.log(officeManager.summarize())
 		logger.log(productManager.summarize())
 		logger.log(productPurchaseService.summarize())
 		logger.log(
