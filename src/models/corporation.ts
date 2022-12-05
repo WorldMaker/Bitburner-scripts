@@ -44,6 +44,7 @@ export const StartingCity = 'Sector-12'
 export const ProductDevelopment = Object.freeze({
 	City: 'Aevum',
 	OfficeSizeUpgrade: 15,
+	ResearchOfficeSizeOffset: 60,
 })
 
 /**

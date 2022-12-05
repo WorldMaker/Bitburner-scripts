@@ -1,5 +1,6 @@
 import {
 	AnalyticsLevelUpgrade,
+	Cities,
 	Company,
 	LevelUpgrades,
 	ProductDevelopment,
@@ -50,6 +51,34 @@ export class ProductPurchaseService {
 			if (upgradeCost < toyBudget) {
 				this.ns.corporation.levelUpgrade(upgrade)
 				toyBudget -= upgradeCost
+			}
+		}
+		const productDevelopmentOffice = this.ns.corporation.getOffice(
+			productDivision.name,
+			ProductDevelopment.City
+		)
+		for (const city of Cities) {
+			if (city !== ProductDevelopment.City) {
+				const office = this.ns.corporation.getOffice(productDivision.name, city)
+				const researchSize =
+					productDevelopmentOffice.size -
+					ProductDevelopment.ResearchOfficeSizeOffset
+				if (office.size < researchSize) {
+					const growSize = researchSize - office.size
+					const upgradeCost = this.ns.corporation.getOfficeSizeUpgradeCost(
+						productDivision.name,
+						city,
+						growSize
+					)
+					if (upgradeCost < toyBudget) {
+						this.ns.corporation.upgradeOfficeSize(
+							productDivision.name,
+							city,
+							growSize
+						)
+						toyBudget -= upgradeCost
+					}
+				}
 			}
 		}
 	}
