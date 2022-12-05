@@ -6,11 +6,6 @@ let running = false
 
 export async function main(ns: NS) {
 	const command = ns.args[0]?.toString()
-	let hacknetNodes = 5
-
-	ns.disableLog('scp')
-	ns.disableLog('kill')
-	ns.disableLog('exec')
 
 	if (command) {
 		switch (command) {
@@ -39,7 +34,7 @@ export async function main(ns: NS) {
 
 	while (running) {
 		const company = new Company(ns)
-		const productManager = new ProductManager(ns, company)
+		const productManager = new ProductManager(ns, logger, company)
 
 		productManager.manage()
 

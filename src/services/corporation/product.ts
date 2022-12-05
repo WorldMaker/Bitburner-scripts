@@ -4,10 +4,12 @@ import { map } from '@reactivex/ix-esnext-esm/iterable/operators/map'
 import { orderBy } from '@reactivex/ix-esnext-esm/iterable/operators/orderby'
 import { ulid } from 'ulid'
 import {
+	Cities,
 	Company,
 	MyProductBaseName,
 	ProductDevelopmentCity,
 } from '../../models/corporation'
+import { Logger } from '../../models/logger'
 
 const { from } = IterableX
 
@@ -16,7 +18,11 @@ const MarketingInvestment = 1_000_000_000_000
 const TotalProducts = 3
 
 export class ProductManager {
-	constructor(private ns: NS, private company: Company) {}
+	constructor(
+		private ns: NS,
+		private logger: Logger,
+		private company: Company
+	) {}
 
 	summarize() {
 		if (this.company.hasProductDivision()) {
@@ -81,6 +87,18 @@ export class ProductManager {
 					'MP',
 					true
 				)
+				for (const city of Cities) {
+					try {
+						this.ns.corporation.setMaterialMarketTA2(
+							productDivision.name,
+							city,
+							product.name,
+							true
+						)
+					} catch (error) {
+						this.logger.log(`WARN error setting Material TA-2: ${error}`)
+					}
+				}
 			}
 		}
 	}
