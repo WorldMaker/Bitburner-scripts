@@ -1,9 +1,15 @@
-export const MyCompanyName = '0corp'
-export const MyMaterialDivisionName = '0ag'
-export const MyMaterialDivisionType = 'Agriculture'
-export const MyProductDivisionName = '0bac'
-export const MyProductDivisionType = 'Tobacco'
-export const MyProductBaseName = 'wacky'
+export const MyCompany = Object.freeze({
+	Name: '0corp',
+	MaterialDivision: Object.freeze({
+		Name: '0ag',
+		Type: 'Agriculture',
+	}),
+	ProductDivision: Object.freeze({
+		Name: '0bac',
+		Type: 'Tobacco',
+		ProductBaseName: 'wacky',
+	}),
+})
 
 export const Jobs = [
 	'Operations',
@@ -85,7 +91,7 @@ export class Company {
 		}
 		if (this.corp.public) {
 			this.state = 'Public'
-		} else if (this.divisionsByType.has(MyProductDivisionType)) {
+		} else if (this.divisionsByType.has(MyCompany.ProductDivision.Name)) {
 			const nextOffer = this.ns.corporation.getInvestmentOffer()
 			switch (nextOffer.round) {
 				case 4:
@@ -98,7 +104,7 @@ export class Company {
 					this.state = 'Product4Round'
 					break
 			}
-		} else if (this.divisionsByType.has(MyMaterialDivisionType)) {
+		} else if (this.divisionsByType.has(MyCompany.MaterialDivision.Name)) {
 			const nextOffer = this.ns.corporation.getInvestmentOffer()
 			switch (nextOffer.round) {
 				case 3:
@@ -126,11 +132,11 @@ export class Company {
 	}
 
 	hasProductDivision() {
-		return this.divisionsByType.has(MyProductDivisionType)
+		return this.divisionsByType.has(MyCompany.ProductDivision.Name)
 	}
 
 	getProductDivision() {
-		return this.divisionsByType.get(MyProductDivisionType)
+		return this.divisionsByType.get(MyCompany.ProductDivision.Name)
 	}
 
 	hasDevelopedProduct() {

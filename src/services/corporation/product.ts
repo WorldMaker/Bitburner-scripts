@@ -5,7 +5,7 @@ import { orderBy } from '@reactivex/ix-esnext-esm/iterable/operators/orderby'
 import { ulid } from 'ulid'
 import {
 	Company,
-	MyProductBaseName,
+	MyCompany,
 	ProductDevelopment,
 } from '../../models/corporation'
 import { Logger } from '../../models/logger'
@@ -68,7 +68,7 @@ export class ProductManager {
 			this.ns.corporation.makeProduct(
 				productDivision.name,
 				ProductDevelopment.City,
-				`${MyProductBaseName}-${ulid()}`,
+				`${MyCompany.ProductDivision.ProductBaseName}-${ulid()}`,
 				DesignInvestment,
 				MarketingInvestment
 			)
