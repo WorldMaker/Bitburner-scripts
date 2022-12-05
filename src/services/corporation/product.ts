@@ -87,17 +87,14 @@ export class ProductManager {
 					'MP',
 					true
 				)
-				for (const city of Cities) {
-					try {
-						this.ns.corporation.setMaterialMarketTA2(
-							productDivision.name,
-							city,
-							product.name,
-							true
-						)
-					} catch (error) {
-						this.logger.log(`WARN error setting Material TA-2: ${error}`)
-					}
+				try {
+					this.ns.corporation.setProductMarketTA2(
+						productDivision.name,
+						product.name,
+						true
+					)
+				} catch (error) {
+					this.logger.log(`WARN error setting Material TA-2: ${error}`)
 				}
 			}
 		}
