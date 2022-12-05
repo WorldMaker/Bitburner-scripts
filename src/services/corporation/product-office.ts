@@ -63,7 +63,7 @@ export class ProductOfficeManager {
 			// *** Assign staff ***
 			if (unassigned.length) {
 				if (city === ProductDevelopment.City) {
-					office = this.assignProductDevelopmentStaff(
+					this.assignProductDevelopmentStaff(
 						office,
 						unassigned,
 						productDivision,
@@ -133,40 +133,47 @@ export class ProductOfficeManager {
 	) {
 		const perTask = office.size / 3.5
 		const assignmentGoals = {
-			Operations: perTask,
-			Engineer: perTask,
-			Business: perTask / 2,
-			Management: perTask,
+			Operations: perTask - office.employeeJobs.Operations,
+			Engineer: perTask - office.employeeJobs.Engineer,
+			Business: perTask / 2 - office.employeeJobs.Business,
+			Management: perTask - office.employeeJobs.Management,
 		}
+		this.logger.log(
+			`Want to assign: [Ops: ${assignmentGoals.Operations}, Eng: ${assignmentGoals.Engineer}, Bus: ${assignmentGoals.Business}, Man: ${assignmentGoals.Management}]`
+		)
 		while (unassigned.length) {
-			if (office.employeeJobs.Operations < assignmentGoals.Operations) {
+			if (assignmentGoals.Operations > 0) {
 				this.ns.corporation.assignJob(
 					productDivision.name,
 					city,
 					unassigned.shift()!,
 					'Operations'
 				)
-			} else if (office.employeeJobs.Engineer < assignmentGoals.Engineer) {
+				assignmentGoals.Operations--
+			} else if (assignmentGoals.Engineer > 0) {
 				this.ns.corporation.assignJob(
 					productDivision.name,
 					city,
 					unassigned.shift()!,
 					'Engineer'
 				)
-			} else if (office.employeeJobs.Business < assignmentGoals.Business) {
+				assignmentGoals.Engineer--
+			} else if (assignmentGoals.Business > 0) {
 				this.ns.corporation.assignJob(
 					productDivision.name,
 					city,
 					unassigned.shift()!,
 					'Business'
 				)
-			} else if (office.employeeJobs.Management < assignmentGoals.Management) {
+				assignmentGoals.Business--
+			} else if (assignmentGoals.Management > 0) {
 				this.ns.corporation.assignJob(
 					productDivision.name,
 					city,
 					unassigned.shift()!,
 					'Management'
 				)
+				assignmentGoals.Management--
 			} else {
 				// Assign leftovers to Engineer
 				this.ns.corporation.assignJob(
@@ -176,9 +183,6 @@ export class ProductOfficeManager {
 					'Engineer'
 				)
 			}
-
-			office = this.ns.corporation.getOffice(productDivision.name, city)
 		}
-		return office
 	}
 }
