@@ -34,7 +34,7 @@ export const LevelUpgrades = [
 export const AnalyticsLevelUpgrade = 'Wilson Analytics'
 export const Cities = [
 	'Aevum',
-	'Congqing',
+	'Chongqing',
 	'New Tokyo',
 	'Sector-12',
 	'Ishima',
