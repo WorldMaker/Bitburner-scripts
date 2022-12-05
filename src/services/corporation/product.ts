@@ -12,10 +12,6 @@ import { Logger } from '../../models/logger'
 
 const { from } = IterableX
 
-const DesignInvestment = 1_000_000_000_000
-const MarketingInvestment = 1_000_000_000_000
-const TotalProducts = 3
-
 export class ProductManager {
 	constructor(
 		private ns: NS,
@@ -58,7 +54,9 @@ export class ProductManager {
 		// If there is no product in development, make one; discontinue the lowest rated existing product if necessary
 
 		if (developmentProducts.length < 1) {
-			if (productionProducts.length >= TotalProducts) {
+			if (
+				productionProducts.length >= MyCompany.ProductDivision.TotalProducts
+			) {
 				const discontinuedProduct = productionProducts.shift()!
 				this.ns.corporation.discontinueProduct(
 					productDivision.name,
@@ -69,8 +67,8 @@ export class ProductManager {
 				productDivision.name,
 				ProductDevelopment.City,
 				`${MyCompany.ProductDivision.ProductBaseName}-${ulid()}`,
-				DesignInvestment,
-				MarketingInvestment
+				MyCompany.ProductDivision.DesignInvestment,
+				MyCompany.ProductDivision.MarketingInvestment
 			)
 		}
 
