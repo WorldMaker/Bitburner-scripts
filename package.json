@@ -3,6 +3,7 @@
 	"version": "1.0.0",
 	"description": "Bitburner scripts",
 	"main": "index.js",
+	"type": "module",
 	"scripts": {
 		"pretypecheck": "npm run prettier:check",
 		"typecheck": "tsc -p tsconfig.json",
