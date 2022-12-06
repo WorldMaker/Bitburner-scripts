@@ -10,22 +10,20 @@ import { Logger } from '../../models/logger'
 import { MaterialPhaseManager } from './material-phase'
 import { PhaseManager } from './phase'
 
-const DesiredWarehouseLevel = 3
+const DesiredWarehouseLevel = 10
 const DesiredLevelUpgrades: Partial<Record<LevelUpgrade, number>> = {
-	[LevelUpgrades.FocusWires]: 2,
-	[LevelUpgrades.NeuralAccelerators]: 2,
-	[LevelUpgrades.SpeechProcessorImplants]: 2,
-	[LevelUpgrades.Nuoptimal]: 2,
-	[LevelUpgrades.SmartFactories]: 2,
+	[LevelUpgrades.SmartFactories]: 10,
+	[LevelUpgrades.SmartStorage]: 10,
 }
 const DesiredMaterial: Partial<Record<BoostMaterial, number>> = {
-	[BoostMaterials.Hardware]: 125,
-	[BoostMaterials.AiCores]: 75,
-	[BoostMaterials.RealEstate]: 27_000,
+	[BoostMaterials.Hardware]: 2800,
+	[BoostMaterials.Robots]: 96,
+	[BoostMaterials.AiCores]: 2520,
+	[BoostMaterials.RealEstate]: 146_400,
 }
-const DesiredOffer = 100_000_000_000
+const DesiredOffer = 1_000_000_000_000
 
-export class MaterialRound0Manager
+export class MaterialRound1Manager
 	extends MaterialPhaseManager
 	implements PhaseManager
 {
@@ -34,7 +32,7 @@ export class MaterialRound0Manager
 	}
 
 	summarize() {
-		return `INFO preparing ${MyCompany.MaterialDivision.Name} for first investment round; ${this.levelsMet}/${this.levelsDesired}; ${this.warehouseLevelsMet}/${this.warehouseLevelsDesired}; ${this.materialsMet}/${this.materialsDesired}`
+		return `INFO preparing ${MyCompany.MaterialDivision.Name} for second investment round; ${this.levelsMet}/${this.levelsDesired}; ${this.warehouseLevelsMet}/${this.warehouseLevelsDesired}; ${this.materialsMet}/${this.materialsDesired}`
 	}
 
 	async manage(): Promise<void> {
@@ -43,6 +41,8 @@ export class MaterialRound0Manager
 			this.logger.log(`ERROR no material division`)
 			return
 		}
+
+		// *** TODO: Manage office size ***
 
 		this.manageLevelUpgrades(DesiredLevelUpgrades)
 		this.manageWarehouseLevel(materialDivision, DesiredWarehouseLevel)
