@@ -1,6 +1,7 @@
 import {
 	BoostMaterial,
 	BoostMaterials,
+	Cities,
 	Company,
 	LevelUpgrade,
 	LevelUpgrades,
@@ -42,7 +43,43 @@ export class MaterialRound1Manager
 			return
 		}
 
-		// *** TODO: Manage office size ***
+		// *** Increase head count ***
+
+		for (const city of Cities) {
+			const office = this.ns.corporation.getOffice(materialDivision.name, city)
+			if (office.size < 9) {
+				this.ns.corporation.upgradeOfficeSize(
+					materialDivision.name,
+					city,
+					9 - office.size
+				)
+				while (this.ns.corporation.hireEmployee(materialDivision.name, city)) {}
+				this.ns.corporation.setAutoJobAssignment(
+					materialDivision.name,
+					city,
+					'Operations',
+					3
+				)
+				this.ns.corporation.setAutoJobAssignment(
+					materialDivision.name,
+					city,
+					'Engineer',
+					2
+				)
+				this.ns.corporation.setAutoJobAssignment(
+					materialDivision.name,
+					city,
+					'Business',
+					2
+				)
+				this.ns.corporation.setAutoJobAssignment(
+					materialDivision.name,
+					city,
+					'Management',
+					2
+				)
+			}
+		}
 
 		this.manageLevelUpgrades(DesiredLevelUpgrades)
 		this.manageWarehouseLevel(materialDivision, DesiredWarehouseLevel)
