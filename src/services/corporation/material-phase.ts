@@ -59,12 +59,15 @@ export class MaterialPhaseManager extends BasePhaseManager {
 					materialName
 				)
 				if (material.qty < amountDesired) {
-					const toBuy = (amountDesired - material.qty) / 10 /* ticks/second */
+					// we want to buy as much as possible (ideally the entire amount) in a single tick
+					const toBuyPerSecond =
+						(amountDesired - material.qty) /* per tick */ /
+						10 /* seconds/tick */
 					this.ns.corporation.buyMaterial(
 						materialDivision.name,
 						city,
 						materialName,
-						toBuy
+						toBuyPerSecond
 					)
 					buyCity = city
 					buyMaterial = materialName
