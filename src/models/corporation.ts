@@ -3,6 +3,7 @@ export const MyCompany = Object.freeze({
 	MaterialDivision: Object.freeze({
 		Name: '0ag',
 		Type: 'Agriculture',
+		SellMaterials: Object.freeze(['Plants', 'Food']),
 	}),
 	ProductDivision: Object.freeze({
 		Name: '0bac',
@@ -21,20 +22,27 @@ export const Jobs = [
 	'Management',
 	'Research & Development',
 ]
-export const BoostMaterials = ['Hardware', 'Robots', 'AI Cores', 'Real Estate']
-export const LevelUpgrades = [
-	'Smart Factories',
-	'Smart Storage',
-	'FocusWires',
-	'Neural Accelerators',
-	'Speech Processor Implants',
-	'Nuoptimal Nootropic Injector Implants',
-	'Wilson Analytics',
-	'DreamSense',
-	'ABC SalesBots',
-	'Project Insight',
-]
-export const AnalyticsLevelUpgrade = 'Wilson Analytics'
+export const BoostMaterials = Object.freeze({
+	Hardware: 'Hardware',
+	Robots: 'Robots',
+	AiCores: 'AI Cores',
+	RealEstate: 'Real Estate',
+})
+export type BoostMaterial = typeof BoostMaterials[keyof typeof BoostMaterials]
+export const LevelUpgrades = Object.freeze({
+	SmartFactories: 'Smart Factories',
+	SmartStorage: 'Smart Storage',
+	FocusWires: 'FocusWires',
+	NeuralAccelerators: 'Neural Accelerators',
+	SpeechProcessorImplants: 'Speech Processor Implants',
+	Nuoptimal: 'Nuoptimal Nootropic Injector Implants',
+	WilsonAnalytics: 'Wilson Analytics',
+	DreamSense: 'DreamSense',
+	SalesBots: 'ABC SalesBots',
+	ProjectInsight: 'Project Insight',
+})
+export type LevelUpgrade = typeof LevelUpgrades[keyof typeof LevelUpgrades]
+export const AnalyticsLevelUpgrade: LevelUpgrade = 'Wilson Analytics'
 export const Cities = [
 	'Aevum',
 	'Chongqing',
@@ -137,6 +145,14 @@ export class Company {
 
 	getState() {
 		return this.state
+	}
+
+	hasMaterialDivision() {
+		return this.divisionsByType.has(MyCompany.MaterialDivision.Type)
+	}
+
+	getMaterialDivision() {
+		return this.divisionsByType.get(MyCompany.MaterialDivision.Type)
 	}
 
 	hasProductDivision() {

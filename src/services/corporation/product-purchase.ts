@@ -46,7 +46,7 @@ export class ProductPurchaseService {
 		}
 
 		let toyBudget = this.company.funds * ToyPurchaseBudget
-		for (const upgrade of LevelUpgrades) {
+		for (const upgrade of Object.values(LevelUpgrades)) {
 			const upgradeCost = this.ns.corporation.getUpgradeLevelCost(upgrade)
 			if (upgradeCost < toyBudget) {
 				this.ns.corporation.levelUpgrade(upgrade)

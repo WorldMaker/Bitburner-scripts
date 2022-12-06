@@ -1,5 +1,6 @@
 import { Company } from './models/corporation'
 import { Logger } from './models/logger'
+import { getPhaseManager } from './services/corporation/phase'
 import { ProductManager } from './services/corporation/product'
 import { ProductOfficeManager } from './services/corporation/product-office'
 import { ProductPurchaseService } from './services/corporation/product-purchase'
@@ -36,9 +37,14 @@ export async function main(ns: NS) {
 
 	while (running) {
 		const company = new Company(ns)
+		const phaseManager = getPhaseManager(ns, logger, company)
 		const officeManager = new ProductOfficeManager(ns, logger, company)
 		const productManager = new ProductManager(ns, logger, company)
 		const productPurchaseService = new ProductPurchaseService(ns, company)
+
+		if (phaseManager) {
+			await phaseManager.manage()
+		}
 
 		officeManager.manage()
 		productManager.manage()
@@ -48,13 +54,14 @@ export async function main(ns: NS) {
 		logger.log(productManager.summarize())
 		logger.log(productPurchaseService.summarize())
 		logger.log(
-			`INFO ${
-				company.name
-			} is ${company.getState()}; funds ${company.funds.toLocaleString(
-				undefined,
-				{ style: 'currency', currency: 'USD' }
+			`INFO ${company.name} is ${company.getState()}; funds ${ns.nFormat(
+				company.funds,
+				'0.00a'
 			)}`
 		)
+		if (phaseManager) {
+			logger.log(phaseManager.summarize())
+		}
 
 		await ns.sleep(10 /* s */ * 1000 /* ms */)
 	}
