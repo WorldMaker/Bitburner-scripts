@@ -24,71 +24,75 @@ Example: decoding '5aaabb450723abb' chunk-by-chunk
 
 const encoded = '91s0aHUm8B926B84176586fy66LQ71566aDc697poisvGC3475kW3aH5'
 
-let decoded = ''
-let chunkType: 'direct' | 'referent' = 'direct'
-let encodedPosition = 0
+export function comp2lz(encoded: string) {
+	let decoded = ''
+	let chunkType: 'direct' | 'referent' = 'direct'
+	let encodedPosition = 0
 
-while (encodedPosition < encoded.length) {
-	const length = encoded.charCodeAt(encodedPosition) - '0'.charCodeAt(0)
-	if (length > 9 || length < 0) {
-		throw new Error(
-			`${encoded.charAt(
-				encodedPosition
-			)} is out of ASCII range 0-9 at position ${encodedPosition}`
-		)
-	}
-	switch (chunkType) {
-		case 'direct':
-			if (length > encoded.length - encodedPosition - 1) {
-				// last chunk may be referent, try again in the other mode
-				chunkType = 'referent'
-				break
-			}
-			if (length > 0) {
-				const chunk = encoded.slice(
-					encodedPosition + 1,
-					encodedPosition + length + 1
-				)
-				decoded = decoded + chunk
-				console.log(`direct ${length}: ${chunk}`)
-			} else {
-				console.log('direct 0')
-			}
-			encodedPosition += 1 + length
-			chunkType = 'referent'
-			break
-		case 'referent':
-			const backlength =
-				encoded.charCodeAt(encodedPosition + 1) - '0'.charCodeAt(0)
-			if (backlength > 9 || backlength < 0) {
-				if (length === encoded.length - encodedPosition - 1) {
-					// last chunk may be direct
-					chunkType = 'direct'
+	while (encodedPosition < encoded.length) {
+		const length = encoded.charCodeAt(encodedPosition) - '0'.charCodeAt(0)
+		if (length > 9 || length < 0) {
+			throw new Error(
+				`${encoded.charAt(
+					encodedPosition
+				)} is out of ASCII range 0-9 at position ${encodedPosition}`
+			)
+		}
+		switch (chunkType) {
+			case 'direct':
+				if (length > encoded.length - encodedPosition - 1) {
+					// last chunk may be referent, try again in the other mode
+					chunkType = 'referent'
 					break
 				}
-				throw new Error(
-					`${encoded.charAt(
-						encodedPosition + 1
-					)} is out of ASCII range 0-9 at position ${encodedPosition + 1}`
-				)
-			}
-			const endChunk = decoded.slice(-backlength)
-			if (endChunk.length >= length) {
-				const chunk = endChunk.slice(0, length)
-				decoded = decoded + chunk
-				console.log(`referent ${length} ${backlength}: ${chunk}`)
-			} else {
-				let chunk = ''
-				for (let i = 0; i < length; i++) {
-					chunk = chunk + endChunk.charAt(i % endChunk.length)
+				if (length > 0) {
+					const chunk = encoded.slice(
+						encodedPosition + 1,
+						encodedPosition + length + 1
+					)
+					decoded = decoded + chunk
+					console.log(`direct ${length}: ${chunk}`)
+				} else {
+					console.log('direct 0')
 				}
-				decoded = decoded + chunk
-				console.log(`referent repeat ${length} ${backlength}: ${chunk}`)
-			}
-			encodedPosition += 2
-			chunkType = 'direct'
-			break
+				encodedPosition += 1 + length
+				chunkType = 'referent'
+				break
+			case 'referent':
+				const backlength =
+					encoded.charCodeAt(encodedPosition + 1) - '0'.charCodeAt(0)
+				if (backlength > 9 || backlength < 0) {
+					if (length === encoded.length - encodedPosition - 1) {
+						// last chunk may be direct
+						chunkType = 'direct'
+						break
+					}
+					throw new Error(
+						`${encoded.charAt(
+							encodedPosition + 1
+						)} is out of ASCII range 0-9 at position ${encodedPosition + 1}`
+					)
+				}
+				const endChunk = decoded.slice(-backlength)
+				if (endChunk.length >= length) {
+					const chunk = endChunk.slice(0, length)
+					decoded = decoded + chunk
+					console.log(`referent ${length} ${backlength}: ${chunk}`)
+				} else {
+					let chunk = ''
+					for (let i = 0; i < length; i++) {
+						chunk = chunk + endChunk.charAt(i % endChunk.length)
+					}
+					decoded = decoded + chunk
+					console.log(`referent repeat ${length} ${backlength}: ${chunk}`)
+				}
+				encodedPosition += 2
+				chunkType = 'direct'
+				break
+		}
 	}
+	return decoded
 }
 
+const decoded = comp2lz(encoded)
 console.log(decoded)
