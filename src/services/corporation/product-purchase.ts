@@ -41,7 +41,10 @@ export class ProductPurchaseService {
 				ProductDevelopment.City,
 				ProductDevelopment.OfficeSizeUpgrade
 			)
-		} else if (this.ns.corporation.getHireAdVertCost(productDivision.name)) {
+		} else if (
+			this.ns.corporation.getUpgradeLevel(AnalyticsLevelUpgrade) >= 10 &&
+			this.ns.corporation.getHireAdVertCost(productDivision.name)
+		) {
 			this.ns.corporation.hireAdVert(productDivision.name)
 		}
 
