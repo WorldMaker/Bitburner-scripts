@@ -106,6 +106,15 @@ buildSync({
 })
 
 buildSync({
+	entryPoints: ['./src/cctfinder.ts'],
+	bundle,
+	target,
+	format,
+	outfile: './dist/cctfinder.js',
+	logLevel,
+})
+
+buildSync({
 	entryPoints: ['./src/pathfinder.ts'],
 	bundle,
 	target,
