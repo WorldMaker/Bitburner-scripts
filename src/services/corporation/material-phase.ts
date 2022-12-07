@@ -108,27 +108,27 @@ export class MaterialPhaseManager extends BasePhaseManager {
 			) {
 				await this.ns.sleep(20 /* ms */)
 			}
+		}
 
-			// *** Clear purchases; count how much was met ***
+		// *** Clear purchases; count how much was met ***
 
-			for (const city of materialDivision.cities) {
-				for (const [materialName, amountDesired] of Object.entries(
-					desiredMaterial
-				)) {
-					// clear purchase
-					this.ns.corporation.buyMaterial(
-						materialDivision.name,
-						city,
-						materialName,
-						0
-					)
-					const materialAmount = this.ns.corporation.getMaterial(
-						materialDivision.name,
-						city,
-						materialName
-					).qty
-					this.materialsMet += Math.min(materialAmount, amountDesired)
-				}
+		for (const city of materialDivision.cities) {
+			for (const [materialName, amountDesired] of Object.entries(
+				desiredMaterial
+			)) {
+				// clear purchase
+				this.ns.corporation.buyMaterial(
+					materialDivision.name,
+					city,
+					materialName,
+					0
+				)
+				const materialAmount = this.ns.corporation.getMaterial(
+					materialDivision.name,
+					city,
+					materialName
+				).qty
+				this.materialsMet += Math.min(materialAmount, amountDesired)
 			}
 		}
 	}
