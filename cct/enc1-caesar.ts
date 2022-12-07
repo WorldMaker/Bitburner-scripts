@@ -35,5 +35,17 @@ export function enc1caeser(encoded: [string, number]): string {
 	return decoded
 }
 
+export async function main(ns: NS) {
+	const [leftShift, ...text] = ns.args
+	if (typeof leftShift !== 'number') {
+		throw new Error('Expected left shift to be a number')
+	}
+	const decoded = enc1caeser([
+		text.map((t) => t.toString()).join(' '),
+		leftShift,
+	])
+	ns.tprint(decoded)
+}
+
 const decoded = enc1caeser(encoded)
 console.log(decoded)
