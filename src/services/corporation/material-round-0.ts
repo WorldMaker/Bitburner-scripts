@@ -26,6 +26,9 @@ const DesiredMaterial: Partial<Record<BoostMaterial, number>> = {
 }
 const DesiredOffer = 100_000_000_000
 
+const SellAll = 'MAX'
+const SellAtMarketPrice = 'MP'
+
 export class MaterialRound0Manager
 	extends MaterialPhaseManager
 	implements PhaseManager
@@ -97,6 +100,15 @@ export class MaterialRound0Manager
 			const cost = this.ns.corporation.getExpandCityCost()
 			if (this.funds >= cost) {
 				this.ns.corporation.expandCity(materialDivision.name, city)
+				for (const material of MyCompany.MaterialDivision.SellMaterials) {
+					this.ns.corporation.sellMaterial(
+						MyCompany.MaterialDivision.Name,
+						city,
+						material,
+						SellAll,
+						SellAtMarketPrice
+					)
+				}
 				this.funds -= cost
 				const warehouseCost = this.ns.corporation.getPurchaseWarehouseCost()
 				if (this.funds >= warehouseCost) {
