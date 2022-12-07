@@ -22,7 +22,9 @@ Input: digits = "105", target = 5
 Output: [1*0+5, 10-5]
 */
 
-const example = ['6323557575', -13] as const
+// const example = ['6323557575', -13] as const
+// const example = ['68544196', -29] as const
+const example = ['4412771994', -70] as const
 
 function solve(
 	results: string[],
