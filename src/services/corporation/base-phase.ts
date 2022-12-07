@@ -10,6 +10,7 @@ const { from } = IterableX
 export type DesiredLevelUpgrades = Partial<Record<LevelUpgrade, number>>
 
 export class BasePhaseManager {
+	protected funds: number
 	protected levelsDesired = 0
 	protected levelsMet = 0
 
@@ -17,7 +18,9 @@ export class BasePhaseManager {
 		protected ns: NS,
 		protected logger: Logger,
 		protected company: Company
-	) {}
+	) {
+		this.funds = company.funds
+	}
 
 	manageLevelUpgrades(desiredLevelUpgrades: DesiredLevelUpgrades) {
 		for (const [upgrade, desiredLevel] of Object.entries(
@@ -27,11 +30,15 @@ export class BasePhaseManager {
 			const currentLevel = this.ns.corporation.getUpgradeLevel(upgrade)
 			this.levelsMet += Math.min(desiredLevel, currentLevel)
 			if (currentLevel < desiredLevel) {
-				try {
-					this.ns.corporation.levelUpgrade(upgrade)
-					this.levelsMet++
-				} catch (error) {
-					this.logger.log(`WARN unable to upgrade ${upgrade}: ${error}`)
+				const cost = this.ns.corporation.getUpgradeLevelCost(upgrade)
+				if (cost <= this.funds) {
+					this.funds -= cost
+					try {
+						this.ns.corporation.levelUpgrade(upgrade)
+						this.levelsMet++
+					} catch (error) {
+						this.logger.log(`WARN unable to upgrade ${upgrade}: ${error}`)
+					}
 				}
 			}
 		}

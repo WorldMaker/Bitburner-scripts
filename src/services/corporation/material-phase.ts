@@ -18,24 +18,36 @@ export class MaterialPhaseManager extends BasePhaseManager {
 		materialDivision: Division,
 		desiredWarehouseLevel: number
 	) {
-		for (const city of Cities) {
+		for (const city of materialDivision.cities) {
 			this.warehouseLevelsDesired += desiredWarehouseLevel
-			const warehouse = this.ns.corporation.getWarehouse(
-				materialDivision.name,
-				city
-			)
+			let warehouse: Warehouse | null = null
+			try {
+				warehouse = this.ns.corporation.getWarehouse(
+					materialDivision.name,
+					city
+				)
+			} catch {
+				continue
+			}
 			this.warehouseLevelsMet += Math.min(
 				desiredWarehouseLevel,
 				warehouse.level
 			)
 			if (warehouse.level < desiredWarehouseLevel) {
-				try {
-					this.ns.corporation.upgradeWarehouse(materialDivision.name, city)
-					this.warehouseLevelsMet++
-				} catch (error) {
-					this.logger.log(
-						`WARN unable to upgrade warehouse in ${city}: ${error}`
-					)
+				const cost = this.ns.corporation.getUpgradeWarehouseCost(
+					materialDivision.name,
+					city
+				)
+				if (cost <= this.funds) {
+					try {
+						this.ns.corporation.upgradeWarehouse(materialDivision.name, city)
+						this.funds -= cost
+						this.warehouseLevelsMet++
+					} catch (error) {
+						this.logger.log(
+							`WARN unable to upgrade warehouse in ${city}: ${error}`
+						)
+					}
 				}
 			}
 		}
@@ -48,7 +60,7 @@ export class MaterialPhaseManager extends BasePhaseManager {
 		let buyCity: string | null = null
 		let buyMaterial: string | null = null
 
-		for (const city of Cities) {
+		for (const city of materialDivision.cities) {
 			for (const [materialName, amountDesired] of Object.entries(
 				desiredMaterial
 			)) {
@@ -59,18 +71,21 @@ export class MaterialPhaseManager extends BasePhaseManager {
 					materialName
 				)
 				if (material.qty < amountDesired) {
-					// we want to buy as much as possible (ideally the entire amount) in a single tick
-					const toBuyPerSecond =
-						(amountDesired - material.qty) /* per tick */ /
-						10 /* seconds/tick */
-					this.ns.corporation.buyMaterial(
-						materialDivision.name,
-						city,
-						materialName,
-						toBuyPerSecond
-					)
-					buyCity = city
-					buyMaterial = materialName
+					const toBuy = amountDesired - material.qty
+					const cost = toBuy * material.cost
+					if (cost <= this.funds) {
+						// we want to buy as much as possible (ideally the entire amount) in a single tick
+						const toBuyPerSecond = toBuy /* per tick */ / 10 /* seconds/tick */
+						this.ns.corporation.buyMaterial(
+							materialDivision.name,
+							city,
+							materialName,
+							toBuyPerSecond
+						)
+						this.funds -= cost
+						buyCity = city
+						buyMaterial = materialName
+					}
 				}
 			}
 		}
@@ -96,7 +111,7 @@ export class MaterialPhaseManager extends BasePhaseManager {
 
 			// *** Clear purchases; count how much was met ***
 
-			for (const city of Cities) {
+			for (const city of materialDivision.cities) {
 				for (const [materialName, amountDesired] of Object.entries(
 					desiredMaterial
 				)) {

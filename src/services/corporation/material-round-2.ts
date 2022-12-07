@@ -65,6 +65,11 @@ export class MaterialRound2Manager
 				MyCompany.ProductDivision.Name,
 				city
 			)
+			this.ns.corporation.setSmartSupply(
+				MyCompany.ProductDivision.Name,
+				city,
+				true
+			)
 			if (city === ProductDevelopment.City) {
 				this.ns.corporation.upgradeOfficeSize(
 					MyCompany.ProductDivision.Name,

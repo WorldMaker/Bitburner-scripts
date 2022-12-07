@@ -18,7 +18,7 @@ export class ProductRound4Manager implements PhaseManager {
 
 	async manage(): Promise<void> {
 		if (this.ns.corporation.goPublic(PublicShares)) {
-			this.logger.log(`SUCCESS ${this.company.name} went Public`)
+			this.logger.display(`SUCCESS ${this.company.name} went Public`)
 			this.ns.corporation.issueDividends(Dividends)
 		} else {
 			this.logger.log(`ERROR ${this.company.name} was unable to go public`)
