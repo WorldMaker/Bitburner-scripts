@@ -41,37 +41,38 @@ export class MaterialRound0Manager
 		return `INFO preparing ${MyCompany.MaterialDivision.Name} for first investment round; ${this.citiesMet}/${this.citiesDesired}; ${this.levelsMet}/${this.levelsDesired}; ${this.warehouseLevelsMet}/${this.warehouseLevelsDesired}; ${this.materialsMet}/${this.materialsDesired}`
 	}
 
+	assignEmployees(materialDivision: Division, city: string) {
+		const office = this.ns.corporation.getOffice(materialDivision.name, city)
+		if (office.employeeJobs.Unassigned > 0) {
+			while (this.ns.corporation.hireEmployee(materialDivision.name, city)) {}
+			this.ns.corporation.setAutoJobAssignment(
+				materialDivision.name,
+				city,
+				'Operations',
+				1
+			)
+			this.ns.corporation.setAutoJobAssignment(
+				materialDivision.name,
+				city,
+				'Engineer',
+				1
+			)
+			this.ns.corporation.setAutoJobAssignment(
+				materialDivision.name,
+				city,
+				'Business',
+				1
+			)
+		}
+	}
+
 	expandAllCities(materialDivision: Division) {
 		for (const city of Cities) {
 			if (materialDivision.cities.includes(city)) {
-				// *** Increase head count ***
-				const office = this.ns.corporation.getOffice(
-					materialDivision.name,
-					city
-				)
-				if (office.employeeJobs.Unassigned > 0) {
-					while (
-						this.ns.corporation.hireEmployee(materialDivision.name, city)
-					) {}
-					this.ns.corporation.setAutoJobAssignment(
-						materialDivision.name,
-						city,
-						'Operations',
-						1
-					)
-					this.ns.corporation.setAutoJobAssignment(
-						materialDivision.name,
-						city,
-						'Engineer',
-						1
-					)
-					this.ns.corporation.setAutoJobAssignment(
-						materialDivision.name,
-						city,
-						'Business',
-						1
-					)
-				}
+				// Office API may not be available yet
+				try {
+					this.assignEmployees(materialDivision, city)
+				} catch {}
 
 				// *** Ensure has a warehouse ***
 				try {
