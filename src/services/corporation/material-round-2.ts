@@ -51,6 +51,11 @@ export class MaterialRound2Manager
 			return
 		}
 
+		if (this.funds < 0) {
+			this.logger.log('Waiting for profitability')
+			return
+		}
+
 		// *** Kick off the Product Division ***
 
 		this.ns.corporation.expandIndustry(

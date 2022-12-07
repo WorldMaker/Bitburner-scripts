@@ -145,6 +145,11 @@ export class MaterialRound0Manager
 			return
 		}
 
+		if (this.funds < 0) {
+			this.logger.log('Waiting for profitability')
+			return
+		}
+
 		if (!this.checkMorale(materialDivision)) {
 			return
 		}
