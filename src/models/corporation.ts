@@ -81,27 +81,38 @@ export type CompanyState =
 	| 'Public'
 
 export class Company {
-	private corp: CorporationInfo
+	private corp: CorporationInfo | null = null
 	private divisionsByType = new Map<string, Division>()
 	private state: CompanyState = 'Unknown'
 	private developedProduct = false
 
 	get name() {
-		return this.corp.name
+		return this.corp?.name ?? MyCompany.Name
 	}
 
 	get funds() {
-		return this.corp.funds
+		return this.corp?.funds ?? 0
 	}
 
 	constructor(private ns: NS) {
-		this.corp = this.ns.corporation.getCorporation()
-		this.updateState()
-		this.hasDevelopedProduct()
+		try {
+			this.corp = this.ns.corporation.getCorporation()
+			this.updateState()
+			this.hasDevelopedProduct()
+		} catch {
+			this.corp = null
+			this.state = 'Unstarted'
+		}
 	}
 
 	updateState() {
-		this.corp = this.ns.corporation.getCorporation()
+		try {
+			this.corp = this.ns.corporation.getCorporation()
+		} catch {
+			this.corp = null
+			this.state = 'Unstarted'
+			return
+		}
 		for (const division of this.corp.divisions) {
 			this.divisionsByType.set(division.type, division)
 		}
