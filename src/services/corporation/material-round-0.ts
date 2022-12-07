@@ -136,6 +136,7 @@ export class MaterialRound0Manager
 		// *** Make sure needs above are met ***
 
 		if (
+			this.citiesMet < this.citiesDesired ||
 			this.levelsMet < this.levelsDesired ||
 			this.warehouseLevelsMet < this.warehouseLevelsDesired ||
 			this.materialsMet < this.materialsDesired
