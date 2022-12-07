@@ -94,5 +94,11 @@ export function comp2lz(encoded: string) {
 	return decoded
 }
 
+export async function main(ns: NS) {
+	const encoded = ns.args[0].toString()
+	const decoded = comp2lz(encoded)
+	ns.tprint(decoded)
+}
+
 const decoded = comp2lz(encoded)
 console.log(decoded)

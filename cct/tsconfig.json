@@ -4,5 +4,5 @@
 		"noEmit": false,
 		"outDir": "../dist/cct/"
 	},
-	"include": ["./**/*.ts"]
+	"include": ["./**/*.ts", "../lib.d.ts"]
 }
