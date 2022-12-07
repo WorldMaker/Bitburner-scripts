@@ -72,11 +72,6 @@ export class MaterialRound0Manager
 	expandAllCities(materialDivision: Division) {
 		for (const city of Cities) {
 			if (materialDivision.cities.includes(city)) {
-				// Office API may not be available yet
-				try {
-					this.assignEmployees(materialDivision, city)
-				} catch {}
-
 				// *** Ensure has a warehouse ***
 				try {
 					this.ns.corporation.getWarehouse(materialDivision.name, city)
@@ -110,6 +105,10 @@ export class MaterialRound0Manager
 					)
 				}
 				this.funds -= cost
+				// Office API may not be available yet
+				try {
+					this.assignEmployees(materialDivision, city)
+				} catch {}
 				const warehouseCost = this.ns.corporation.getPurchaseWarehouseCost()
 				if (this.funds >= warehouseCost) {
 					this.ns.corporation.purchaseWarehouse(materialDivision.name, city)
