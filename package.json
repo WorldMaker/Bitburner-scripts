@@ -3,11 +3,13 @@
 	"version": "1.0.0",
 	"description": "Bitburner scripts",
 	"main": "index.js",
+	"type": "module",
 	"scripts": {
 		"pretypecheck": "npm run prettier:check",
 		"typecheck": "tsc -p tsconfig.json",
 		"prebuild": "npm run typecheck",
 		"build": "node ./esbuild.mjs",
+		"build:cct": "tsc -p ./cct/tsconfig.json",
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"prettier": "prettier --write .",
 		"prettier:check": "prettier --check ."
