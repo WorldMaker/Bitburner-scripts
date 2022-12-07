@@ -36,15 +36,7 @@ export class MaterialRound1Manager
 		return `INFO preparing ${MyCompany.MaterialDivision.Name} for second investment round; ${this.levelsMet}/${this.levelsDesired}; ${this.warehouseLevelsMet}/${this.warehouseLevelsDesired}; ${this.materialsMet}/${this.materialsDesired}`
 	}
 
-	async manage(): Promise<void> {
-		const materialDivision = this.company.getMaterialDivision()
-		if (!materialDivision) {
-			this.logger.log(`ERROR no material division`)
-			return
-		}
-
-		// *** Increase head count ***
-
+	increaseHeadCount(materialDivision: Division) {
 		for (const city of Cities) {
 			const office = this.ns.corporation.getOffice(materialDivision.name, city)
 			if (office.size < 9) {
@@ -80,6 +72,19 @@ export class MaterialRound1Manager
 				)
 			}
 		}
+	}
+
+	async manage(): Promise<void> {
+		const materialDivision = this.company.getMaterialDivision()
+		if (!materialDivision) {
+			this.logger.log(`ERROR no material division`)
+			return
+		}
+
+		// Office API may not be available yet
+		try {
+			this.increaseHeadCount(materialDivision)
+		} catch {}
 
 		this.manageLevelUpgrades(DesiredLevelUpgrades)
 		this.manageWarehouseLevel(materialDivision, DesiredWarehouseLevel)
