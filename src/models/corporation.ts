@@ -9,8 +9,8 @@ export const MyCompany = Object.freeze({
 		Name: '0bac',
 		Type: 'Tobacco',
 		ProductBaseName: 'wacky',
-		DesignInvestment: 1_000_000_000_000,
-		MarketingInvestment: 1_000_000_000_000,
+		DesignInvestment: 1_000_000_000,
+		MarketingInvestment: 1_000_000_000,
 		TotalProducts: 3, // Bitburner restriction
 	}),
 })
