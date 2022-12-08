@@ -63,13 +63,17 @@ export class ProductManager {
 					discontinuedProduct.name
 				)
 			}
-			this.ns.corporation.makeProduct(
-				productDivision.name,
-				ProductDevelopment.City,
-				`${MyCompany.ProductDivision.ProductBaseName}-${ulid()}`,
-				MyCompany.ProductDivision.DesignInvestment,
-				MyCompany.ProductDivision.MarketingInvestment
-			)
+			try {
+				this.ns.corporation.makeProduct(
+					productDivision.name,
+					ProductDevelopment.City,
+					`${MyCompany.ProductDivision.ProductBaseName}-${ulid()}`,
+					MyCompany.ProductDivision.DesignInvestment,
+					MyCompany.ProductDivision.MarketingInvestment
+				)
+			} catch (err) {
+				this.logger.log(`WARN unable to make product: ${err}`)
+			}
 		}
 
 		// *** Make sure all current production products are for sale ***
