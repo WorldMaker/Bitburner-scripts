@@ -74,7 +74,7 @@ export class BasePhaseManager {
 		if (
 			averages.mor < 99.99999 ||
 			averages.hap < 99.998 ||
-			averages.ene >= 99.998
+			averages.ene < 99.998
 		) {
 			this.logger.log(
 				`Waiting for morale; ${averages.mor.toFixed(
