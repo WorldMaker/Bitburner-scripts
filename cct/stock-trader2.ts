@@ -12,7 +12,12 @@ Determine the maximum possible profit you can earn using as many transactions as
 If no profit can be made, then the answer should be 0
  */
 
+// import { maxProfit } from './stock-trader4.js'
+
 const example = [155, 169, 122]
+
+// Matrix solution:
+// export const stockTrader2 = (stock: number[]) => maxProfit(stock.length, stock)
 
 export function stockTrader2(stock: number[]) {
 	let profit = 0
