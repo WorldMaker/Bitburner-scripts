@@ -22,6 +22,8 @@ export class ProductPurchaseService {
 		if (!this.company.hasProductDivision()) {
 			return
 		}
+		// recheck funds and other things
+		this.company.updateState()
 		const productDivision = this.company.getProductDivision()!
 		if (
 			this.company.hasDevelopedProduct() &&
