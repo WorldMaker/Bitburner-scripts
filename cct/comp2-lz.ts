@@ -22,7 +22,9 @@ Example: decoding '5aaabb450723abb' chunk-by-chunk
     5aaabb450723abb  ->  aaabbaaababababaabb
 */
 
-const encoded = '91s0aHUm8B926B84176586fy66LQ71566aDc697poisvGC3475kW3aH5'
+// const encoded = '91s0aHUm8B926B84176586fy66LQ71566aDc697poisvGC3475kW3aH5'
+const encoded =
+	'9fbqcyUCxO09HVt6HsNC3110633oyN895vUK86149sLDdlsQGO097ErvlyUkK983sgS652mD953Yvo53'
 
 export function comp2lz(encoded: string) {
 	let decoded = ''
@@ -59,6 +61,12 @@ export function comp2lz(encoded: string) {
 				chunkType = 'referent'
 				break
 			case 'referent':
+				if (length === 0) {
+					console.log('referent 0')
+					encodedPosition++
+					chunkType = 'direct'
+					break
+				}
 				const backlength =
 					encoded.charCodeAt(encodedPosition + 1) - '0'.charCodeAt(0)
 				if (backlength > 9 || backlength < 0) {
