@@ -15,6 +15,7 @@ const DesiredLevelUpgrades: Partial<Record<LevelUpgrade, number>> = {
 	[LevelUpgrades.SpeechProcessorImplants]: 20,
 	[LevelUpgrades.Nuoptimal]: 20,
 	[LevelUpgrades.ProjectInsight]: 10,
+	[LevelUpgrades.WilsonAnalytics]: 10,
 }
 const DesiredOffer = 100_000_000_000_000
 
