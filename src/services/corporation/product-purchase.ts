@@ -1,5 +1,4 @@
 import {
-	AnalyticsLevelUpgrade,
 	Cities,
 	Company,
 	LevelUpgrades,
@@ -9,6 +8,9 @@ import {
 const ToyPurchaseBudget = 1 / 10_000_000 /* per tick */
 
 export class ProductPurchaseService {
+	private funds = 0
+	private hasEnoughAnalytics = false
+
 	constructor(private ns: NS, private company: Company) {}
 
 	summarize() {
@@ -24,33 +26,51 @@ export class ProductPurchaseService {
 		}
 		// recheck funds and other things
 		this.company.updateState()
+		this.funds = this.company.funds
+		this.hasEnoughAnalytics ||=
+			this.ns.corporation.getUpgradeLevel(LevelUpgrades.WilsonAnalytics) >= 10
 		const productDivision = this.company.getProductDivision()!
-		if (
-			this.company.hasDevelopedProduct() &&
-			this.ns.corporation.getUpgradeLevelCost(AnalyticsLevelUpgrade) <
-				this.company.funds
-		) {
-			this.ns.corporation.levelUpgrade(AnalyticsLevelUpgrade)
-		} else if (
+		const wilsonAnalyticsCost = this.ns.corporation.getUpgradeLevelCost(
+			LevelUpgrades.WilsonAnalytics
+		)
+		const developmentOfficeUpgradeCost =
 			this.ns.corporation.getOfficeSizeUpgradeCost(
 				productDivision.name,
 				ProductDevelopment.City,
 				ProductDevelopment.OfficeSizeUpgrade
 			)
+		if (
+			this.company.hasDevelopedProduct() &&
+			wilsonAnalyticsCost < this.funds
 		) {
+			this.ns.corporation.levelUpgrade(LevelUpgrades.WilsonAnalytics)
+			this.funds -= wilsonAnalyticsCost
+		}
+
+		if (this.hasEnoughAnalytics && developmentOfficeUpgradeCost < this.funds) {
 			this.ns.corporation.upgradeOfficeSize(
 				productDivision.name,
 				ProductDevelopment.City,
 				ProductDevelopment.OfficeSizeUpgrade
 			)
-		} else if (
-			this.ns.corporation.getUpgradeLevel(AnalyticsLevelUpgrade) >= 10 &&
-			this.ns.corporation.getHireAdVertCost(productDivision.name)
-		) {
-			this.ns.corporation.hireAdVert(productDivision.name)
+			this.funds -= developmentOfficeUpgradeCost
 		}
 
-		let toyBudget = this.company.funds * ToyPurchaseBudget
+		let upgradeCost = this.ns.corporation.getHireAdVertCost(
+			productDivision.name
+		)
+
+		if (this.hasEnoughAnalytics && upgradeCost < this.funds) {
+			while (upgradeCost < this.funds) {
+				this.ns.corporation.hireAdVert(productDivision.name)
+				this.funds -= upgradeCost
+				upgradeCost = this.ns.corporation.getHireAdVertCost(
+					productDivision.name
+				)
+			}
+		}
+
+		let toyBudget = this.funds * ToyPurchaseBudget
 		for (const upgrade of Object.values(LevelUpgrades)) {
 			const upgradeCost = this.ns.corporation.getUpgradeLevelCost(upgrade)
 			if (upgradeCost < toyBudget) {

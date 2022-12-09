@@ -42,7 +42,6 @@ export const LevelUpgrades = Object.freeze({
 	ProjectInsight: 'Project Insight',
 })
 export type LevelUpgrade = typeof LevelUpgrades[keyof typeof LevelUpgrades]
-export const AnalyticsLevelUpgrade: LevelUpgrade = 'Wilson Analytics'
 export const Cities = [
 	'Aevum',
 	'Chongqing',
