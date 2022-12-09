@@ -3,7 +3,11 @@ import { Logger } from '../../models/logger'
 import { BasePhaseManager } from './base-phase'
 import { PhaseManager } from './phase'
 
-const DesiredResearch = ['Hi-Tech R&D Laboratory', 'Market-TA', 'Market-TA.II']
+const DesiredResearch = [
+	'Hi-Tech R&D Laboratory',
+	'Market-TA.I',
+	'Market-TA.II',
+]
 const DesiredOffer = 10_000_000_000_000_000
 
 export class ProductRound3Manager
