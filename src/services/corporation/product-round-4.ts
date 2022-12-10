@@ -3,7 +3,7 @@ import { Logger } from '../../models/logger'
 import { PhaseManager } from './phase'
 
 const PublicShares = 0
-const Dividends = 5 /* percent */
+const Dividends = 0.05 /* percent */
 
 export class ProductRound4Manager implements PhaseManager {
 	constructor(
