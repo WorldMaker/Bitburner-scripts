@@ -4,14 +4,21 @@ import {
 	LevelUpgrades,
 	ProductDevelopment,
 } from '../../models/corporation'
+import { Logger } from '../../models/logger'
 
 const ToyPurchaseBudget = 1 / 10_000_000 /* per tick */
+const AdditionalResearchBudget = 1 / 3
 
 export class ProductPurchaseService {
 	private funds = 0
 	private hasEnoughAnalytics = false
+	private hasEnoughBaselineResearch = false
 
-	constructor(private ns: NS, private company: Company) {}
+	constructor(
+		private ns: NS,
+		private logger: Logger,
+		private company: Company
+	) {}
 
 	summarize() {
 		if (this.company.hasProductDivision()) {
@@ -104,6 +111,33 @@ export class ProductPurchaseService {
 							ProductDevelopment.OfficeSizeUpgrade
 						)
 						toyBudget -= upgradeCost
+					}
+				}
+			}
+		}
+
+		// *** Research ***
+		this.hasEnoughBaselineResearch ||= this.ns.corporation.hasResearched(
+			productDivision.name,
+			ProductDevelopment.KeyResearch
+		)
+		if (this.hasEnoughBaselineResearch) {
+			let researchBudget = productDivision.research * AdditionalResearchBudget
+			for (const research of this.ns.corporation.getResearchNames()) {
+				if (
+					!this.ns.corporation.hasResearched(productDivision.name, research)
+				) {
+					const cost = this.ns.corporation.getResearchCost(
+						productDivision.name,
+						research
+					)
+					if (cost < researchBudget) {
+						try {
+							this.ns.corporation.research(productDivision.name, research)
+							researchBudget -= cost
+						} catch (err) {
+							this.logger.log(`WARN unable to research ${research}`)
+						}
 					}
 				}
 			}

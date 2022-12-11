@@ -55,6 +55,7 @@ export const ProductDevelopment = Object.freeze({
 	City: 'Aevum',
 	OfficeSizeUpgrade: 15,
 	ResearchOfficeSizeOffset: 60,
+	KeyResearch: 'Market-TA.II',
 })
 
 /**

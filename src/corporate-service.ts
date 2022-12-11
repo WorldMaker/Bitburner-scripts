@@ -40,7 +40,11 @@ export async function main(ns: NS) {
 		const phaseManager = getPhaseManager(ns, logger, company)
 		const officeManager = new ProductOfficeManager(ns, logger, company)
 		const productManager = new ProductManager(ns, logger, company)
-		const productPurchaseService = new ProductPurchaseService(ns, company)
+		const productPurchaseService = new ProductPurchaseService(
+			ns,
+			logger,
+			company
+		)
 
 		if (phaseManager) {
 			await phaseManager.manage()
