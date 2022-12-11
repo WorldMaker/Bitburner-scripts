@@ -72,6 +72,7 @@ export class ToyPurchaseService {
 			const doubleRam = server.getMaxRam() * 2
 			const cost = this.ns.getPurchasedServerCost(doubleRam)
 			if (this.budget > cost) {
+				this.ns.killall(server.name)
 				if (this.ns.deleteServer(server.name)) {
 					const hostname = this.ns.purchaseServer(server.name, doubleRam)
 					this.budget -= cost
