@@ -88,18 +88,20 @@ export class ProductPurchaseService {
 				const researchSize =
 					productDevelopmentOffice.size -
 					ProductDevelopment.ResearchOfficeSizeOffset
-				if (office.size < researchSize) {
-					const growSize = researchSize - office.size
+				if (
+					office.size < researchSize &&
+					researchSize > ProductDevelopment.OfficeSizeUpgrade
+				) {
 					const upgradeCost = this.ns.corporation.getOfficeSizeUpgradeCost(
 						productDivision.name,
 						city,
-						growSize
+						ProductDevelopment.OfficeSizeUpgrade
 					)
 					if (upgradeCost < toyBudget) {
 						this.ns.corporation.upgradeOfficeSize(
 							productDivision.name,
 							city,
-							growSize
+							ProductDevelopment.OfficeSizeUpgrade
 						)
 						toyBudget -= upgradeCost
 					}
