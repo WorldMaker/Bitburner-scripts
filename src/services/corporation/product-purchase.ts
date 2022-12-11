@@ -127,16 +127,25 @@ export class ProductPurchaseService {
 				if (
 					!this.ns.corporation.hasResearched(productDivision.name, research)
 				) {
-					const cost = this.ns.corporation.getResearchCost(
-						productDivision.name,
-						research
-					)
+					let cost = Infinity
+
+					try {
+						cost = this.ns.corporation.getResearchCost(
+							productDivision.name,
+							research
+						)
+					} catch (err) {
+						this.logger.log(
+							`WARN unable to get research cost ${research}: ${err}`
+						)
+					}
+
 					if (cost < researchBudget) {
 						try {
 							this.ns.corporation.research(productDivision.name, research)
 							researchBudget -= cost
 						} catch (err) {
-							this.logger.log(`WARN unable to research ${research}`)
+							this.logger.log(`WARN unable to research ${research}: ${err}`)
 						}
 					}
 				}
