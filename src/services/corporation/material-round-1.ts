@@ -50,7 +50,7 @@ export class MaterialRound1Manager
 					materialDivision.name,
 					city,
 					'Operations',
-					3
+					2
 				)
 				this.ns.corporation.setAutoJobAssignment(
 					materialDivision.name,
@@ -70,7 +70,30 @@ export class MaterialRound1Manager
 					'Management',
 					2
 				)
+				this.ns.corporation.setAutoJobAssignment(
+					materialDivision.name,
+					city,
+					'Research',
+					1
+				)
 			}
+		}
+	}
+
+	reassignResearch(materialDivision: Division) {
+		for (const city of Cities) {
+			this.ns.corporation.setAutoJobAssignment(
+				materialDivision.name,
+				city,
+				'Research',
+				1
+			)
+			this.ns.corporation.setAutoJobAssignment(
+				materialDivision.name,
+				city,
+				'Operations',
+				3
+			)
 		}
 	}
 
@@ -109,6 +132,11 @@ export class MaterialRound1Manager
 		if (!this.checkMorale(materialDivision)) {
 			return
 		}
+
+		// In case Office API is still unavailable
+		try {
+			this.reassignResearch(materialDivision)
+		} catch {}
 
 		this.invest(DesiredOffer)
 	}
