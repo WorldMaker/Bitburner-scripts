@@ -65,6 +65,9 @@ export class ProductPrice {
 				this.multiplier = 1
 				break
 			case 'Seeking':
+				if (production === 0) {
+					break
+				}
 				if (production <= sell) {
 					this.multiplier *= 2
 				} else {
@@ -84,6 +87,9 @@ export class ProductPrice {
 				)
 				break
 			case 'Bisecting':
+				if (production === 0) {
+					break
+				}
 				if (production <= sell) {
 					this.multiplierMinimum = this.multiplier
 				} else {
