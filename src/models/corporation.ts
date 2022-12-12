@@ -94,6 +94,10 @@ export class Company {
 		return this.corp?.funds ?? 0
 	}
 
+	get corporation() {
+		return this.corp
+	}
+
 	constructor(private ns: NS) {
 		try {
 			this.corp = this.ns.corporation.getCorporation()

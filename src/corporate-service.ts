@@ -34,17 +34,20 @@ export async function main(ns: NS) {
 	running = true
 
 	const logger = new Logger(ns)
+	const company = new Company(ns)
+	const officeManager = new ProductOfficeManager(ns, logger, company)
+	const productManager = new ProductManager(ns, logger, company)
+	const productPurchaseService = new ProductPurchaseService(ns, logger, company)
 
 	while (running) {
-		const company = new Company(ns)
+		if (company.corporation) {
+			// try to align to a specific point in company cycle
+			while (company.corporation.state !== 'START') {
+				await ns.sleep(20 /* ms */)
+				company.updateState()
+			}
+		}
 		const phaseManager = getPhaseManager(ns, logger, company)
-		const officeManager = new ProductOfficeManager(ns, logger, company)
-		const productManager = new ProductManager(ns, logger, company)
-		const productPurchaseService = new ProductPurchaseService(
-			ns,
-			logger,
-			company
-		)
 
 		if (phaseManager) {
 			await phaseManager.manage()
