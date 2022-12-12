@@ -3,6 +3,7 @@ import { Logger } from './models/logger'
 import { getPhaseManager } from './services/corporation/phase'
 import { ProductManager } from './services/corporation/product'
 import { ProductOfficeManager } from './services/corporation/product-office'
+import { ProductPriceService } from './services/corporation/product-price'
 import { ProductPurchaseService } from './services/corporation/product-purchase'
 
 let running = false
@@ -37,6 +38,7 @@ export async function main(ns: NS) {
 	const company = new Company(ns)
 	const officeManager = new ProductOfficeManager(ns, logger, company)
 	const productManager = new ProductManager(ns, logger, company)
+	const productPriceService = new ProductPriceService(ns, company)
 	const productPurchaseService = new ProductPurchaseService(ns, logger, company)
 
 	while (running) {
@@ -55,10 +57,12 @@ export async function main(ns: NS) {
 
 		officeManager.manage()
 		productManager.manage()
+		productPriceService.manage()
 		productPurchaseService.purchase()
 
 		logger.log(officeManager.summarize())
 		logger.log(productManager.summarize())
+		logger.log(productPriceService.summarize())
 		logger.log(productPurchaseService.summarize())
 		logger.log(
 			`INFO ${company.name} is ${company.getState()}; funds ${ns.nFormat(
