@@ -62,7 +62,8 @@ export class ProductPrice {
 		switch (this.state) {
 			case 'Developing':
 				this.state = 'Seeking'
-			// intentional fallthrough
+				this.multiplier = 1
+				break
 			case 'Seeking':
 				if (production <= sell) {
 					this.multiplier *= 2
