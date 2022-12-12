@@ -1,10 +1,10 @@
 import { ProductDevelopment } from './corporation'
 
 export type ProductPriceState =
-	| 'Development'
+	| 'Developing'
 	| 'Seeking'
 	| 'Bisecting'
-	| 'Waiting'
+	| 'Watching'
 
 const MarketPriceMultiplierRegex = /MP\*(?<multiplier>\d+)/
 const AdjustmentTime = 10 /* min */ * 60 /* s */ * 1000 /* ms */
@@ -27,11 +27,11 @@ export class ProductPrice {
 		private product: Product
 	) {
 		if (this.product.developmentProgress < 100) {
-			this.state = 'Development'
+			this.state = 'Developing'
 		} else if (this.product.sCost === 'MP' || this.product.sCost === 'MP*1') {
 			this.state = 'Seeking'
 		} else {
-			this.state = 'Waiting'
+			this.state = 'Watching'
 			if (typeof this.product.sCost === 'string') {
 				// dumb way to call RegEx 'exec' because it was getting clbuttic read as ns.exec by memory checks
 				const match = MarketPriceMultiplierRegex['exec'](this.product.sCost)
@@ -53,14 +53,14 @@ export class ProductPrice {
 	update(product: Product) {
 		this.product = product
 		if (this.product.developmentProgress < 100) {
-			this.state = 'Development'
+			this.state = 'Developing'
 			this.multiplier = 1
 			return
 		}
 		const [_quantity, production, sell] =
 			this.product.cityData[ProductDevelopment.City]
 		switch (this.state) {
-			case 'Development':
+			case 'Developing':
 				this.state = 'Seeking'
 			// intentional fallthrough
 			case 'Seeking':
@@ -93,7 +93,7 @@ export class ProductPrice {
 					this.multiplier =
 						(this.multiplierMinimum + this.multiplierMaximum) / 2
 				} else {
-					this.state = 'Waiting'
+					this.state = 'Watching'
 					this.multiplier = Math.floor(this.multiplierMinimum)
 				}
 				this.ns.corporation.sellProduct(
@@ -105,7 +105,7 @@ export class ProductPrice {
 					true
 				)
 				break
-			case 'Waiting':
+			case 'Watching':
 				if (this.lastChecked.getTime() - Date.now() >= AdjustmentTime) {
 					if (production < sell) {
 						this.multiplier = Math.max(1, this.multiplier - 1)

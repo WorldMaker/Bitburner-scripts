@@ -54,7 +54,7 @@ export class ProductPriceService {
 			)
 			const price = this.priceCache.getProductPrice(product)
 			this.ns.print(
-				`${productName} is ${price.getState()} priced at MP*${price.getMultiplier()}`
+				`${price.getState()} ${productName} price at MP*${price.getMultiplier()}`
 			)
 		}
 	}
