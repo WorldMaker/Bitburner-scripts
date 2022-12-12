@@ -26,6 +26,7 @@ export class ProductPriceService {
 	}
 
 	manage() {
+		this.company.updateState()
 		const productDivision = this.company.getProductDivision()
 
 		if (!productDivision) {
