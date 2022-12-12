@@ -6,7 +6,7 @@ import {
 } from '../../models/corporation'
 import { Logger } from '../../models/logger'
 
-const ToyPurchaseBudget = 1 / 10_000_000 /* per tick */
+const ToyPurchaseBudget = 1 / 10_000 /* per tick */
 const AdditionalResearchBudget = 1 / 3
 
 export class ProductPurchaseService {
