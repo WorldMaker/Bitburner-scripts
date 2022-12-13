@@ -66,7 +66,7 @@ export class ToyPurchaseService {
 		for (const server of purchasedServersByRam) {
 			const doubleRam = server.getMaxRam() * 2
 			if (doubleRam >= TooMuchRam) {
-				continue
+				break
 			}
 			const cost = this.ns.getPurchasedServerCost(doubleRam)
 			if (this.budget > cost) {
