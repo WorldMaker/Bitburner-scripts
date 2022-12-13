@@ -9,13 +9,13 @@ const { from } = IterableX
 
 const BudgetTicks = 6 /* 10s */
 const ToyBudgetMultiplier = 1 / 10_000_000 /* per minute */ / BudgetTicks
+const TooMuchRam = 2097152
 
 const Usd: Intl.NumberFormatOptions = { style: 'currency', currency: 'USD' }
 
 export class ToyPurchaseService {
 	private budget: number | null = null
 	private budgetPerMinute: number | null = null
-	private tickCount = 0
 
 	constructor(
 		private ns: NS,
@@ -56,11 +56,6 @@ export class ToyPurchaseService {
 
 		const startingBudget = this.budget
 
-		if (this.tickCount < BudgetTicks) {
-			this.tickCount++
-			return
-		}
-
 		// *** Attempt to double purchased server RAM ***
 
 		const purchasedServersByRam = from(this.servers.values()).pipe(
@@ -70,8 +65,12 @@ export class ToyPurchaseService {
 
 		for (const server of purchasedServersByRam) {
 			const doubleRam = server.getMaxRam() * 2
+			if (doubleRam >= TooMuchRam) {
+				break
+			}
 			const cost = this.ns.getPurchasedServerCost(doubleRam)
 			if (this.budget > cost) {
+				this.ns.killall(server.name)
 				if (this.ns.deleteServer(server.name)) {
 					const hostname = this.ns.purchaseServer(server.name, doubleRam)
 					this.budget -= cost
@@ -127,11 +126,10 @@ export class ToyPurchaseService {
 		}
 
 		this.logger.log(
-			`SUCCESS spent toy budget ${(startingBudget - this.budget).toLocaleString(
+			`spent toy budget ${(startingBudget - this.budget).toLocaleString(
 				undefined,
 				Usd
 			)} / ${startingBudget.toLocaleString(undefined, Usd)}`
 		)
-		this.tickCount = 0
 	}
 }

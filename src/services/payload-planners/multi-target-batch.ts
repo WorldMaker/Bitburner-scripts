@@ -185,7 +185,7 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 							server.hackDifficulty
 						),
 						player,
-						target.getServer()
+						server
 					).plan(server.moneyAvailable, server.hackDifficulty),
 					start: nextBatchTick,
 					satisifiesCount: false,

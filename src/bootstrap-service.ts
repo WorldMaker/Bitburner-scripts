@@ -36,6 +36,7 @@ export async function main(ns: NS) {
 				running = false
 				strategy = ns.args[1]?.toString() ?? strategy
 				hacknetNodes = Number(ns.args[2]) || hacknetNodes
+				ns.tail()
 				break
 
 			case 'maxdepth':
