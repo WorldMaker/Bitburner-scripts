@@ -5,150 +5,68 @@ const target = 'es2020'
 const format = 'esm'
 const logLevel = 'info'
 
+// Simple payloads
+
 buildSync({
-	entryPoints: ['./src/payload-all.ts'],
+	entryPoints: [
+		'./src/payload-all.ts',
+		'./src/payload-g.ts',
+		'./src/payload-h.ts',
+		'./src/payload-w.ts',
+		'./src/payload-sg.ts',
+		'./src/payload-sh.ts',
+		'./src/payload-sw.ts',
+		'./src/payload-bg.ts',
+		'./src/payload-bh.ts',
+		'./src/payload-bw.ts',
+	],
 	bundle,
 	target,
 	format,
-	outfile: './dist/payload-all.js',
+	outdir: './dist/',
 	logLevel,
 })
 
+// CCT
+
 buildSync({
-	entryPoints: ['./src/payload-g.ts'],
+	entryPoints: [
+		'./src/cct/comp2-lz.ts',
+		'./src/cct/enc1-caesar.ts',
+		'./src/cct/generate-ip-addresses.ts',
+		'./src/cct/graph-2color.ts',
+		'./src/cct/largest-prime-factor.ts',
+		'./src/cct/min-triangle-path-sum.ts',
+		'./src/cct/stock-trader1.ts',
+		'./src/cct/stock-trader2.ts',
+		'./src/cct/stock-trader3.ts',
+		'./src/cct/stock-trader4.ts',
+		'./src/cct/unique-paths-grid1.ts',
+		'./src/cct/valid-math-expressions.ts',
+	],
 	bundle,
 	target,
 	format,
-	outfile: './dist/payload-g.js',
+	outdir: './dist/cct/',
 	logLevel,
 })
 
-buildSync({
-	entryPoints: ['./src/payload-h.ts'],
-	bundle,
-	target,
-	format,
-	outfile: './dist/payload-h.js',
-	logLevel,
-})
+// "Apps"
 
 buildSync({
-	entryPoints: ['./src/payload-w.ts'],
+	entryPoints: {
+		boot: './src/bootstrap-service.ts',
+		cctfinder: './src/cctfinder.ts',
+		corp: './src/corporate-service.ts',
+		pathfinder: './src/pathfinder.ts',
+		'payload-b1': './src/payload-b1.ts',
+		'score-targets': './src/score-targets.ts',
+	},
 	bundle,
 	target,
 	format,
-	outfile: './dist/payload-w.js',
-	logLevel,
-})
-
-buildSync({
-	entryPoints: ['./src/payload-sg.ts'],
-	bundle,
-	target,
-	format,
-	outfile: './dist/payload-sg.js',
-	logLevel,
-})
-
-buildSync({
-	entryPoints: ['./src/payload-sh.ts'],
-	bundle,
-	target,
-	format,
-	outfile: './dist/payload-sh.js',
-	logLevel,
-})
-
-buildSync({
-	entryPoints: ['./src/payload-sw.ts'],
-	bundle,
-	target,
-	format,
-	outfile: './dist/payload-sw.js',
-	logLevel,
-})
-
-buildSync({
-	entryPoints: ['./src/payload-b1.ts'],
-	bundle,
-	target,
-	format,
-	outfile: './dist/payload-b1.js',
-	logLevel,
-	define: { window: 'globalThis' },
-})
-
-buildSync({
-	entryPoints: ['./src/payload-bg.ts'],
-	bundle,
-	target,
-	format,
-	outfile: './dist/payload-bg.js',
-	logLevel,
-})
-
-buildSync({
-	entryPoints: ['./src/payload-bh.ts'],
-	bundle,
-	target,
-	format,
-	outfile: './dist/payload-bh.js',
-	logLevel,
-})
-
-buildSync({
-	entryPoints: ['./src/payload-bw.ts'],
-	bundle,
-	target,
-	format,
-	outfile: './dist/payload-bw.js',
-	logLevel,
-})
-
-buildSync({
-	entryPoints: ['./src/cctfinder.ts'],
-	bundle,
-	target,
-	format,
-	outfile: './dist/cctfinder.js',
-	logLevel,
-})
-
-buildSync({
-	entryPoints: ['./src/pathfinder.ts'],
-	bundle,
-	target,
-	format,
-	outfile: './dist/pathfinder.js',
-	logLevel,
-})
-
-buildSync({
-	entryPoints: ['./src/score-targets.ts'],
-	bundle,
-	target,
-	format,
-	outfile: './dist/score-targets.js',
-	logLevel,
-	define: { window: `{}`, document: `{ "nodeType": 9 }` },
-})
-
-buildSync({
-	entryPoints: ['./src/corporate-service.ts'],
-	bundle,
-	target,
-	format,
-	outfile: './dist/corp.js',
-	logLevel,
-	define: { window: `globalThis`, document: `{ "nodeType": 9 }` },
-})
-
-buildSync({
-	entryPoints: ['./src/bootstrap-service.ts'],
-	bundle,
-	target,
-	format,
-	outfile: './dist/boot.js',
+	splitting: true,
+	outdir: './dist/',
 	logLevel,
 	define: { window: `globalThis`, document: `{ "nodeType": 9 }` },
 })
