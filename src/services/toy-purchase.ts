@@ -15,7 +15,6 @@ const Usd: Intl.NumberFormatOptions = { style: 'currency', currency: 'USD' }
 export class ToyPurchaseService {
 	private budget: number | null = null
 	private budgetPerMinute: number | null = null
-	private tickCount = 0
 
 	constructor(
 		private ns: NS,
@@ -55,11 +54,6 @@ export class ToyPurchaseService {
 		}
 
 		const startingBudget = this.budget
-
-		if (this.tickCount < BudgetTicks) {
-			this.tickCount++
-			return
-		}
 
 		// *** Attempt to double purchased server RAM ***
 
@@ -128,11 +122,10 @@ export class ToyPurchaseService {
 		}
 
 		this.logger.log(
-			`SUCCESS spent toy budget ${(startingBudget - this.budget).toLocaleString(
+			`spent toy budget ${(startingBudget - this.budget).toLocaleString(
 				undefined,
 				Usd
 			)} / ${startingBudget.toLocaleString(undefined, Usd)}`
 		)
-		this.tickCount = 0
 	}
 }
