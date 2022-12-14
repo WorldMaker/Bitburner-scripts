@@ -54,4 +54,29 @@ describe('Proper 2-Coloring of a Graph', () => {
 		const result = colorBipartiteGraph(example)
 		expect(result).to.deep.equal([0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 0])
 	})
+
+	it('does not infinite loop on larger invalid loop', () => {
+		const result = colorBipartiteGraph([
+			11,
+			[
+				[2, 8],
+				[2, 10],
+				[6, 8],
+				[1, 4],
+				[6, 7],
+				[3, 8],
+				[8, 10],
+				[2, 4],
+				[8, 9],
+				[1, 5],
+				[2, 3],
+				[1, 10],
+				[0, 2],
+				[1, 9],
+				[4, 8],
+			],
+		])
+		console.log(result)
+		expect(result).to.deep.equal([])
+	})
 })

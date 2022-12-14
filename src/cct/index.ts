@@ -76,8 +76,8 @@ export function evaluateCct(type: string, data: any): CctEvaluation {
 		case 'Proper 2-Coloring of a Graph':
 			return {
 				known: true,
-				attempt: false,
-				result: undefined && colorBipartiteGraph(data),
+				attempt: true,
+				result: colorBipartiteGraph(data),
 			}
 		case 'Total Ways to Sum':
 		case 'Total Ways to Sum II':
