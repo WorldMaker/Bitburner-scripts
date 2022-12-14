@@ -1,4 +1,5 @@
 import { buildSync } from 'esbuild'
+import globule from 'globule'
 
 const bundle = true
 const target = 'es2020'
