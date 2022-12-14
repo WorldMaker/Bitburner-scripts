@@ -62,19 +62,34 @@ buildSync({
 	outdir: './test/',
 	logLevel,
 	platform: 'node',
+	splitting: true,
 })
 
-// "Apps"
+// Simple Target "Apps"
 
 buildSync({
 	entryPoints: {
 		autocct: './src/autocct.ts',
-		boot: './src/bootstrap-service.ts',
 		cctfinder: './src/cctfinder.ts',
-		corp: './src/corporate-service.ts',
 		pathfinder: './src/pathfinder.ts',
 		'payload-b1': './src/payload-b1.ts',
 		'score-targets': './src/score-targets.ts',
+	},
+	bundle,
+	target,
+	format,
+	splitting: true,
+	outdir: './dist/',
+	logLevel,
+	define: { window: `globalThis`, document: `{ "nodeType": 9 }` },
+})
+
+// Bigger "Apps"
+
+buildSync({
+	entryPoints: {
+		boot: './src/bootstrap-service.ts',
+		corp: './src/corporate-service.ts',
 	},
 	bundle,
 	target,

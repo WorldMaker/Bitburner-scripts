@@ -14,8 +14,6 @@ import { uniquePathsGrid2 } from './unique-paths-grid2.js'
 
 export type UniquePaths1Input = [number, number]
 
-const example: UniquePaths1Input = [2, 3]
-
 export function uniquePathsGrid1(data: UniquePaths1Input) {
 	const [rows, columns] = data
 	const zeroMatrix = Array.from(new Array(rows), () =>
@@ -32,5 +30,3 @@ export async function main(ns: NS) {
 	const result = uniquePathsGrid2(zeroMatrix)
 	ns.tprint(result)
 }
-
-console.log(uniquePathsGrid1(example))

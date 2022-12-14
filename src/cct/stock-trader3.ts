@@ -14,13 +14,6 @@ If no profit can be made, then the answer should be 0
 
 import { maxProfit } from './stock-trader4.js'
 
-const example = [
-	120, 93, 169, 131, 41, 150, 104, 170, 189, 196, 128, 27, 7, 26, 159, 194, 25,
-	172, 198, 150, 104, 187, 143, 46, 106, 189, 112, 166, 136, 47, 95, 55, 21,
-	121, 71, 6, 115, 60, 68, 120, 151, 132, 36, 11, 194, 162, 145,
-]
-// const exampleExpected = 379
-
 export function stocktrader3(stock: number[]) {
 	return maxProfit(2, stock)
 }
@@ -30,6 +23,3 @@ export async function main(ns: NS) {
 	const profit = stocktrader3(stock)
 	ns.tprint(profit)
 }
-
-const profit = stocktrader3(example)
-console.log(profit)

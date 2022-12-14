@@ -27,7 +27,7 @@ export type MathExpressionInput = [string, number]
 // const example = ['6323557575', -13] as const
 // const example = ['68544196', -29] as const
 // const example: MathExpressionInput = ['4412771994', -70]
-const example: MathExpressionInput = ['264810649091', 9]
+// const example: MathExpressionInput = ['264810649091', 9]
 
 function solve(
 	results: string[],
@@ -114,10 +114,5 @@ export async function main(ns: NS) {
 		return
 	}
 	const results = validMathExpressions(text.toString(), target)
-	ns.tprint(JSON.stringify(results))
+	ns.tprint(`[${results.join(', ')}]`)
 }
-
-console.log(validMathExpressions('123', 6))
-console.log(validMathExpressions('105', 5))
-
-console.log(solveValidMathExpressions(example))

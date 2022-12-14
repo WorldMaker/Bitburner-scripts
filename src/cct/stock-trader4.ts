@@ -14,21 +14,20 @@ Determine the maximum possible profit you can earn using at most k transactions.
 If no profit can be made, then the answer should be 0.
 */
 
+import { Logger } from 'tslog'
+
 export type StockInput = [number, number[]]
 
-const example = [
-	10,
-	[
-		198, 123, 30, 66, 22, 35, 57, 132, 156, 46, 9, 141, 92, 19, 60, 169, 123,
-		120, 169, 194, 154, 1,
-	] as number[],
-] as const
+export function maxProfit(
+	maxTrades: number,
+	stock: number[],
+	logger?: Logger<any>
+) {
+	logger ??= new Logger({ type: 'hidden' })
 
-export function maxProfit(maxTrades: number, stock: number[]) {
 	const profitMatrix = Array.from(new Array(maxTrades), () =>
 		new Array<number>(stock.length).fill(0)
 	)
-	console.log(profitMatrix)
 
 	for (let trade = 0; trade < maxTrades; trade++) {
 		// transaction left: buy
@@ -71,13 +70,16 @@ export function maxProfit(maxTrades: number, stock: number[]) {
 		}
 	}
 
-	console.log(profitMatrix)
+	logger.debug(profitMatrix)
 
 	return profitMatrix[maxTrades - 1][stock.length - 1]
 }
 
-export function stockTrader4([maxTrades, stock]: StockInput) {
-	return maxProfit(maxTrades, stock)
+export function stockTrader4(
+	[maxTrades, stock]: StockInput,
+	logger?: Logger<any>
+) {
+	return maxProfit(maxTrades, stock, logger)
 }
 
 export async function main(ns: NS) {
@@ -85,6 +87,3 @@ export async function main(ns: NS) {
 	const profit = maxProfit(maxTrades, stock)
 	ns.tprint(profit)
 }
-
-const profit = maxProfit(example[0], example[1])
-console.log(profit)
