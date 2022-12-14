@@ -28,10 +28,11 @@ export async function main(ns: NS) {
 					const succeeded = ns.codingcontract.attempt(
 						result,
 						cctFile,
-						server.name
+						server.name,
+						{ returnReward: true }
 					)
 					if (succeeded) {
-						ns.tprint(`\t✔ ${cctFile}`)
+						ns.tprint(`\t✔ ${cctFile}: ${succeeded}`)
 					} else {
 						ns.tprint(`\t❌ ${cctFile}: ${JSON.stringify(data)}`)
 					}
