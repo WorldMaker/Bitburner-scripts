@@ -56,6 +56,13 @@ export function evaluateCct(type: string, data: any): CctEvaluation {
 				attempt: true,
 				result: solveGenerateIps(data),
 			}
+		case 'Total Ways to Sum':
+		case 'Total Ways to Sum II':
+			return {
+				known: true,
+				attempt: false,
+				result: undefined,
+			}
 	}
 	return {
 		known: false,
