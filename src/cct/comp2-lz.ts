@@ -22,8 +22,6 @@ Example: decoding '5aaabb450723abb' chunk-by-chunk
     5aaabb450723abb  ->  aaabbaaababababaabb
 */
 
-const encoded = '91s0aHUm8B926B84176586fy66LQ71566aDc697poisvGC3475kW3aH5'
-
 export function comp2lz(encoded: string) {
 	let decoded = ''
 	let chunkType: 'direct' | 'referent' = 'direct'
@@ -51,16 +49,16 @@ export function comp2lz(encoded: string) {
 						encodedPosition + length + 1
 					)
 					decoded = decoded + chunk
-					console.log(`direct ${length}: ${chunk}`)
+					console.debug(`direct ${length}: ${chunk}`)
 				} else {
-					console.log('direct 0')
+					console.debug('direct 0')
 				}
 				encodedPosition += 1 + length
 				chunkType = 'referent'
 				break
 			case 'referent':
 				if (length === 0) {
-					console.log('referent 0')
+					console.debug('referent 0')
 					encodedPosition++
 					chunkType = 'direct'
 					break
@@ -83,14 +81,14 @@ export function comp2lz(encoded: string) {
 				if (endChunk.length >= length) {
 					const chunk = endChunk.slice(0, length)
 					decoded = decoded + chunk
-					console.log(`referent ${length} ${backlength}: ${chunk}`)
+					console.debug(`referent ${length} ${backlength}: ${chunk}`)
 				} else {
 					let chunk = ''
 					for (let i = 0; i < length; i++) {
 						chunk = chunk + endChunk.charAt(i % endChunk.length)
 					}
 					decoded = decoded + chunk
-					console.log(`referent repeat ${length} ${backlength}: ${chunk}`)
+					console.debug(`referent repeat ${length} ${backlength}: ${chunk}`)
 				}
 				encodedPosition += 2
 				chunkType = 'direct'
@@ -105,6 +103,3 @@ export async function main(ns: NS) {
 	const decoded = comp2lz(encoded)
 	ns.tprint(decoded)
 }
-
-const decoded = comp2lz(encoded)
-console.log(decoded)

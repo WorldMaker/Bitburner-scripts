@@ -12,8 +12,6 @@ The first element is the plaintext, the second element is the left shift value.
 Return the ciphertext as uppercase string. Spaces remains the same.
 */
 
-const encoded: [string, number] = ['FLASH TRASH ARRAY LOGIC EMAIL', 3]
-
 export function mod(n: number, m: number) {
 	return ((n % m) + m) % m
 }
@@ -46,6 +44,3 @@ export async function main(ns: NS) {
 	])
 	ns.tprint(decoded)
 }
-
-const decoded = enc1caeser(encoded)
-console.log(decoded)

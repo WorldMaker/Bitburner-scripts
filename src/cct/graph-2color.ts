@@ -24,30 +24,6 @@ export interface ColorNode {
 	color: number | null
 }
 
-const example: GraphEdgeList = [
-	12,
-	[
-		[7, 11],
-		[0, 2],
-		[0, 5],
-		[6, 10],
-		[2, 4],
-		[1, 3],
-		[9, 11],
-		[5, 11],
-		[10, 11],
-		[0, 10],
-		[5, 6],
-		[6, 9],
-		[1, 5],
-		[4, 8],
-		[4, 5],
-		[0, 3],
-		[3, 11],
-		[3, 4],
-	],
-]
-
 function colorNode(graph: ColorNode[], id: number, color: number = 0): boolean {
 	const node = graph[id]
 	let valid = true
@@ -57,7 +33,7 @@ function colorNode(graph: ColorNode[], id: number, color: number = 0): boolean {
 			valid &&= colorNode(graph, edge, color === 0 ? 1 : 0)
 		}
 		return valid
-	} else if (color === color) {
+	} else if (node.color === color) {
 		return true
 	} else {
 		return false
@@ -96,8 +72,3 @@ export async function main(ns: NS) {
 	const result = colorBipartiteGraph(edgeList)
 	ns.tprint(JSON.stringify(result))
 }
-
-const result = colorBipartiteGraph(example)
-console.log(result)
-
-console.log(JSON.stringify(result))

@@ -52,6 +52,17 @@ buildSync({
 	logLevel,
 })
 
+// Tests
+
+buildSync({
+	entryPoints: globule.find('./src/**/*.test.ts'),
+	bundle,
+	target,
+	format,
+	outdir: './test/',
+	logLevel,
+})
+
 // "Apps"
 
 buildSync({

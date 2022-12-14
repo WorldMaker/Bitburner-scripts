@@ -15,8 +15,6 @@ Examples:
 1938718066 -> [193.87.180.66]
 */
 
-const example = '2228490113'
-
 export function generateIps(
 	results: string[],
 	input: number[],
@@ -73,6 +71,7 @@ export function solveGenerateIps(data: string) {
 	const results: string[] = []
 	const input = data.split('').map((d) => parseInt(d, 10))
 	generateIps(results, input)
+	results.sort()
 	return `[${results.join(', ')}]`
 }
 
@@ -83,7 +82,6 @@ export async function main(ns: NS) {
 		.map((digit) => parseInt(digit, 10))
 	const results: string[] = []
 	generateIps(results, input)
+	results.sort()
 	ns.tprint(`[${results.join(', ')}]`)
 }
-
-console.log(solveGenerateIps(example))
