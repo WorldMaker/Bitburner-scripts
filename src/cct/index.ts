@@ -5,6 +5,9 @@ import { stockTrader1 } from './stock-trader1'
 import { stockTrader2 } from './stock-trader2'
 import { stocktrader3 } from './stock-trader3'
 import { stockTrader4 } from './stock-trader4'
+import { uniquePathsGrid1 } from './unique-paths-grid1'
+import { uniquePathsGrid2 } from './unique-paths-grid2'
+import { solveValidMathExpressions } from './valid-math-expressions'
 
 export interface CctEvaluation {
 	known: boolean
@@ -44,6 +47,12 @@ export function evaluateCct(type: string, data: any): CctEvaluation {
 				attempt: true,
 				result: enc1caeser(data),
 			}
+		case 'Find All Valid Math Expressions':
+			return {
+				known: true,
+				attempt: true,
+				result: solveValidMathExpressions(data),
+			}
 		case 'Find Largest Prime Factor':
 			return {
 				known: true,
@@ -62,6 +71,18 @@ export function evaluateCct(type: string, data: any): CctEvaluation {
 				known: true,
 				attempt: false,
 				result: undefined,
+			}
+		case 'Unique Paths in a Grid I':
+			return {
+				known: true,
+				attempt: true,
+				result: uniquePathsGrid1(data),
+			}
+		case 'Unique Paths in a Grid II':
+			return {
+				known: true,
+				attempt: true,
+				result: uniquePathsGrid2(data),
 			}
 	}
 	return {
