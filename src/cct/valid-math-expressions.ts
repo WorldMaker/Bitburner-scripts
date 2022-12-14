@@ -24,11 +24,6 @@ Output: [1*0+5, 10-5]
 
 export type MathExpressionInput = [string, number]
 
-// const example = ['6323557575', -13] as const
-// const example = ['68544196', -29] as const
-// const example: MathExpressionInput = ['4412771994', -70]
-// const example: MathExpressionInput = ['264810649091', 9]
-
 function solve(
 	results: string[],
 	input: number[],
@@ -39,8 +34,7 @@ function solve(
 ) {
 	if (position === input.length) {
 		// assuming script precedence, so just use eval to check
-		const evaluator = new Function(`return ${expression}`)
-		const evaluated = evaluator()
+		const evaluated = eval(expression)
 
 		if (evaluated === target) {
 			results.push(expression)
