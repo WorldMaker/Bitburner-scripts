@@ -16,6 +16,8 @@
 	"author": "",
 	"license": "MIT",
 	"devDependencies": {
+		"@types/chai": "^4.3.4",
+		"@types/mocha": "^10.0.1",
 		"chai": "^4.3.7",
 		"esbuild": "^0.15.13",
 		"mocha": "^10.2.0",
