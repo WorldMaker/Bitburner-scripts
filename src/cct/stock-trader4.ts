@@ -14,6 +14,8 @@ Determine the maximum possible profit you can earn using at most k transactions.
 If no profit can be made, then the answer should be 0.
 */
 
+export type StockInput = [number, number[]]
+
 const example = [
 	10,
 	[
@@ -72,6 +74,10 @@ export function maxProfit(maxTrades: number, stock: number[]) {
 	console.log(profitMatrix)
 
 	return profitMatrix[maxTrades - 1][stock.length - 1]
+}
+
+export function stockTrader4([maxTrades, stock]: StockInput) {
+	return maxProfit(maxTrades, stock)
 }
 
 export async function main(ns: NS) {

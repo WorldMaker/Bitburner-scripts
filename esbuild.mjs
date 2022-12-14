@@ -55,6 +55,7 @@ buildSync({
 
 buildSync({
 	entryPoints: {
+		autocct: './src/autocct.ts',
 		boot: './src/bootstrap-service.ts',
 		cctfinder: './src/cctfinder.ts',
 		corp: './src/corporate-service.ts',
