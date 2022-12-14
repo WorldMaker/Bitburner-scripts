@@ -61,6 +61,7 @@ buildSync({
 	format,
 	outdir: './test/',
 	logLevel,
+	platform: 'node',
 })
 
 // "Apps"
