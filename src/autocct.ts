@@ -32,15 +32,15 @@ export async function main(ns: NS) {
 						{ returnReward: true }
 					)
 					if (succeeded) {
-						ns.tprint(`\t✔ ${cctFile}: ${succeeded}`)
+						ns.tprint(`\t✔ ${cctFile} – ${type}: ${succeeded}`)
 					} else {
-						ns.tprint(`\t❌ ${cctFile}: ${JSON.stringify(data)}`)
+						ns.tprint(`\t❌ ${cctFile} – ${type}: ${JSON.stringify(data)}`)
 					}
 				} else {
 					if (known) {
-						ns.tprint(`\t➖ ${cctFile}: ${JSON.stringify(data)}`)
+						ns.tprint(`\t➖ ${cctFile} – ${type}: ${JSON.stringify(data)}`)
 					} else {
-						ns.tprint(`\t❓ ${cctFile}: ${type}`)
+						ns.tprint(`\t❓ ${cctFile} – ${type}: ${JSON.stringify(data)}`)
 					}
 				}
 			}
