@@ -36,7 +36,8 @@ function solve(
 ) {
 	if (position === input.length) {
 		// assuming script precedence, so just use eval to check
-		const evaluated = eval(expression)
+		const evaluator = new Function(`return ${expression}`)
+		const evaluated = evaluator()
 
 		if (evaluated === target) {
 			results.push(expression)
