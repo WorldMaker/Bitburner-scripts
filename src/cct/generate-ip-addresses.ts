@@ -69,6 +69,13 @@ export function generateIps(
 	}
 }
 
+export function solveGenerateIps(data: string) {
+	const results: string[] = []
+	const input = data.split('').map((d) => parseInt(d, 10))
+	generateIps(results, input)
+	return `[${results.join(', ')}]`
+}
+
 export async function main(ns: NS) {
 	const input = ns.args[0]
 		.toString()
@@ -79,9 +86,4 @@ export async function main(ns: NS) {
 	ns.tprint(`[${results.join(', ')}]`)
 }
 
-const results: string[] = []
-generateIps(
-	results,
-	example.split('').map((d) => parseInt(d, 10))
-)
-console.log(`[${results.join(', ')}]`)
+console.log(solveGenerateIps(example))
