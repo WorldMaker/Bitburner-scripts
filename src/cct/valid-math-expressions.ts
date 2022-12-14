@@ -105,7 +105,7 @@ export function validMathExpressions(text: string, target: number) {
 export function solveValidMathExpressions(data: MathExpressionInput) {
 	const [text, target] = data
 	const results = validMathExpressions(text, target)
-	return `[${results.join(', ')}]`
+	return results
 }
 
 export async function main(ns: NS) {
