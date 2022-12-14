@@ -50,8 +50,8 @@ export function evaluateCct(type: string, data: any): CctEvaluation {
 		case 'Find All Valid Math Expressions':
 			return {
 				known: true,
-				attempt: true,
-				result: solveValidMathExpressions(data),
+				attempt: false,
+				result: undefined && solveValidMathExpressions(data),
 			}
 		case 'Find Largest Prime Factor':
 			return {

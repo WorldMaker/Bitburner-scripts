@@ -26,7 +26,8 @@ export type MathExpressionInput = [string, number]
 
 // const example = ['6323557575', -13] as const
 // const example = ['68544196', -29] as const
-const example: MathExpressionInput = ['4412771994', -70]
+// const example: MathExpressionInput = ['4412771994', -70]
+const example: MathExpressionInput = ['264810649091', 9]
 
 function solve(
 	results: string[],
