@@ -1,6 +1,8 @@
 import { enc1caeser } from './enc1-caesar'
 import { solveGenerateIps } from './generate-ip-addresses'
+import { colorBipartiteGraph } from './graph-2color'
 import { largestPrimeFactor } from './largest-prime-factor'
+import { minimumTrianglePathSum } from './min-triangle-path-sum'
 import { stockTrader1 } from './stock-trader1'
 import { stockTrader2 } from './stock-trader2'
 import { stocktrader3 } from './stock-trader3'
@@ -64,6 +66,18 @@ export function evaluateCct(type: string, data: any): CctEvaluation {
 				known: true,
 				attempt: true,
 				result: solveGenerateIps(data),
+			}
+		case 'Minimum Path Sum in a Triangle':
+			return {
+				known: true,
+				attempt: true,
+				result: minimumTrianglePathSum(data),
+			}
+		case 'Proper 2-Coloring of a Graph':
+			return {
+				known: true,
+				attempt: true,
+				result: colorBipartiteGraph(data),
 			}
 		case 'Total Ways to Sum':
 		case 'Total Ways to Sum II':
