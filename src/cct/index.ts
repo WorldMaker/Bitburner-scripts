@@ -7,6 +7,7 @@ import { stockTrader1 } from './stock-trader1'
 import { stockTrader2 } from './stock-trader2'
 import { stocktrader3 } from './stock-trader3'
 import { stockTrader4 } from './stock-trader4'
+import { sumPartitions } from './total-ways-to-sum1'
 import { sumCombinations } from './total-ways-to-sum2'
 import { uniquePathsGrid1 } from './unique-paths-grid1'
 import { uniquePathsGrid2 } from './unique-paths-grid2'
@@ -83,8 +84,8 @@ export function evaluateCct(type: string, data: any): CctEvaluation {
 		case 'Total Ways to Sum':
 			return {
 				known: true,
-				attempt: false,
-				result: undefined,
+				attempt: data < 50,
+				result: data < 50 ? sumPartitions(data) : undefined,
 			}
 		case 'Total Ways to Sum II':
 			return {
