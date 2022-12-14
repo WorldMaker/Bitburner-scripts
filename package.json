@@ -28,6 +28,7 @@
 	},
 	"dependencies": {
 		"@reactivex/ix-esnext-esm": "^5.0.0",
+		"tslog": "^4.4.4",
 		"ulid": "^2.3.0"
 	}
 }
