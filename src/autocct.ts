@@ -40,7 +40,7 @@ export async function main(ns: NS) {
 					if (known) {
 						ns.tprint(`\t➖ ${cctFile} – ${type}: ${JSON.stringify(data)}`)
 						if (result) {
-							ns.tprint(`\t\t${result}`)
+							ns.tprint(`\t\t${JSON.stringify(result)}`)
 						}
 					} else {
 						ns.tprint(`\t❓ ${cctFile} – ${type}: ${JSON.stringify(data)}`)
