@@ -22,9 +22,7 @@ Example: decoding '5aaabb450723abb' chunk-by-chunk
     5aaabb450723abb  ->  aaabbaaababababaabb
 */
 
-// const encoded = '91s0aHUm8B926B84176586fy66LQ71566aDc697poisvGC3475kW3aH5'
-const encoded =
-	'9fbqcyUCxO09HVt6HsNC3110633oyN895vUK86149sLDdlsQGO097ErvlyUkK983sgS652mD953Yvo53'
+const encoded = '91s0aHUm8B926B84176586fy66LQ71566aDc697poisvGC3475kW3aH5'
 
 export function comp2lz(encoded: string) {
 	let decoded = ''
