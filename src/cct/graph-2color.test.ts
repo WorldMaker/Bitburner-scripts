@@ -76,7 +76,6 @@ describe('Proper 2-Coloring of a Graph', () => {
 				[4, 8],
 			],
 		])
-		console.log(result)
 		expect(result).to.deep.equal([])
 	})
 })
