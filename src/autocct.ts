@@ -39,6 +39,9 @@ export async function main(ns: NS) {
 				} else {
 					if (known) {
 						ns.tprint(`\t➖ ${cctFile} – ${type}: ${JSON.stringify(data)}`)
+						if (result) {
+							ns.tprint(`\t\t${result}`)
+						}
 					} else {
 						ns.tprint(`\t❓ ${cctFile} – ${type}: ${JSON.stringify(data)}`)
 					}
