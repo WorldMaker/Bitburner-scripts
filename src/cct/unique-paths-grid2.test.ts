@@ -1,5 +1,6 @@
 import { expect } from 'chai'
 import { Logger } from 'tslog'
+import { logArgs } from '../logging/tslog-util'
 import { uniquePathsGrid2 } from './unique-paths-grid2'
 
 describe('Unique Paths in a Grid II', () => {
@@ -11,7 +12,11 @@ describe('Unique Paths in a Grid II', () => {
 	afterEach(function () {
 		if (this.currentTest?.state === 'failed') {
 			for (const log of logs) {
-				prettyLogger.log(log._meta.logLevelId, log._meta.logLevelName, log['0'])
+				prettyLogger.log(
+					log._meta.logLevelId,
+					log._meta.logLevelName,
+					...logArgs(log)
+				)
 			}
 		}
 		// clear logs

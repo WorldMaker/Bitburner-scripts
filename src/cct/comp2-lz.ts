@@ -23,9 +23,12 @@ Example: decoding '5aaabb450723abb' chunk-by-chunk
 */
 
 import { Logger } from 'tslog'
+import { TemplateLogger } from '../logging/template-logger'
 
-export function comp2lz(encoded: string, logger?: Logger<any>) {
-	logger ??= new Logger({ type: 'hidden' })
+export function comp2lz(encoded: string, baseLogger?: Logger<any>) {
+	const logger = new TemplateLogger(
+		baseLogger ?? new Logger({ type: 'hidden' })
+	)
 
 	let decoded = ''
 	let chunkType: 'direct' | 'referent' = 'direct'
@@ -53,16 +56,16 @@ export function comp2lz(encoded: string, logger?: Logger<any>) {
 						encodedPosition + length + 1
 					)
 					decoded = decoded + chunk
-					logger.debug(`direct ${length}: ${chunk}`)
+					logger.debug`direct ${length}: ${chunk}`
 				} else {
-					logger.debug('direct 0')
+					logger.debug`direct ${0}`
 				}
 				encodedPosition += 1 + length
 				chunkType = 'referent'
 				break
 			case 'referent':
 				if (length === 0) {
-					logger.debug('referent 0')
+					logger.debug`referent ${0}`
 					encodedPosition++
 					chunkType = 'direct'
 					break
@@ -85,14 +88,14 @@ export function comp2lz(encoded: string, logger?: Logger<any>) {
 				if (endChunk.length >= length) {
 					const chunk = endChunk.slice(0, length)
 					decoded = decoded + chunk
-					logger.debug(`referent ${length} ${backlength}: ${chunk}`)
+					logger.debug`referent ${length} ${backlength}: ${chunk}`
 				} else {
 					let chunk = ''
 					for (let i = 0; i < length; i++) {
 						chunk = chunk + endChunk.charAt(i % endChunk.length)
 					}
 					decoded = decoded + chunk
-					logger.debug(`referent repeat ${length} ${backlength}: ${chunk}`)
+					logger.debug`referent repeat ${length} ${backlength}: ${chunk}`
 				}
 				encodedPosition += 2
 				chunkType = 'direct'

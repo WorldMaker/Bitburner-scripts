@@ -78,7 +78,6 @@ buildSync({
 	bundle,
 	target,
 	format,
-	splitting: true,
 	outdir: './dist/',
 	logLevel,
 	define: { window: `globalThis`, document: `{ "nodeType": 9 }` },

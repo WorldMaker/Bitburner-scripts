@@ -10,7 +10,7 @@
 		"prebuild": "npm run typecheck",
 		"build": "node ./esbuild.mjs",
 		"pretest": "npm run build",
-		"test": "mocha",
+		"test": "mocha --recursive",
 		"prettier": "prettier --write .",
 		"prettier:check": "prettier --check ."
 	},

@@ -1,5 +1,6 @@
 import { expect } from 'chai'
 import { Logger } from 'tslog'
+import { logArgs } from '../logging/tslog-util'
 import { minimumTrianglePathSum } from './min-triangle-path-sum'
 
 describe('Minimum Path Sum in a Triangle', () => {
@@ -11,7 +12,11 @@ describe('Minimum Path Sum in a Triangle', () => {
 	afterEach(function () {
 		if (this.currentTest?.state === 'failed') {
 			for (const log of logs) {
-				prettyLogger.log(log._meta.logLevelId, log._meta.logLevelName, log['0'])
+				prettyLogger.log(
+					log._meta.logLevelId,
+					log._meta.logLevelName,
+					...logArgs(log)
+				)
 			}
 		}
 		// clear logs
