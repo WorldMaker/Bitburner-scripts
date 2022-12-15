@@ -8,6 +8,7 @@ import { enc2 } from './enc2'
 import { solveGenerateIps } from './generate-ip-addresses'
 import { colorBipartiteGraph } from './graph-2color'
 import { largestPrimeFactor } from './largest-prime-factor'
+import { mergeOverlappingIntervals } from './merge-overlapping-intervals'
 import { minimumTrianglePathSum } from './min-triangle-path-sum'
 import { spiralizeMatrix } from './spiralize-matrix'
 import { stockTrader1 } from './stock-trader1'
@@ -109,6 +110,12 @@ export function evaluateCct(
 				known: true,
 				attempt: true,
 				result: solveGenerateIps(data),
+			}
+		case 'Merge Overlapping Intervals':
+			return {
+				known: true,
+				attempt: true,
+				result: mergeOverlappingIntervals(data),
 			}
 		case 'Minimum Path Sum in a Triangle':
 			return {
