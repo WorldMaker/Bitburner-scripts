@@ -1,6 +1,7 @@
 import { comp1rle } from './comp1-rle'
 import { comp2lz } from './comp2-lz'
 import { enc1caeser } from './enc1-caesar'
+import { enc2 } from './enc2'
 import { solveGenerateIps } from './generate-ip-addresses'
 import { colorBipartiteGraph } from './graph-2color'
 import { largestPrimeFactor } from './largest-prime-factor'
@@ -64,6 +65,12 @@ export function evaluateCct(type: string, data: any): CctEvaluation {
 				known: true,
 				attempt: true,
 				result: enc1caeser(data),
+			}
+		case 'Encryption II: Vigenère Cipher':
+			return {
+				known: true,
+				attempt: true,
+				result: enc2(data),
 			}
 		case 'Find All Valid Math Expressions':
 			return {
