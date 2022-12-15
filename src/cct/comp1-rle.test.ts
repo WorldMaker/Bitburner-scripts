@@ -29,4 +29,11 @@ describe('Compression I: RLE Compression', () => {
 			'2i9y5y93531Y1s1R188T851e1g6z732x1M2J564B'
 		)
 	)
+	it(
+		'encodes a wild example with exactly 9 final letters',
+		encodeExample(
+			'VVMMFFPPPPPPPPPPPPPPEEFFDDZrqqrJJJJ33ddVV44444444FF77LLLLLLLLLLLLLLdddfwwwwwwwww',
+			'2V2M2F9P5P2E2F2D1Z1r2q1r4J232d2V842F279L5L3d1f9w'
+		)
+	)
 })
