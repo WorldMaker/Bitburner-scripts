@@ -13,12 +13,21 @@ It is possible write four as a sum in exactly four different ways:
 How many different distinct ways can the number 17 be written as a sum of at least two positive integers?
 */
 
-import { sumCombinations } from './total-ways-to-sum2'
+function* partition(n: number, I = 1): Iterable<number[]> {
+	yield [n]
+	for (let i = I; i < Math.floor(n / 2) + 1; i++) {
+		for (const p of partition(n - i, i)) {
+			yield [i, ...p]
+		}
+	}
+}
 
 export function sumPartitions(input: number) {
-	const possibilities = []
-	for (let i = 1; i < input; i++) {
-		possibilities.push(i)
+	let count = 0
+	for (const p of partition(input)) {
+		if (p.length > 1) {
+			count++
+		}
 	}
-	return sumCombinations([input, possibilities])
+	return count
 }
