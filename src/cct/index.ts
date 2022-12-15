@@ -1,3 +1,5 @@
+import { arrayJumpingGame1 } from './array-jumping-game1'
+import { arrayJumpingGame2 } from './array-jumping-game2'
 import { comp1rle } from './comp1-rle'
 import { comp2lz } from './comp2-lz'
 import { enc1caeser } from './enc1-caesar'
@@ -48,6 +50,18 @@ export function evaluateCct(type: string, data: any): CctEvaluation {
 				known: true,
 				attempt: true,
 				result: stockTrader4(data),
+			}
+		case 'Array Jumping Game':
+			return {
+				known: true,
+				attempt: true,
+				result: arrayJumpingGame1(data),
+			}
+		case 'Array Jumping Game II':
+			return {
+				known: true,
+				attempt: true,
+				result: arrayJumpingGame2(data),
 			}
 		case 'Compression I: RLE Compression':
 			return {
