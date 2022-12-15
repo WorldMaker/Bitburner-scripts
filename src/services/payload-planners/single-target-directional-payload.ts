@@ -1,5 +1,5 @@
 import { App, PayloadAll, PayloadG, PayloadH, PayloadW } from '../../models/app'
-import { Logger } from '../../models/logger'
+import { NsLogger } from '../../logging/logger'
 import { PayloadPlan, PayloadPlanner } from '../../models/payload-plan'
 import { Target, TargetDirection } from '../../models/target'
 import { AppCacheService } from '../app-cache'
@@ -62,7 +62,7 @@ export class SingleTargetDirectionalPayloadPlanner implements PayloadPlanner {
 	private readonly appSelector: SingleTargetAppSelector
 
 	constructor(
-		private logger: Logger,
+		private logger: NsLogger,
 		private targetService: TargetService,
 		apps: AppCacheService
 	) {
@@ -81,9 +81,7 @@ export class SingleTargetDirectionalPayloadPlanner implements PayloadPlanner {
 			const app = this.appSelector.selectSingleApp(server, target)
 
 			if (server.getMaxRam() < app.ramCost) {
-				this.logger.log(
-					`WARN ${server.name} only has ${server.getMaxRam()} memory`
-				)
+				this.logger.warn`${server.name} only has ${server.getMaxRam()} memory`
 				continue
 			}
 

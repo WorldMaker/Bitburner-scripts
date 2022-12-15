@@ -6,7 +6,7 @@ import {
 import { repeat } from '@reactivex/ix-esnext-esm/iterable/operators/repeat'
 import { zipWith } from '@reactivex/ix-esnext-esm/iterable/operators/zipwith'
 import { App } from '../../models/app'
-import { Logger } from '../../models/logger'
+import { NsLogger } from '../../logging/logger'
 import { PayloadPlan, PayloadPlanner } from '../../models/payload-plan'
 import { Target } from '../../models/target'
 import { TargetService } from '../target'
@@ -15,7 +15,7 @@ const { from } = IterableX
 
 export class MultiTargetRoundRobinPlanner implements PayloadPlanner {
 	constructor(
-		private logger: Logger,
+		private logger: NsLogger,
 		private targetService: TargetService,
 		private app: App
 	) {}
@@ -34,9 +34,7 @@ export class MultiTargetRoundRobinPlanner implements PayloadPlanner {
 		)
 		for (const [server, target] of servertargets) {
 			if (server.getMaxRam() < this.app.ramCost) {
-				this.logger.log(
-					`WARN ${server.name} only has ${server.getMaxRam()} memory`
-				)
+				this.logger.warn`${server.name} only has ${server.getMaxRam()} memory`
 				continue
 			}
 			if (server.checkRunning(this.app.name, ...this.app.getArgs(target))) {

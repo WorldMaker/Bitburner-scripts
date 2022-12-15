@@ -1,4 +1,4 @@
-import { Logger } from './logger'
+import { NsLogger } from '../logging/logger'
 
 export const GrowthSecurityRaisePerThread = 0.004
 export const HackSecurityRaisePerThread = 0.002
@@ -22,11 +22,11 @@ function binarySearchGrowThreads(
 	maxThreads: number,
 	server: Server,
 	player: Player,
-	logger?: Logger,
+	logger?: NsLogger,
 	cores?: number
 ): number {
 	if (logger) {
-		logger.log(`searching growth between ${minThreads} and ${maxThreads}`)
+		logger.trace`searching growth between ${minThreads} and ${maxThreads}`
 	}
 	if (minThreads >= maxThreads) {
 		return maxThreads
@@ -69,7 +69,7 @@ export function calculateGrowThreads(
 	formulas: HackingFormulas,
 	server: Server,
 	player: Player,
-	logger?: Logger,
+	logger?: NsLogger,
 	cores?: number
 ): number {
 	if (server.moneyAvailable >= server.moneyMax) {

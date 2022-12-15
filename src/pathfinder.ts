@@ -1,4 +1,4 @@
-import { Logger } from './models/logger'
+import { NsLogger } from './logging/logger'
 import { simpleTargetFactory } from './models/target'
 import { PathfinderService } from './services/pathfinder'
 import { ScannerService } from './services/scanner'
@@ -30,7 +30,7 @@ export async function main(ns: NS) {
 		} valued at ${target.getWorth()}; rooted ${ns.hasRootAccess(target.name)}`
 	)
 
-	const logger = new Logger(ns)
+	const logger = new NsLogger(ns)
 	const pathfinder = new PathfinderService(logger, servers)
 
 	for (const path of pathfinder.followPaths(target)) {

@@ -5,7 +5,7 @@ import {
 	MyCompany,
 	StartingCity,
 } from '../../models/corporation'
-import { Logger } from '../../models/logger'
+import { NsLogger } from '../../logging/logger'
 import { PhaseManager } from './phase'
 
 const SmartSupply = 'Smart Supply'
@@ -16,7 +16,7 @@ const StartingEmployees = 3
 export class UnstartedPhaseManager implements PhaseManager {
 	constructor(
 		private ns: NS,
-		private logger: Logger,
+		private logger: NsLogger,
 		private company: Company
 	) {}
 
@@ -29,7 +29,7 @@ export class UnstartedPhaseManager implements PhaseManager {
 			this.ns.corporation.createCorporation(MyCompany.Name, false) ||
 			this.ns.corporation.createCorporation(MyCompany.Name, true)
 		if (!created) {
-			this.logger.log('ERROR unable to start company')
+			this.logger.error`unable to start company`
 			return Promise.resolve()
 		}
 		this.ns.corporation.expandIndustry(

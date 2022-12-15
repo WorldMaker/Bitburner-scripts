@@ -3,7 +3,7 @@ import { flatMap } from '@reactivex/ix-esnext-esm/iterable/operators/flatmap'
 import { map } from '@reactivex/ix-esnext-esm/iterable/operators/map'
 import { reduce } from '@reactivex/ix-esnext-esm/iterable/reduce'
 import { Cities, Company, LevelUpgrade } from '../../models/corporation'
-import { Logger } from '../../models/logger'
+import { NsLogger } from '../../logging/logger'
 
 const { from } = IterableX
 
@@ -16,7 +16,7 @@ export class BasePhaseManager {
 
 	constructor(
 		protected ns: NS,
-		protected logger: Logger,
+		protected logger: NsLogger,
 		protected company: Company
 	) {
 		this.funds = company.funds
@@ -37,7 +37,7 @@ export class BasePhaseManager {
 						this.ns.corporation.levelUpgrade(upgrade)
 						this.levelsMet++
 					} catch (error) {
-						this.logger.log(`WARN unable to upgrade ${upgrade}: ${error}`)
+						this.logger.warn`unable to upgrade ${upgrade}: ${error}`
 					}
 				}
 			}
@@ -97,7 +97,7 @@ export class BasePhaseManager {
 			return false
 		}
 		if (!this.ns.corporation.acceptInvestmentOffer()) {
-			this.logger.log(`WARN unable to accept offer`)
+			this.logger.warn`unable to accept offer`
 			return false
 		}
 		return true

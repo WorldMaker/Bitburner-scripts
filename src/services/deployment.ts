@@ -4,13 +4,13 @@ import { PayloadService } from './payload.js'
 import { ScannerService } from './scanner.js'
 import { Stats } from '../models/stats.js'
 import { TargetService } from './target.js'
-import { Logger } from '../models/logger.js'
+import { NsLogger } from '../logging/logger.js'
 import { PayloadPlanner } from '../models/payload-plan.js'
 
 export class DeploymentService {
 	constructor(
 		private hackerService: HackerService,
-		private logger: Logger,
+		private logger: NsLogger,
 		private payloadPlanner: PayloadPlanner,
 		private payloadService: PayloadService,
 		private scannerService: ScannerService,
@@ -47,9 +47,7 @@ export class DeploymentService {
 		}
 
 		if (target.updateTargetDirection()) {
-			this.logger.log(
-				`INFO Direction changed to ${target.getTargetDirection()}`
-			)
+			this.logger.info`INFO Direction changed to ${target.getTargetDirection()}`
 		}
 
 		// plan the payloads

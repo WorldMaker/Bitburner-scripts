@@ -1,5 +1,5 @@
 import { Company } from './models/corporation'
-import { Logger } from './models/logger'
+import { NsLogger } from './logging/logger'
 import { getPhaseManager } from './services/corporation/phase'
 import { ProductManager } from './services/corporation/product'
 import { ProductOfficeManager } from './services/corporation/product-office'
@@ -34,7 +34,7 @@ export async function main(ns: NS) {
 
 	running = true
 
-	const logger = new Logger(ns)
+	const logger = new NsLogger(ns)
 	const company = new Company(ns)
 	const officeManager = new ProductOfficeManager(ns, logger, company)
 	const productManager = new ProductManager(ns, logger, company)
@@ -64,12 +64,10 @@ export async function main(ns: NS) {
 		logger.log(productManager.summarize())
 		logger.log(productPriceService.summarize())
 		logger.log(productPurchaseService.summarize())
-		logger.log(
-			`INFO ${company.name} is ${company.getState()}; funds ${ns.nFormat(
-				company.funds,
-				'0.00a'
-			)}`
-		)
+		logger.info`${company.name} is ${company.getState()}; funds ${ns.nFormat(
+			company.funds,
+			'0.00a'
+		)}`
 		if (phaseManager) {
 			logger.log(phaseManager.summarize())
 		}

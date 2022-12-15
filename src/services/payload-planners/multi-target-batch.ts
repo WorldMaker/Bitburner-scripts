@@ -17,7 +17,7 @@ import {
 	createBatch,
 	getNextBatchType,
 } from '../../models/batch'
-import { Logger } from '../../models/logger'
+import { NsLogger } from '../../logging/logger'
 import { RunningProcess } from '../../models/memory'
 import {
 	DeployPlan,
@@ -99,7 +99,7 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 
 	constructor(
 		private ns: NS,
-		private logger: Logger,
+		private logger: NsLogger,
 		private targetService: TargetService,
 		apps: AppCacheService
 	) {
@@ -217,7 +217,7 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 				let lastBatch: Batch<any> | null = null
 				for (const batch of batches) {
 					if (!batch.isSafe()) {
-						this.logger.log(`WARN desync ${target.name} ${batch.type}`)
+						this.logger.warn`desync ${target.name} ${batch.type}`
 						for (const { server, process } of batch.getProcesses()!) {
 							let killlist = killProcesses.get(server.name) ?? []
 							killlist.push(process)
@@ -325,9 +325,8 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 				0
 			)
 			if (batchDeployments.totalRam > totalFree) {
-				this.logger.log(
-					`WARN not enough RAM available for ${target.name} ${batch.type}`
-				)
+				this.logger
+					.warn`not enough RAM available for ${target.name} ${batch.type}`
 				continue
 			}
 
@@ -384,9 +383,8 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 				}
 			} else {
 				curfreelist = lastfreelist
-				this.logger.log(
-					`WARN not enough contiguous RAM available for ${target.name} ${batch.type}`
-				)
+				this.logger
+					.warn`not enough contiguous RAM available for ${target.name} ${batch.type}`
 			}
 		}
 

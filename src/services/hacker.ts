@@ -1,4 +1,4 @@
-import { Logger } from '../models/logger.js'
+import { NsLogger } from '../logging/logger.js'
 import { Target } from '../models/target.js'
 import { Stats } from '../models/stats.js'
 
@@ -9,7 +9,7 @@ export class HackerService {
 	private httpWormExists: boolean
 	private sqlInjectExists: boolean
 
-	constructor(private ns: NS, private logger: Logger, private stats: Stats) {
+	constructor(private ns: NS, private logger: NsLogger, private stats: Stats) {
 		this.bruteSshExists = this.ns.fileExists('BruteSSH.exe')
 		this.ftpCrackExists = this.ns.fileExists('FTPCrack.exe')
 		this.relaySmtpExists = this.ns.fileExists('relaySMTP.exe')
@@ -63,9 +63,8 @@ export class HackerService {
 					return false
 			}
 		} else {
-			this.logger.log(
-				`WARN ${server.name} hacking level ${server.hackingLevel} above ${this.stats.hackingLevel}`
-			)
+			this.logger
+				.warn`${server.name} hacking level ${server.hackingLevel} above ${this.stats.hackingLevel}`
 		}
 		return false
 	}

@@ -1,6 +1,9 @@
 import { Logger } from 'tslog'
 
-function* interleaveArgs(strings: TemplateStringsArray, ...values: unknown[]) {
+export function* interleaveArgs(
+	strings: TemplateStringsArray,
+	...values: unknown[]
+) {
 	for (let i = 0; i < strings.length; i++) {
 		yield strings[i]
 		if (i < values.length) {

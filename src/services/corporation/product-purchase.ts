@@ -4,7 +4,7 @@ import {
 	LevelUpgrades,
 	ProductDevelopment,
 } from '../../models/corporation'
-import { Logger } from '../../models/logger'
+import { NsLogger } from '../../logging/logger'
 
 const ToyPurchaseBudget = 1 / 10_000 /* per tick */
 const AdditionalResearchBudget = 1 / 3
@@ -16,7 +16,7 @@ export class ProductPurchaseService {
 
 	constructor(
 		private ns: NS,
-		private logger: Logger,
+		private logger: NsLogger,
 		private company: Company
 	) {}
 
@@ -135,9 +135,7 @@ export class ProductPurchaseService {
 							research
 						)
 					} catch (err) {
-						this.logger.log(
-							`WARN unable to get research cost ${research}: ${err}`
-						)
+						this.logger.warn`unable to get research cost ${research}: ${err}`
 					}
 
 					if (cost < researchBudget) {
@@ -145,7 +143,7 @@ export class ProductPurchaseService {
 							this.ns.corporation.research(productDivision.name, research)
 							researchBudget -= cost
 						} catch (err) {
-							this.logger.log(`WARN unable to research ${research}: ${err}`)
+							this.logger.warn`unable to research ${research}: ${err}`
 						}
 					}
 				}
