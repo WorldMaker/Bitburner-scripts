@@ -33,6 +33,8 @@ export function comp1rle(data: string) {
 			count = 1
 		}
 	}
-	encoded += String.fromCharCode('0'.charCodeAt(0) + count) + character
+	if (count > 0) {
+		encoded += String.fromCharCode('0'.charCodeAt(0) + count) + character
+	}
 	return encoded
 }
