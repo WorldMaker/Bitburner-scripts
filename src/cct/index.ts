@@ -6,6 +6,7 @@ import { solveGenerateIps } from './generate-ip-addresses'
 import { colorBipartiteGraph } from './graph-2color'
 import { largestPrimeFactor } from './largest-prime-factor'
 import { minimumTrianglePathSum } from './min-triangle-path-sum'
+import { spiralizeMatrix } from './spiralize-matrix'
 import { stockTrader1 } from './stock-trader1'
 import { stockTrader2 } from './stock-trader2'
 import { stocktrader3 } from './stock-trader3'
@@ -101,6 +102,12 @@ export function evaluateCct(type: string, data: any): CctEvaluation {
 				known: true,
 				attempt: true,
 				result: colorBipartiteGraph(data),
+			}
+		case 'Spiralize Matrix':
+			return {
+				known: true,
+				attempt: true,
+				result: spiralizeMatrix(data),
 			}
 		case 'Total Ways to Sum':
 			return {
