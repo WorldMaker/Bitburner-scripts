@@ -1,3 +1,4 @@
+import { comp1rle } from './comp1-rle'
 import { comp2lz } from './comp2-lz'
 import { enc1caeser } from './enc1-caesar'
 import { solveGenerateIps } from './generate-ip-addresses'
@@ -45,6 +46,12 @@ export function evaluateCct(type: string, data: any): CctEvaluation {
 				known: true,
 				attempt: true,
 				result: stockTrader4(data),
+			}
+		case 'Compression I: RLE Compression':
+			return {
+				known: true,
+				attempt: true,
+				result: comp1rle(data),
 			}
 		case 'Compression II: LZ Decompression':
 			return {
