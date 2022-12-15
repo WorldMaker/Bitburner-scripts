@@ -1,3 +1,4 @@
+import { comp2lz } from './comp2-lz'
 import { enc1caeser } from './enc1-caesar'
 import { solveGenerateIps } from './generate-ip-addresses'
 import { colorBipartiteGraph } from './graph-2color'
@@ -44,6 +45,12 @@ export function evaluateCct(type: string, data: any): CctEvaluation {
 				known: true,
 				attempt: true,
 				result: stockTrader4(data),
+			}
+		case 'Compression II: LZ Decompression':
+			return {
+				known: true,
+				attempt: true,
+				result: comp2lz(data),
 			}
 		case 'Encryption I: Caesar Cipher':
 			return {
