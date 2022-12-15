@@ -22,11 +22,14 @@ Example: decoding '5aaabb450723abb' chunk-by-chunk
     5aaabb450723abb  ->  aaabbaaababababaabb
 */
 
-// const encoded = '91s0aHUm8B926B84176586fy66LQ71566aDc697poisvGC3475kW3aH5'
-const encoded =
-	'9fbqcyUCxO09HVt6HsNC3110633oyN895vUK86149sLDdlsQGO097ErvlyUkK983sgS652mD953Yvo53'
+import { Logger } from 'tslog'
+import { TemplateLogger } from '../logging/template-logger'
 
-export function comp2lz(encoded: string) {
+export function comp2lz(encoded: string, baseLogger?: Logger<any>) {
+	const logger = new TemplateLogger(
+		baseLogger ?? new Logger({ type: 'hidden' })
+	)
+
 	let decoded = ''
 	let chunkType: 'direct' | 'referent' = 'direct'
 	let encodedPosition = 0
@@ -53,16 +56,16 @@ export function comp2lz(encoded: string) {
 						encodedPosition + length + 1
 					)
 					decoded = decoded + chunk
-					console.log(`direct ${length}: ${chunk}`)
+					logger.debug`direct ${length}: ${chunk}`
 				} else {
-					console.log('direct 0')
+					logger.debug`direct ${0}`
 				}
 				encodedPosition += 1 + length
 				chunkType = 'referent'
 				break
 			case 'referent':
 				if (length === 0) {
-					console.log('referent 0')
+					logger.debug`referent ${0}`
 					encodedPosition++
 					chunkType = 'direct'
 					break
@@ -85,14 +88,14 @@ export function comp2lz(encoded: string) {
 				if (endChunk.length >= length) {
 					const chunk = endChunk.slice(0, length)
 					decoded = decoded + chunk
-					console.log(`referent ${length} ${backlength}: ${chunk}`)
+					logger.debug`referent ${length} ${backlength}: ${chunk}`
 				} else {
 					let chunk = ''
 					for (let i = 0; i < length; i++) {
 						chunk = chunk + endChunk.charAt(i % endChunk.length)
 					}
 					decoded = decoded + chunk
-					console.log(`referent repeat ${length} ${backlength}: ${chunk}`)
+					logger.debug`referent repeat ${length} ${backlength}: ${chunk}`
 				}
 				encodedPosition += 2
 				chunkType = 'direct'
@@ -107,6 +110,3 @@ export async function main(ns: NS) {
 	const decoded = comp2lz(encoded)
 	ns.tprint(decoded)
 }
-
-const decoded = comp2lz(encoded)
-console.log(decoded)

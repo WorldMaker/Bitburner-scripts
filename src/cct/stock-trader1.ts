@@ -12,8 +12,6 @@ Determine the maximum possible profit you can earn using at most one transaction
 
 import { maxProfit } from './stock-trader4.js'
 
-const example = [44, 107, 14, 77, 81, 4, 76]
-
 export function stockTrader1(stock: number[]) {
 	return maxProfit(1, stock)
 }
@@ -23,6 +21,3 @@ export async function main(ns: NS) {
 	const profit = stockTrader1(stock)
 	ns.tprint(profit)
 }
-
-const result = stockTrader1(example)
-console.log(result)

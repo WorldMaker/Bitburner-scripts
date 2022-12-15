@@ -14,8 +14,6 @@ If no profit can be made, then the answer should be 0
 
 // import { maxProfit } from './stock-trader4.js'
 
-const example = [155, 169, 122]
-
 // Matrix solution:
 // export const stockTrader2 = (stock: number[]) => maxProfit(stock.length, stock)
 
@@ -45,6 +43,3 @@ export async function main(ns: NS) {
 	const profit = stockTrader2(stock)
 	ns.tprint(profit)
 }
-
-const solution = stockTrader2(example)
-console.log(solution)

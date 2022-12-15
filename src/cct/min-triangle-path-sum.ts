@@ -25,12 +25,14 @@ Example: If you are given the following triangle:
 The minimum path sum is 11 (2 -> 3 -> 5 -> 1).
 */
 
-const example1 = [[2], [3, 4], [6, 5, 7], [4, 1, 8, 3]]
-const example1expected = 11
+import { Logger } from 'tslog'
 
-const example2 = [[5], [6, 5], [1, 1, 2], [7, 8, 3, 5], [4, 3, 2, 1, 6]]
+export function minimumTrianglePathSum(
+	pyramid: number[][],
+	logger?: Logger<any>
+): number {
+	logger ??= new Logger({ type: 'hidden' })
 
-export function minimumTrianglePathSum(pyramid: number[][]): number {
 	if (pyramid.length < 1) {
 		return 0
 	}
@@ -55,7 +57,7 @@ export function minimumTrianglePathSum(pyramid: number[][]): number {
 			}
 		}
 	}
-	console.log(matrix)
+	logger.debug(matrix)
 
 	return matrix[0][0]
 }
@@ -65,12 +67,3 @@ export async function main(ns: NS) {
 	const solution = minimumTrianglePathSum(pyramid)
 	ns.tprint(solution)
 }
-
-const solution1 = minimumTrianglePathSum(example1)
-console.assert(
-	example1expected === solution1,
-	`${example1expected} !== ${solution1}`
-)
-
-const solution2 = minimumTrianglePathSum(example2)
-console.log(solution2)

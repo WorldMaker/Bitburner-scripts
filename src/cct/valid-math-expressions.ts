@@ -22,9 +22,7 @@ Input: digits = "105", target = 5
 Output: [1*0+5, 10-5]
 */
 
-// const example = ['6323557575', -13] as const
-// const example = ['68544196', -29] as const
-const example = ['4412771994', -70] as const
+export type MathExpressionInput = [string, number]
 
 function solve(
 	results: string[],
@@ -98,18 +96,17 @@ export function validMathExpressions(text: string, target: number) {
 	return sorted
 }
 
+export function solveValidMathExpressions(data: MathExpressionInput) {
+	const [text, target] = data
+	const results = validMathExpressions(text, target)
+	return results
+}
+
 export async function main(ns: NS) {
 	const [text, target] = ns.args
 	if (typeof target !== 'number') {
 		return
 	}
 	const results = validMathExpressions(text.toString(), target)
-	ns.tprint(JSON.stringify(results))
+	ns.tprint(`[${results.join(', ')}]`)
 }
-
-console.log(validMathExpressions('123', 6))
-console.log(validMathExpressions('105', 5))
-
-const results = validMathExpressions(example[0], example[1])
-console.log(results)
-console.log(`[${results.join(', ')}]`)

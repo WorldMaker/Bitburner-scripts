@@ -24,21 +24,11 @@ Determine how many unique paths there are from start to finish.
 NOTE: The data returned for this contract is an 2D array of numbers representing the grid.
 */
 
-const example = [
-	[0, 0, 0, 0, 0, 0, 0, 0],
-	[0, 0, 0, 1, 0, 0, 0, 0],
-	[1, 0, 0, 0, 0, 0, 0, 0],
-	[0, 0, 0, 0, 1, 1, 0, 1],
-	[0, 0, 0, 0, 0, 0, 0, 1],
-	[0, 0, 0, 0, 0, 0, 1, 0],
-	[0, 0, 0, 0, 0, 0, 0, 0],
-	[0, 0, 0, 0, 0, 0, 0, 0],
-	[0, 0, 0, 0, 1, 0, 0, 1],
-	[0, 0, 0, 0, 0, 0, 0, 0],
-	[0, 1, 0, 0, 0, 0, 1, 0],
-]
+import { Logger } from 'tslog'
 
-export function uniquePathsGrid2(grid: number[][]) {
+export function uniquePathsGrid2(grid: number[][], logger?: Logger<any>) {
+	logger ??= new Logger({ type: 'hidden' })
+
 	if (grid.length === 0) {
 		return 0
 	}
@@ -74,7 +64,7 @@ export function uniquePathsGrid2(grid: number[][]) {
 		}
 	}
 
-	console.log(matrix)
+	logger.debug(matrix)
 
 	return matrix[height - 1][width - 1]
 }
@@ -84,6 +74,3 @@ export async function main(ns: NS) {
 	const solution = uniquePathsGrid2(grid)
 	ns.tprint(solution)
 }
-
-const solution = uniquePathsGrid2(example)
-console.log(solution)

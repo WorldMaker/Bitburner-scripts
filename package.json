@@ -9,20 +9,27 @@
 		"typecheck": "tsc -p tsconfig.json",
 		"prebuild": "npm run typecheck",
 		"build": "node ./esbuild.mjs",
-		"build:cct": "tsc -p ./cct/tsconfig.json",
-		"test": "echo \"Error: no test specified\" && exit 1",
+		"pretest": "npm run build",
+		"test": "mocha --recursive",
 		"prettier": "prettier --write .",
 		"prettier:check": "prettier --check ."
 	},
 	"author": "",
 	"license": "MIT",
 	"devDependencies": {
+		"@types/chai": "^4.3.4",
+		"@types/globule": "^1.1.4",
+		"@types/mocha": "^10.0.1",
+		"chai": "^4.3.7",
 		"esbuild": "^0.15.13",
+		"globule": "^1.3.4",
+		"mocha": "^10.2.0",
 		"prettier": "^2.7.1",
 		"typescript": "^4.8.4"
 	},
 	"dependencies": {
 		"@reactivex/ix-esnext-esm": "^5.0.0",
+		"tslog": "^4.4.4",
 		"ulid": "^2.3.0"
 	}
 }

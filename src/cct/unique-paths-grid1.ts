@@ -12,7 +12,15 @@ NOTE: The data returned for this contract is an array with the number of rows an
 
 import { uniquePathsGrid2 } from './unique-paths-grid2.js'
 
-const example = [2, 3]
+export type UniquePaths1Input = [number, number]
+
+export function uniquePathsGrid1(data: UniquePaths1Input) {
+	const [rows, columns] = data
+	const zeroMatrix = Array.from(new Array(rows), () =>
+		new Array(Number(columns)).fill(0)
+	)
+	return uniquePathsGrid2(zeroMatrix)
+}
 
 export async function main(ns: NS) {
 	const [rows, columns] = ns.args
@@ -22,9 +30,3 @@ export async function main(ns: NS) {
 	const result = uniquePathsGrid2(zeroMatrix)
 	ns.tprint(result)
 }
-
-const zeroMatrix = Array.from(new Array(example[0]), () =>
-	new Array(Number(example[1])).fill(0)
-)
-const result = uniquePathsGrid2(zeroMatrix)
-console.log(result)
