@@ -8,14 +8,14 @@ import {
 	MyCompany,
 	ProductDevelopment,
 } from '../../models/corporation'
-import { Logger } from '../../models/logger'
+import { NsLogger } from '../../logging/logger'
 
 const { from } = IterableX
 
 export class ProductManager {
 	constructor(
 		private ns: NS,
-		private logger: Logger,
+		private logger: NsLogger,
 		private company: Company
 	) {}
 
@@ -72,7 +72,7 @@ export class ProductManager {
 					MyCompany.ProductDivision.MarketingInvestment
 				)
 			} catch (err) {
-				this.logger.log(`WARN unable to make product: ${err}`)
+				this.logger.warn`unable to make product: ${err}`
 			}
 		}
 
@@ -95,7 +95,7 @@ export class ProductManager {
 						true
 					)
 				} catch (error) {
-					this.logger.log(`WARN error setting Material TA-2: ${error}`)
+					this.logger.warn`error setting Material TA-2: ${error}`
 				}
 			}
 		}

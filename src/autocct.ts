@@ -1,4 +1,5 @@
 import { evaluateCct } from './cct'
+import { NsLogger } from './logging/logger'
 import { simpleTargetFactory } from './models/target'
 import { ScannerService } from './services/scanner'
 import { ServerCacheService } from './services/server-cache'
@@ -6,6 +7,7 @@ import { ServerCacheService } from './services/server-cache'
 export async function main(ns: NS) {
 	const depth = Number(ns.args[0]) ?? 100
 
+	const logger = new NsLogger(ns)
 	const servers = new ServerCacheService(ns, simpleTargetFactory)
 	const scannerService = new ScannerService(
 		ns,
@@ -19,11 +21,15 @@ export async function main(ns: NS) {
 	for (const server of servers.values()) {
 		const cctFiles = ns.ls(server.name, '.cct')
 		if (cctFiles.length) {
-			ns.tprint(server.name)
+			logger.display(server.name)
 			for (const cctFile of cctFiles) {
 				const type = ns.codingcontract.getContractType(cctFile, server.name)
 				const data = ns.codingcontract.getData(cctFile, server.name)
-				const { known, attempt, result } = evaluateCct(type, data)
+				const { known, attempt, result } = evaluateCct(
+					type,
+					data,
+					logger.getLogger()
+				)
 				if (attempt) {
 					const succeeded = ns.codingcontract.attempt(
 						result,
@@ -32,18 +38,18 @@ export async function main(ns: NS) {
 						{ returnReward: true }
 					)
 					if (succeeded) {
-						ns.tprint(`\t✔ ${cctFile} – ${type}: ${succeeded}`)
+						logger.display(`\t✔ ${cctFile} – ${type}: ${succeeded}`)
 					} else {
-						ns.tprint(`\t❌ ${cctFile} – ${type}: ${JSON.stringify(data)}`)
+						logger.display(`\t❌ ${cctFile} – ${type}: ${JSON.stringify(data)}`)
 					}
 				} else {
 					if (known) {
-						ns.tprint(`\t➖ ${cctFile} – ${type}: ${JSON.stringify(data)}`)
+						logger.display(`\t➖ ${cctFile} – ${type}: ${JSON.stringify(data)}`)
 						if (result) {
-							ns.tprint(`\t\t${JSON.stringify(result)}`)
+							logger.display(`\t\t${JSON.stringify(result)}`)
 						}
 					} else {
-						ns.tprint(`\t❓ ${cctFile} – ${type}: ${JSON.stringify(data)}`)
+						logger.display(`\t❓ ${cctFile} – ${type}: ${JSON.stringify(data)}`)
 					}
 				}
 			}

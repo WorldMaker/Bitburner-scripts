@@ -1,5 +1,5 @@
 import { Company, MyCompany } from '../../models/corporation'
-import { Logger } from '../../models/logger'
+import { NsLogger } from '../../logging/logger'
 import { BasePhaseManager } from './base-phase'
 import { PhaseManager } from './phase'
 
@@ -17,7 +17,7 @@ export class ProductRound3Manager
 	private researchDesired = 0
 	private researchMet = 0
 
-	constructor(ns: NS, logger: Logger, company: Company) {
+	constructor(ns: NS, logger: NsLogger, company: Company) {
 		super(ns, logger, company)
 	}
 
@@ -28,7 +28,7 @@ export class ProductRound3Manager
 	async manage(): Promise<void> {
 		const productDivision = this.company.getProductDivision()
 		if (!productDivision) {
-			this.logger.log(`ERROR no product division`)
+			this.logger.error`no product division`
 			return
 		}
 
@@ -57,9 +57,8 @@ export class ProductRound3Manager
 									true
 								)
 							} catch (error) {
-								this.logger.log(
-									`WARN unable to set Market TA2 on ${productDivision.name} ${product}: ${error}`
-								)
+								this.logger
+									.warn`unable to set Market TA2 on ${productDivision.name} ${product}: ${error}`
 							}
 						}
 					}

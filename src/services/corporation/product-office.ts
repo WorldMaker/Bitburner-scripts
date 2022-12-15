@@ -2,14 +2,14 @@ import { IterableX } from '@reactivex/ix-esnext-esm/iterable/iterablex'
 import { filter } from '@reactivex/ix-esnext-esm/iterable/operators/filter'
 import { map } from '@reactivex/ix-esnext-esm/iterable/operators/map'
 import { Cities, Company, ProductDevelopment } from '../../models/corporation'
-import { Logger } from '../../models/logger'
+import { NsLogger } from '../../logging/logger'
 
 const { from } = IterableX
 
 export class ProductOfficeManager {
 	constructor(
 		private ns: NS,
-		private logger: Logger,
+		private logger: NsLogger,
 		private company: Company
 	) {}
 
@@ -37,9 +37,8 @@ export class ProductOfficeManager {
 				if (employee) {
 					office = this.ns.corporation.getOffice(productDivision.name, city)
 				} else {
-					this.logger.log(
-						`WARN unable to hire new employee for ${productDivision.name} in ${city}`
-					)
+					this.logger
+						.warn`unable to hire new employee for ${productDivision.name} in ${city}`
 					break
 				}
 			}
@@ -55,9 +54,8 @@ export class ProductOfficeManager {
 			]
 
 			if (unassigned.length !== office.employeeJobs.Unassigned) {
-				this.logger.log(
-					`WARN unassigned employees for ${productDivision.name} in ${city} does not match ${unassigned.length}/${office.employeeJobs.Unassigned}`
-				)
+				this.logger
+					.warn`unassigned employees for ${productDivision.name} in ${city} does not match ${unassigned.length}/${office.employeeJobs.Unassigned}`
 			}
 
 			// *** Assign staff ***

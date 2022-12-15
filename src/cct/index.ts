@@ -1,3 +1,4 @@
+import { Logger } from 'tslog'
 import { arrayJumpingGame1 } from './array-jumping-game1'
 import { arrayJumpingGame2 } from './array-jumping-game2'
 import { comp1rle } from './comp1-rle'
@@ -25,7 +26,11 @@ export interface CctEvaluation {
 	result: any
 }
 
-export function evaluateCct(type: string, data: any): CctEvaluation {
+export function evaluateCct(
+	type: string,
+	data: any,
+	logger?: Logger<any>
+): CctEvaluation {
 	switch (type) {
 		case 'Algorithmic Stock Trader I':
 			return {
@@ -49,7 +54,7 @@ export function evaluateCct(type: string, data: any): CctEvaluation {
 			return {
 				known: true,
 				attempt: true,
-				result: stockTrader4(data),
+				result: stockTrader4(data, logger),
 			}
 		case 'Array Jumping Game':
 			return {
@@ -61,7 +66,7 @@ export function evaluateCct(type: string, data: any): CctEvaluation {
 			return {
 				known: true,
 				attempt: true,
-				result: arrayJumpingGame2(data),
+				result: arrayJumpingGame2(data, logger),
 			}
 		case 'Compression I: RLE Compression':
 			return {
@@ -73,7 +78,7 @@ export function evaluateCct(type: string, data: any): CctEvaluation {
 			return {
 				known: true,
 				attempt: true,
-				result: comp2lz(data),
+				result: comp2lz(data, logger),
 			}
 		case 'Encryption I: Caesar Cipher':
 			return {
@@ -109,7 +114,7 @@ export function evaluateCct(type: string, data: any): CctEvaluation {
 			return {
 				known: true,
 				attempt: true,
-				result: minimumTrianglePathSum(data),
+				result: minimumTrianglePathSum(data, logger),
 			}
 		case 'Proper 2-Coloring of a Graph':
 			return {
@@ -145,7 +150,7 @@ export function evaluateCct(type: string, data: any): CctEvaluation {
 			return {
 				known: true,
 				attempt: true,
-				result: uniquePathsGrid2(data),
+				result: uniquePathsGrid2(data, logger),
 			}
 	}
 	return {

@@ -4,7 +4,7 @@ import {
 	LevelUpgrades,
 	MyCompany,
 } from '../../models/corporation'
-import { Logger } from '../../models/logger'
+import { NsLogger } from '../../logging/logger'
 import { BasePhaseManager } from './base-phase'
 import { PhaseManager } from './phase'
 
@@ -22,7 +22,7 @@ export class ProductRound2Manager
 	extends BasePhaseManager
 	implements PhaseManager
 {
-	constructor(ns: NS, logger: Logger, company: Company) {
+	constructor(ns: NS, logger: NsLogger, company: Company) {
 		super(ns, logger, company)
 	}
 
@@ -33,7 +33,7 @@ export class ProductRound2Manager
 	async manage(): Promise<void> {
 		const productDivision = this.company.getProductDivision()
 		if (!productDivision) {
-			this.logger.log(`ERROR no product division`)
+			this.logger.error`no product division`
 			return
 		}
 

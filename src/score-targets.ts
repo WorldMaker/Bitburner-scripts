@@ -1,4 +1,4 @@
-import { Logger } from './models/logger'
+import { NsLogger } from './logging/logger'
 import { PlayerStats } from './models/stats'
 import { simpleTargetFactory, Target } from './models/target'
 import { ScannerService } from './services/scanner'
@@ -15,7 +15,7 @@ export async function main(ns: NS) {
 		simpleTargetFactory
 	)
 	const stats = new PlayerStats(ns)
-	const logger = new Logger(ns)
+	const logger = new NsLogger(ns)
 
 	const servers = scannerService.scan()
 

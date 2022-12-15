@@ -5,7 +5,7 @@ import {
 } from '@reactivex/ix-esnext-esm/iterable/operators/orderby'
 import { repeat } from '@reactivex/ix-esnext-esm/iterable/operators/repeat'
 import { zipWith } from '@reactivex/ix-esnext-esm/iterable/operators/zipwith'
-import { Logger } from '../../models/logger'
+import { NsLogger } from '../../logging/logger'
 import { PayloadPlan, PayloadPlanner } from '../../models/payload-plan'
 import { Target } from '../../models/target'
 import { AppCacheService } from '../app-cache'
@@ -18,7 +18,7 @@ export class MultiTargetDirectionalRoundRobinPlanner implements PayloadPlanner {
 	private appSelector: AppSelector
 
 	constructor(
-		private logger: Logger,
+		private logger: NsLogger,
 		private targetService: TargetService,
 		apps: AppCacheService
 	) {
@@ -41,9 +41,7 @@ export class MultiTargetDirectionalRoundRobinPlanner implements PayloadPlanner {
 			target.updateTargetDirection()
 			const app = this.appSelector.selectApp(target.getTargetDirection())
 			if (server.getMaxRam() < app.ramCost) {
-				this.logger.log(
-					`WARN ${server.name} only has ${server.getMaxRam()} memory`
-				)
+				this.logger.warn`${server.name} only has ${server.getMaxRam()} memory`
 				continue
 			}
 			if (server.checkRunning(app.name, ...app.getArgs(target))) {

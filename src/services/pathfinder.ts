@@ -1,9 +1,9 @@
-import { Logger } from '../models/logger'
+import { NsLogger } from '../logging/logger'
 import { Target } from '../models/target'
 import { ServerCacheService } from './server-cache'
 
 export class PathfinderService {
-	constructor(private logger: Logger, private servers: ServerCacheService) {}
+	constructor(private logger: NsLogger, private servers: ServerCacheService) {}
 
 	*followPaths(
 		target: Target,

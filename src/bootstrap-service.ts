@@ -1,4 +1,4 @@
-import { Logger } from './models/logger.js'
+import { NsLogger } from './logging/logger.js'
 import { PlayerStats } from './models/stats.js'
 import { deployTargetFactory } from './models/target.js'
 import { AppCacheService } from './services/app-cache.js'
@@ -60,7 +60,7 @@ export async function main(ns: NS) {
 	running = true
 
 	const apps = new AppCacheService(ns)
-	const logger = new Logger(ns)
+	const logger = new NsLogger(ns)
 	const targetService = new TargetService()
 	const payloadService = new PayloadService()
 	const targetFactory = deployTargetFactory
@@ -121,7 +121,7 @@ export async function main(ns: NS) {
 		if (purchaseService.wantsToPurchase()) {
 			purchaseService.purchase()
 			if (!purchaseService.wantsToPurchase()) {
-				logger.display('SUCCESS Finished purchasing')
+				logger.hooray`Finished purchasing`
 			}
 		}
 
@@ -132,9 +132,7 @@ export async function main(ns: NS) {
 		logger.log(purchaseService.summarize())
 		logger.log(payloadPlanner.summarize())
 		if (counts) {
-			logger.log(
-				`INFO ${counts.plans} deployment plans; ${counts.existingPlans} existing, ${counts.changedPlans} changed`
-			)
+			logger.info`${counts.plans} deployment plans; ${counts.existingPlans} existing, ${counts.changedPlans} changed`
 			const statusMessage = `INFO ${counts.servers} servers scanned; ${counts.rooted} rooted, ${counts.payloads} payloads`
 			// terminal notifications when changes occur otherwise regular logs
 			if (
@@ -150,9 +148,7 @@ export async function main(ns: NS) {
 				logger.log(statusMessage)
 			}
 		} else {
-			logger.log(
-				`INFO no deployments; no targets equal or below ${stats.getTargetHackingLevel()}`
-			)
+			logger.info`no deployments; no targets equal or below ${stats.getTargetHackingLevel()}`
 		}
 
 		await ns.sleep(10 /* s */ * 1000 /* ms */)

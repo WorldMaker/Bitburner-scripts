@@ -1,7 +1,7 @@
 // Test a single batch
 
 import { createBatch, getBatchArgs, getNextBatchType } from './models/batch'
-import { Logger } from './models/logger'
+import { NsLogger } from './logging/logger'
 import { Target, TargetDirection } from './models/target'
 
 function getPayloadName(direction: TargetDirection) {
@@ -24,7 +24,7 @@ export async function main(ns: NS) {
 	const target = new Target(ns, targetName)
 	const player = ns.getPlayer()
 	const server = ns.getServer(targetName)
-	const logger = new Logger(ns)
+	const logger = new NsLogger(ns)
 
 	const nextBatch = getNextBatchType(
 		target,
@@ -38,7 +38,7 @@ export async function main(ns: NS) {
 		.map((p) => `${p.direction} ${p.threads} @ ${p.start}`)
 		.join(', ')
 
-	logger.log(`INFO planned a ${nextBatch} batch with ${planOverview}`)
+	logger.info`planned a ${nextBatch} batch with ${planOverview}`
 
 	const start = new Date(new Date().getTime() + 1000 /* ms */)
 	for (const p of plan.plans) {
@@ -57,15 +57,15 @@ export async function main(ns: NS) {
 	const moneyAvailable = target.checkMoneyAvailable()
 	const securityLevel = target.checkSecurityLevel()
 	if (moneyAvailable < target.getWorth()) {
-		logger.log(`WARN money is not maximal after batch`)
+		logger.warn`money is not maximal after batch`
 	}
 	if (securityLevel > target.getMinSecurityLevel()) {
-		logger.log(`WARN security is higher than min after batch`)
+		logger.warn`security is higher than min after batch`
 	}
 	if (
 		moneyAvailable >= target.getWorth() &&
 		securityLevel <= target.getMinSecurityLevel()
 	) {
-		logger.log(`SUCCESS batch was stable`)
+		logger.success`batch was stable`
 	}
 }

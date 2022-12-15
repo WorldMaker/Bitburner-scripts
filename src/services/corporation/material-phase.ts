@@ -1,5 +1,5 @@
 import { BoostMaterial, Cities, Company } from '../../models/corporation'
-import { Logger } from '../../models/logger'
+import { NsLogger } from '../../logging/logger'
 import { BasePhaseManager } from './base-phase'
 
 export type DesiredMaterial = Partial<Record<BoostMaterial, number>>
@@ -10,7 +10,7 @@ export class MaterialPhaseManager extends BasePhaseManager {
 	protected materialsDesired = 0
 	protected materialsMet = 0
 
-	constructor(ns: NS, logger: Logger, company: Company) {
+	constructor(ns: NS, logger: NsLogger, company: Company) {
 		super(ns, logger, company)
 	}
 
@@ -44,9 +44,7 @@ export class MaterialPhaseManager extends BasePhaseManager {
 						this.funds -= cost
 						this.warehouseLevelsMet++
 					} catch (error) {
-						this.logger.log(
-							`WARN unable to upgrade warehouse in ${city}: ${error}`
-						)
+						this.logger.warn`unable to upgrade warehouse in ${city}: ${error}`
 					}
 				}
 			}

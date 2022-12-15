@@ -1,5 +1,5 @@
 import { Company } from '../../models/corporation'
-import { Logger } from '../../models/logger'
+import { NsLogger } from '../../logging/logger'
 import { MaterialRound0Manager } from './material-round-0'
 import { MaterialRound1Manager } from './material-round-1'
 import { MaterialRound2Manager } from './material-round-2'
@@ -13,7 +13,7 @@ export interface PhaseManager {
 	manage(): Promise<void>
 }
 
-export function getPhaseManager(ns: NS, logger: Logger, company: Company) {
+export function getPhaseManager(ns: NS, logger: NsLogger, company: Company) {
 	switch (company.getState()) {
 		case 'Unstarted':
 			return new UnstartedPhaseManager(ns, logger, company)

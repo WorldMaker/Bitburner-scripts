@@ -1,12 +1,12 @@
 import { App } from '../../models/app'
-import { Logger } from '../../models/logger'
+import { NsLogger } from '../../logging/logger'
 import { PayloadPlan, PayloadPlanner } from '../../models/payload-plan'
 import { Target } from '../../models/target'
 import { TargetService } from '../target'
 
 export class SingleTargetSinglePayloadPlanner implements PayloadPlanner {
 	constructor(
-		private logger: Logger,
+		private logger: NsLogger,
 		private targetService: TargetService,
 		private app: App
 	) {}
@@ -18,9 +18,7 @@ export class SingleTargetSinglePayloadPlanner implements PayloadPlanner {
 	*plan(rooted: Iterable<Target>): Iterable<PayloadPlan> {
 		for (const server of rooted) {
 			if (server.getMaxRam() < this.app.ramCost) {
-				this.logger.log(
-					`WARN ${server.name} only has ${server.getMaxRam()} memory`
-				)
+				this.logger.warn`${server.name} only has ${server.getMaxRam()} memory`
 				continue
 			}
 			const target = this.targetService.getTopTarget()

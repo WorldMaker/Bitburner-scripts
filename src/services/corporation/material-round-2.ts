@@ -7,7 +7,7 @@ import {
 	ProductDevelopment,
 	StartingCity,
 } from '../../models/corporation'
-import { Logger } from '../../models/logger'
+import { NsLogger } from '../../logging/logger'
 import { MaterialPhaseManager } from './material-phase'
 import { PhaseManager } from './phase'
 
@@ -23,7 +23,7 @@ export class MaterialRound2Manager
 	extends MaterialPhaseManager
 	implements PhaseManager
 {
-	constructor(ns: NS, logger: Logger, company: Company) {
+	constructor(ns: NS, logger: NsLogger, company: Company) {
 		super(ns, logger, company)
 	}
 
@@ -34,7 +34,7 @@ export class MaterialRound2Manager
 	async manage(): Promise<void> {
 		const materialDivision = this.company.getMaterialDivision()
 		if (!materialDivision) {
-			this.logger.log(`ERROR no material division`)
+			this.logger.error`no material division`
 			return
 		}
 
