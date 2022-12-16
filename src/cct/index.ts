@@ -16,6 +16,7 @@ import { stockTrader1 } from './stock-trader1'
 import { stockTrader2 } from './stock-trader2'
 import { stocktrader3 } from './stock-trader3'
 import { stockTrader4 } from './stock-trader4'
+import { subarrayMaximumSum } from './subarray-max-sum'
 import { sumPartitions } from './total-ways-to-sum1'
 import { sumCombinations } from './total-ways-to-sum2'
 import { uniquePathsGrid1 } from './unique-paths-grid1'
@@ -146,6 +147,12 @@ export function evaluateCct(
 				known: true,
 				attempt: true,
 				result: spiralizeMatrix(data),
+			}
+		case 'Subarray with Maximum Sum':
+			return {
+				known: true,
+				attempt: true,
+				result: subarrayMaximumSum(data, logger),
 			}
 		case 'Total Ways to Sum':
 			const quickSumAttempt = data < 50
