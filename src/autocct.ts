@@ -77,9 +77,9 @@ export async function main(ns: NS) {
 			`INFO ${unknowns} unknown contracts; ${skips} skipped contracts`
 		)
 	}
-	if (attempts > 0 && successes === attempts) {
+	if (successes === attempts) {
 		logger.display(`SUCCESS ${successes}/${attempts} contracts completed`)
 	} else {
-		logger.display(`INFO ${successes}/${attempts} contracts completed`)
+		logger.display(`WARN ${successes}/${attempts} contracts completed`)
 	}
 }
