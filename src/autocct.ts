@@ -46,6 +46,9 @@ export async function main(ns: NS) {
 					} else {
 						logger.display(`\t❌ ${cctFile} – ${type}: ${JSON.stringify(data)}`)
 					}
+
+					// add a tiny pause for the game's sake to keep from locking the terminal on long solutions
+					await ns.sleep(20 /* ms */)
 				} else {
 					if (known) {
 						logger.display(`\t➖ ${cctFile} – ${type}: ${JSON.stringify(data)}`)
@@ -56,9 +59,6 @@ export async function main(ns: NS) {
 						logger.display(`\t❓ ${cctFile} – ${type}: ${JSON.stringify(data)}`)
 					}
 				}
-
-				// add a tiny pause for the game's sake to keep from locking the terminal on long solutions
-				await ns.sleep(20 /* ms */)
 			}
 		}
 	}
