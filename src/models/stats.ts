@@ -56,6 +56,8 @@ export class PlayerStats implements Stats {
 				this.ns.formulas.hacking.hackTime(server, this.player)
 			)
 		}
-		return target.getWorth() * DesiredHackingSkim
+		return (
+			(target.getWorth() * DesiredHackingSkim) / target.getMinSecurityLevel()
+		)
 	}
 }
