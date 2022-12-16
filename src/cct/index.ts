@@ -30,7 +30,8 @@ export interface CctEvaluation {
 export function evaluateCct(
 	type: string,
 	data: any,
-	logger?: Logger<any>
+	logger?: Logger<any>,
+	allResults = false
 ): CctEvaluation {
 	switch (type) {
 		case 'Algorithmic Stock Trader I':
@@ -97,7 +98,7 @@ export function evaluateCct(
 			return {
 				known: true,
 				attempt: false,
-				result: undefined && solveValidMathExpressions(data),
+				result: allResults ? solveValidMathExpressions(data) : undefined,
 			}
 		case 'Find Largest Prime Factor':
 			return {
@@ -139,7 +140,7 @@ export function evaluateCct(
 			return {
 				known: true,
 				attempt: data < 50,
-				result: data < 50 ? sumPartitions(data) : undefined,
+				result: data < 50 || allResults ? sumPartitions(data) : undefined,
 			}
 		case 'Total Ways to Sum II':
 			return {
