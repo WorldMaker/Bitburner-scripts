@@ -5,7 +5,10 @@ import { ScannerService } from './services/scanner'
 import { ServerCacheService } from './services/server-cache'
 
 export async function main(ns: NS) {
-	const depth = Number(ns.args[0]) ?? 100
+	const [command, rawDepth] = ns.args
+
+	const force = command === 'force'
+	const depth = Number(rawDepth) ?? 100
 
 	const logger = new NsLogger(ns)
 	const servers = new ServerCacheService(ns, simpleTargetFactory)
@@ -28,9 +31,10 @@ export async function main(ns: NS) {
 				const { known, attempt, result } = evaluateCct(
 					type,
 					data,
-					logger.getLogger()
+					logger.getLogger(),
+					force
 				)
-				if (attempt) {
+				if (attempt || (known && force)) {
 					const succeeded = ns.codingcontract.attempt(
 						result,
 						cctFile,
