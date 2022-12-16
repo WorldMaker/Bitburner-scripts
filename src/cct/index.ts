@@ -95,10 +95,14 @@ export function evaluateCct(
 				result: enc2(data),
 			}
 		case 'Find All Valid Math Expressions':
+			const quickVmeAttempt = data.length <= 10
 			return {
 				known: true,
-				attempt: false,
-				result: allResults ? solveValidMathExpressions(data) : undefined,
+				attempt: quickVmeAttempt,
+				result:
+					quickVmeAttempt || allResults
+						? solveValidMathExpressions(data)
+						: undefined,
 			}
 		case 'Find Largest Prime Factor':
 			return {
@@ -137,10 +141,11 @@ export function evaluateCct(
 				result: spiralizeMatrix(data),
 			}
 		case 'Total Ways to Sum':
+			const quickSumAttempt = data < 50
 			return {
 				known: true,
-				attempt: data < 50,
-				result: data < 50 || allResults ? sumPartitions(data) : undefined,
+				attempt: quickSumAttempt,
+				result: quickSumAttempt || allResults ? sumPartitions(data) : undefined,
 			}
 		case 'Total Ways to Sum II':
 			return {
