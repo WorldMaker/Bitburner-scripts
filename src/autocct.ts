@@ -70,15 +70,16 @@ export async function main(ns: NS) {
 				}
 			}
 		}
-		if (unknowns > 0 || skips > 0) {
-			logger.display(
-				`INFO ${unknowns} unknown contracts; ${skips} skipped contracts`
-			)
-		}
-		if (attempts > 0 && successes === attempts) {
-			logger.display(`SUCCESS ${successes}/${attempts} contracts completed`)
-		} else {
-			logger.display(`INFO ${successes}/${attempts} contracts completed`)
-		}
+	}
+
+	if (unknowns > 0 || skips > 0) {
+		logger.display(
+			`INFO ${unknowns} unknown contracts; ${skips} skipped contracts`
+		)
+	}
+	if (attempts > 0 && successes === attempts) {
+		logger.display(`SUCCESS ${successes}/${attempts} contracts completed`)
+	} else {
+		logger.display(`INFO ${successes}/${attempts} contracts completed`)
 	}
 }
