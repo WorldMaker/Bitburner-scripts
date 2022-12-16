@@ -10,6 +10,7 @@ import { colorBipartiteGraph } from './graph-2color'
 import { largestPrimeFactor } from './largest-prime-factor'
 import { mergeOverlappingIntervals } from './merge-overlapping-intervals'
 import { minimumTrianglePathSum } from './min-triangle-path-sum'
+import { shortestGridPath } from './shortest-path-grid'
 import { spiralizeMatrix } from './spiralize-matrix'
 import { stockTrader1 } from './stock-trader1'
 import { stockTrader2 } from './stock-trader2'
@@ -133,6 +134,12 @@ export function evaluateCct(
 				known: true,
 				attempt: true,
 				result: colorBipartiteGraph(data),
+			}
+		case 'Shortest Path in a Grid':
+			return {
+				known: true,
+				attempt: true,
+				result: shortestGridPath(data),
 			}
 		case 'Spiralize Matrix':
 			return {
