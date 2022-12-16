@@ -123,7 +123,7 @@ export function evaluateCct(
 			return {
 				known: true,
 				attempt: false,
-				result: encodeHamming(data)
+				result: encodeHamming(data),
 			}
 		case 'Merge Overlapping Intervals':
 			return {
