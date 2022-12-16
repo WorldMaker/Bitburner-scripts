@@ -22,78 +22,115 @@ Input: digits = "105", target = 5
 Output: [1*0+5, 10-5]
 */
 
+import { IterableX } from '@reactivex/ix-esnext-esm/iterable/iterablex'
+import { filter } from '@reactivex/ix-esnext-esm/iterable/operators/filter'
+import { orderBy } from '@reactivex/ix-esnext-esm/iterable/operators/orderby'
+
 export type MathExpressionInput = [string, number]
 
-function solve(
-	results: string[],
+const NotLeadingZeroRegex = /\d+[\+\*\-]/
+
+function* generatePossibleSolutions(
 	input: number[],
-	target: number,
-	position = 0,
-	expression = '',
-	lastDigit: number | null = null
-) {
-	if (position === input.length) {
-		// assuming script precedence, so just use eval to check
-		const evaluated = eval(expression)
+	position = 0
+): Iterable<string> {
+	if (position >= input.length) {
+		return
+	}
 
-		if (evaluated === target) {
-			results.push(expression)
+	const digit = input[position]
+	// double digit lookahead
+	const nextDigit = position + 1 < input.length ? input[position + 1] : null
+	const digitAfter = position + 2 < input.length ? input[position + 2] : null
+
+	// *** hand unroll final trigraphs ***
+
+	if (nextDigit === null) {
+		yield digit.toString()
+		return
+	}
+
+	if (digitAfter === null) {
+		yield `${digit}${nextDigit}`
+		yield `${digit}+${nextDigit}`
+		yield `${digit}-${nextDigit}`
+		yield `${digit}*${nextDigit}`
+		return
+	}
+
+	if (position + 2 === input.length - 1) {
+		yield `${digit}${nextDigit}${digitAfter}`
+		yield `${digit}${nextDigit}+${digitAfter}`
+		yield `${digit}${nextDigit}-${digitAfter}`
+		yield `${digit}${nextDigit}*${digitAfter}`
+		if (nextDigit !== 0) {
+			yield `${digit}+${nextDigit}${digitAfter}`
 		}
+		yield `${digit}+${nextDigit}+${digitAfter}`
+		yield `${digit}+${nextDigit}-${digitAfter}`
+		yield `${digit}+${nextDigit}*${digitAfter}`
+		if (nextDigit !== 0) {
+			yield `${digit}-${nextDigit}${digitAfter}`
+		}
+		yield `${digit}-${nextDigit}+${digitAfter}`
+		yield `${digit}-${nextDigit}-${digitAfter}`
+		yield `${digit}-${nextDigit}*${digitAfter}`
+		if (nextDigit !== 0) {
+			yield `${digit}*${nextDigit}${digitAfter}`
+		}
+		yield `${digit}*${nextDigit}+${digitAfter}`
+		yield `${digit}*${nextDigit}-${digitAfter}`
+		yield `${digit}*${nextDigit}*${digitAfter}`
 		return
 	}
 
-	// concatenate (if not a leading zero)
-	if (lastDigit !== 0) {
-		solve(
-			results,
-			input,
-			target,
-			position + 1,
-			`${expression}${input[position]}`,
-			input[position]
-		)
+	for (const solution of generatePossibleSolutions(input, position + 2)) {
+		const notLeadingZero = NotLeadingZeroRegex.test(solution)
+		yield `${digit}${nextDigit}${solution}`
+		if (digitAfter !== 0 || notLeadingZero) {
+			yield `${digit}${nextDigit}+${solution}`
+			yield `${digit}${nextDigit}-${solution}`
+			yield `${digit}${nextDigit}*${solution}`
+		}
+		if (nextDigit !== 0) {
+			yield `${digit}+${nextDigit}${solution}`
+		}
+		if (digitAfter !== 0 || notLeadingZero) {
+			yield `${digit}+${nextDigit}+${solution}`
+			yield `${digit}+${nextDigit}-${solution}`
+			yield `${digit}+${nextDigit}*${solution}`
+		}
+		if (nextDigit !== 0) {
+			yield `${digit}-${nextDigit}${solution}`
+		}
+		if (digitAfter !== 0 || notLeadingZero) {
+			yield `${digit}-${nextDigit}+${solution}`
+			yield `${digit}-${nextDigit}-${solution}`
+			yield `${digit}-${nextDigit}*${solution}`
+		}
+		if (nextDigit !== 0) {
+			yield `${digit}*${nextDigit}${solution}`
+		}
+		if (digitAfter !== 0 || notLeadingZero) {
+			yield `${digit}*${nextDigit}+${solution}`
+			yield `${digit}*${nextDigit}-${solution}`
+			yield `${digit}*${nextDigit}*${solution}`
+		}
 	}
+}
 
-	if (expression.length === 0) {
-		// no leading operators
-		return
-	}
-
-	// add
-	solve(
-		results,
-		input,
-		target,
-		position + 1,
-		`${expression}+${input[position]}`,
-		input[position]
+function solve(input: number[], target: number) {
+	const solutions = IterableX.from(generatePossibleSolutions(input)).pipe(
+		// "script precedence", so use eval() as simple, relative fast solution validator
+		filter((possibleSolution) => eval(possibleSolution) === target),
+		orderBy((solution) => solution)
 	)
-	// subtract
-	solve(
-		results,
-		input,
-		target,
-		position + 1,
-		`${expression}-${input[position]}`,
-		input[position]
-	)
-	// multiply
-	solve(
-		results,
-		input,
-		target,
-		position + 1,
-		`${expression}*${input[position]}`,
-		input[position]
-	)
+	return [...solutions]
 }
 
 export function validMathExpressions(text: string, target: number) {
 	const input = text.split('').map((d) => parseInt(d, 10))
-	const results: string[] = []
-	solve(results, input, target)
-	const sorted = results.sort()
-	return sorted
+	return solve(input, target)
 }
 
 export function solveValidMathExpressions(data: MathExpressionInput) {

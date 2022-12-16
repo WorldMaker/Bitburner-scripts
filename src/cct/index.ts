@@ -10,11 +10,13 @@ import { colorBipartiteGraph } from './graph-2color'
 import { largestPrimeFactor } from './largest-prime-factor'
 import { mergeOverlappingIntervals } from './merge-overlapping-intervals'
 import { minimumTrianglePathSum } from './min-triangle-path-sum'
+import { shortestGridPath } from './shortest-path-grid'
 import { spiralizeMatrix } from './spiralize-matrix'
 import { stockTrader1 } from './stock-trader1'
 import { stockTrader2 } from './stock-trader2'
 import { stocktrader3 } from './stock-trader3'
 import { stockTrader4 } from './stock-trader4'
+import { subarrayMaximumSum } from './subarray-max-sum'
 import { sumPartitions } from './total-ways-to-sum1'
 import { sumCombinations } from './total-ways-to-sum2'
 import { uniquePathsGrid1 } from './unique-paths-grid1'
@@ -30,7 +32,8 @@ export interface CctEvaluation {
 export function evaluateCct(
 	type: string,
 	data: any,
-	logger?: Logger<any>
+	logger?: Logger<any>,
+	allResults = false
 ): CctEvaluation {
 	switch (type) {
 		case 'Algorithmic Stock Trader I':
@@ -94,10 +97,14 @@ export function evaluateCct(
 				result: enc2(data),
 			}
 		case 'Find All Valid Math Expressions':
+			const quickVmeAttempt = data.length <= 10
 			return {
 				known: true,
-				attempt: false,
-				result: undefined && solveValidMathExpressions(data),
+				attempt: quickVmeAttempt,
+				result:
+					quickVmeAttempt || allResults
+						? solveValidMathExpressions(data)
+						: undefined,
 			}
 		case 'Find Largest Prime Factor':
 			return {
@@ -129,17 +136,30 @@ export function evaluateCct(
 				attempt: true,
 				result: colorBipartiteGraph(data),
 			}
+		case 'Shortest Path in a Grid':
+			return {
+				known: true,
+				attempt: true,
+				result: shortestGridPath(data),
+			}
 		case 'Spiralize Matrix':
 			return {
 				known: true,
 				attempt: true,
 				result: spiralizeMatrix(data),
 			}
-		case 'Total Ways to Sum':
+		case 'Subarray with Maximum Sum':
 			return {
 				known: true,
-				attempt: data < 50,
-				result: data < 50 ? sumPartitions(data) : undefined,
+				attempt: true,
+				result: subarrayMaximumSum(data, logger),
+			}
+		case 'Total Ways to Sum':
+			const quickSumAttempt = data < 50
+			return {
+				known: true,
+				attempt: quickSumAttempt,
+				result: quickSumAttempt || allResults ? sumPartitions(data) : undefined,
 			}
 		case 'Total Ways to Sum II':
 			return {
