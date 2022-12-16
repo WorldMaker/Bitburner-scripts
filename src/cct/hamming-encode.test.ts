@@ -9,5 +9,5 @@ describe('HammingCodes: Integer to Encoded Binary', () => {
 
 	it('encodes given example 8', encodeExample(8, '11110000'))
 	it('encodes given example 21', encodeExample(21, '1001101011'))
-	it('encodes a wild example 1755', encodeExample(1755, ''))
+	it('encodes a wild example 1755', encodeExample(1755, '1011110111011011'))
 })

@@ -7,6 +7,7 @@ import { enc1caeser } from './enc1-caesar'
 import { enc2 } from './enc2'
 import { solveGenerateIps } from './generate-ip-addresses'
 import { colorBipartiteGraph } from './graph-2color'
+import { encodeHamming } from './hamming-encode'
 import { largestPrimeFactor } from './largest-prime-factor'
 import { mergeOverlappingIntervals } from './merge-overlapping-intervals'
 import { minimumTrianglePathSum } from './min-triangle-path-sum'
@@ -117,6 +118,12 @@ export function evaluateCct(
 				known: true,
 				attempt: true,
 				result: solveGenerateIps(data),
+			}
+		case 'HammingCodes: Integer to Encoded Binary':
+			return {
+				known: true,
+				attempt: false,
+				result: encodeHamming(data)
 			}
 		case 'Merge Overlapping Intervals':
 			return {

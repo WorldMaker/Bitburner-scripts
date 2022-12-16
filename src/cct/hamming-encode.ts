@@ -48,46 +48,36 @@ function parityLength(numBits: number) {
 }
 
 export function encodeHamming(n: number) {
-	// doing this all stringy because JS, why not
 	const data = n.toString(2)
-	console.log(data)
-	let parityBits = 0
-	let parity = 0
-	for (let i = 0; i < data.length; i++) {
-		if (data.charAt(data.length - i - 1) === '1') {
-			parityBits = parityBits ^ i
-			parity = parity ^ 1
-		}
-	}
-
-	const bitsBinary = parityBits.toString(2)
-	for (let i = 0; i < bitsBinary.length; i++) {
-		if (bitsBinary.charAt(i) === '1') {
-			parity = parity ^ 1
-		}
-	}
-	console.log(bitsBinary)
-	console.log(parity)
-
-	let hamming = parity.toString()
-	let dataPosition = 0
 	const parityCount = parityLength(data.length)
-	console.log(parityCount)
-	let bitsPosition = 0
-	console.log(bitsPosition)
-	for (let i = 1; i < parityCount + data.length + 1; i++) {
-		if (isPowerOf2(i)) {
-			if (bitsPosition < bitsBinary.length) {
-				hamming += bitsBinary.charAt(bitsPosition)
-				bitsPosition++
-			} else {
-				hamming += '0'
-				bitsPosition++
+	const block: number[] = new Array(data.length + parityCount + 1).fill(0)
+
+	// fill data
+	let dataPosition = 0
+	// 3 is the first non-power-of-2
+	for (let i = 3; i < block.length; i++) {
+		if (!isPowerOf2(i)) {
+			block[i] = parseInt(data[dataPosition], 2)
+			// calculate parity
+			if (block[i] === 1) {
+				const bits = i.toString(2)
+				for (let j = 0; j < bits.length; j++) {
+					if (bits[bits.length - j - 1] === '1') {
+						const power = 1 << j
+						block[power] = block[power] ^ block[i]
+					}
+				}
 			}
-		} else {
-			hamming += data.charAt(dataPosition)
 			dataPosition++
 		}
 	}
-	return hamming
+
+	// final parity count
+	let parity = 0
+	for (let i = 1; i < block.length; i++) {
+		parity = parity ^ block[i]
+	}
+	block[0] = parity
+
+	return block.join('')
 }
