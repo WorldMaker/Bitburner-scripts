@@ -123,13 +123,13 @@ export function evaluateCct(
 		case 'HammingCodes: Encoded Binary to Integer':
 			return {
 				known: true,
-				attempt: false,
+				attempt: true,
 				result: decodeHamming(data),
 			}
 		case 'HammingCodes: Integer to Encoded Binary':
 			return {
 				known: true,
-				attempt: false,
+				attempt: true,
 				result: encodeHamming(data),
 			}
 		case 'Merge Overlapping Intervals':
