@@ -23,7 +23,7 @@ There should be no leading zeros in the 'data bit' section
 10101
 */
 
-function isPowerOf2(n: number) {
+export function isPowerOf2(n: number) {
 	return Math.log2(n) % 1 === 0
 }
 
