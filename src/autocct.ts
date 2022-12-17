@@ -21,6 +21,11 @@ export async function main(ns: NS) {
 
 	scannerService.scan()
 
+	let successes = 0
+	let attempts = 0
+	let unknowns = 0
+	let skips = 0
+
 	for (const server of servers.values()) {
 		const cctFiles = ns.ls(server.name, '.cct')
 		if (cctFiles.length) {
@@ -35,6 +40,7 @@ export async function main(ns: NS) {
 					force
 				)
 				if (attempt || (known && force)) {
+					attempts++
 					const succeeded = ns.codingcontract.attempt(
 						result,
 						cctFile,
@@ -42,6 +48,7 @@ export async function main(ns: NS) {
 						{ returnReward: true }
 					)
 					if (succeeded) {
+						successes++
 						logger.display(`\t✔ ${cctFile} – ${type}: ${succeeded}`)
 					} else {
 						logger.display(`\t❌ ${cctFile} – ${type}: ${JSON.stringify(data)}`)
@@ -51,15 +58,28 @@ export async function main(ns: NS) {
 					await ns.sleep(20 /* ms */)
 				} else {
 					if (known) {
+						skips++
 						logger.display(`\t➖ ${cctFile} – ${type}: ${JSON.stringify(data)}`)
 						if (result) {
 							logger.display(`\t\t${JSON.stringify(result)}`)
 						}
 					} else {
+						unknowns++
 						logger.display(`\t❓ ${cctFile} – ${type}: ${JSON.stringify(data)}`)
 					}
 				}
 			}
 		}
+	}
+
+	if (unknowns > 0 || skips > 0) {
+		logger.display(
+			`INFO ${unknowns} unknown contracts; ${skips} skipped contracts`
+		)
+	}
+	if (successes === attempts) {
+		logger.display(`SUCCESS ${successes}/${attempts} contracts completed`)
+	} else {
+		logger.display(`WARN ${successes}/${attempts} contracts completed`)
 	}
 }
