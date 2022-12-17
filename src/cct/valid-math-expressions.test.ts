@@ -4,7 +4,9 @@ import {
 	solveValidMathExpressions,
 } from './valid-math-expressions'
 
-describe('Find All Valid Math Expressions', () => {
+describe('Find All Valid Math Expressions', function () {
+	this.timeout(5 /* s */ * 1000 /* ms */)
+
 	const solveExample =
 		(data: MathExpressionInput, expected: string[]) => () => {
 			const result = solveValidMathExpressions(data)
