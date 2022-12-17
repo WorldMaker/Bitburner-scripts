@@ -28,7 +28,9 @@ export function comp1rle(data: string) {
 				count = 0
 			}
 		} else {
-			encoded += String.fromCharCode('0'.charCodeAt(0) + count) + character
+			if (count > 0) {
+				encoded += String.fromCharCode('0'.charCodeAt(0) + count) + character
+			}
 			character = data.charAt(i)
 			count = 1
 		}
