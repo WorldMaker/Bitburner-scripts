@@ -12,18 +12,10 @@ export class ScannerService {
 		private targetFactory: TargetFactory,
 		forceMaxDepth: number | null = null
 	) {
-		const deepScanV1 = this.ns.fileExists('DeepscanV1.exe')
-		const deepScanV2 = this.ns.fileExists('DeepscanV2.exe')
-		if (deepScanV2) {
-			this.maxDepth = 100
-		} else if (deepScanV1) {
-			this.maxDepth = 10
-		} else {
-			this.maxDepth = 5
-		}
-
 		if (forceMaxDepth) {
 			this.maxDepth = forceMaxDepth
+		} else {
+			this.maxDepth = 100
 		}
 	}
 
