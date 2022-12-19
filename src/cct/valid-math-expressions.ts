@@ -22,18 +22,21 @@ Input: digits = "105", target = 5
 Output: [1*0+5, 10-5]
 */
 
-import { IterableX } from '@reactivex/ix-esnext-esm/iterable/iterablex'
-import { filter } from '@reactivex/ix-esnext-esm/iterable/operators/filter'
-import { orderBy } from '@reactivex/ix-esnext-esm/iterable/operators/orderby'
+import { AsyncIterableX } from '@reactivex/ix-esnext-esm/asynciterable/asynciterablex'
+import { filter } from '@reactivex/ix-esnext-esm/asynciterable/operators/filter'
+import { orderBy } from '@reactivex/ix-esnext-esm/asynciterable/operators/orderby'
+import { map } from '@reactivex/ix-esnext-esm/asynciterable/operators/map'
+import { toArray } from '@reactivex/ix-esnext-esm/asynciterable/toarray'
 
 export type MathExpressionInput = [string, number]
 
 const NotLeadingZeroRegex = /\d+[\+\*\-]/
 
-function* generatePossibleSolutions(
+async function* generatePossibleSolutions(
 	input: number[],
+	cooperative: () => Promise<any>,
 	position = 0
-): Iterable<string> {
+): AsyncIterable<string> {
 	if (position >= input.length) {
 		return
 	}
@@ -84,7 +87,11 @@ function* generatePossibleSolutions(
 		return
 	}
 
-	for (const solution of generatePossibleSolutions(input, position + 2)) {
+	for await (const solution of generatePossibleSolutions(
+		input,
+		cooperative,
+		position + 2
+	)) {
 		const notLeadingZero = NotLeadingZeroRegex.test(solution)
 		yield `${digit}${nextDigit}${solution}`
 		if (digitAfter !== 0 || notLeadingZero) {
@@ -117,25 +124,43 @@ function* generatePossibleSolutions(
 			yield `${digit}*${nextDigit}*${solution}`
 		}
 	}
+	await cooperative()
 }
 
-function solve(input: number[], target: number) {
-	const solutions = IterableX.from(generatePossibleSolutions(input)).pipe(
+async function solve(
+	input: number[],
+	target: number,
+	cooperative: () => Promise<void>
+) {
+	const solutions = AsyncIterableX.from(
+		generatePossibleSolutions(input, cooperative)
+	).pipe(
 		// "script precedence", so use eval() as simple, relative fast solution validator
 		filter((possibleSolution) => eval(possibleSolution) === target),
+		map(async (solution) => {
+			await cooperative()
+			return solution
+		}),
 		orderBy((solution) => solution)
 	)
-	return [...solutions]
+	return await toArray(solutions)
 }
 
-export function validMathExpressions(text: string, target: number) {
+export async function validMathExpressions(
+	text: string,
+	target: number,
+	cooperative: () => Promise<any>
+) {
 	const input = text.split('').map((d) => parseInt(d, 10))
-	return solve(input, target)
+	return await solve(input, target, cooperative)
 }
 
-export function solveValidMathExpressions(data: MathExpressionInput) {
+export async function solveValidMathExpressions(
+	data: MathExpressionInput,
+	cooperative: () => Promise<any>
+) {
 	const [text, target] = data
-	const results = validMathExpressions(text, target)
+	const results = await validMathExpressions(text, target, cooperative)
 	return results
 }
 
@@ -144,6 +169,10 @@ export async function main(ns: NS) {
 	if (typeof target !== 'number') {
 		return
 	}
-	const results = validMathExpressions(text.toString(), target)
+	const results = await validMathExpressions(
+		text.toString(),
+		target,
+		async () => await ns.sleep(20 /* ms */)
+	)
 	ns.tprint(`[${results.join(', ')}]`)
 }

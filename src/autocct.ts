@@ -19,6 +19,8 @@ export async function main(ns: NS) {
 		depth
 	)
 
+	const cooperative = async () => await ns.sleep(20 /* ms */)
+
 	scannerService.scan()
 
 	let successes = 0
@@ -33,9 +35,10 @@ export async function main(ns: NS) {
 			for (const cctFile of cctFiles) {
 				const type = ns.codingcontract.getContractType(cctFile, server.name)
 				const data = ns.codingcontract.getData(cctFile, server.name)
-				const { known, attempt, result } = evaluateCct(
+				const { known, attempt, result } = await evaluateCct(
 					type,
 					data,
+					cooperative,
 					logger.getLogger(),
 					force
 				)

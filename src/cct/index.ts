@@ -31,12 +31,13 @@ export interface CctEvaluation {
 	result: any
 }
 
-export function evaluateCct(
+export async function evaluateCct(
 	type: string,
 	data: any,
+	cooperative: () => Promise<any> = () => Promise.resolve(),
 	logger?: Logger<any>,
 	allResults = false
-): CctEvaluation {
+): Promise<CctEvaluation> {
 	switch (type) {
 		case 'Algorithmic Stock Trader I':
 			return {
@@ -99,14 +100,10 @@ export function evaluateCct(
 				result: enc2(data),
 			}
 		case 'Find All Valid Math Expressions':
-			const quickVmeAttempt = data.length <= 10
 			return {
 				known: true,
-				attempt: quickVmeAttempt,
-				result:
-					quickVmeAttempt || allResults
-						? solveValidMathExpressions(data)
-						: undefined,
+				attempt: true,
+				result: solveValidMathExpressions(data, cooperative),
 			}
 		case 'Find Largest Prime Factor':
 			return {
@@ -169,17 +166,16 @@ export function evaluateCct(
 				result: subarrayMaximumSum(data, logger),
 			}
 		case 'Total Ways to Sum':
-			const quickSumAttempt = data < 50
 			return {
 				known: true,
-				attempt: quickSumAttempt,
-				result: quickSumAttempt || allResults ? sumPartitions(data) : undefined,
+				attempt: true,
+				result: await sumPartitions(data, cooperative),
 			}
 		case 'Total Ways to Sum II':
 			return {
 				known: true,
 				attempt: true,
-				result: sumCombinations(data),
+				result: await sumCombinations(data, cooperative),
 			}
 		case 'Unique Paths in a Grid I':
 			return {
