@@ -12,13 +12,14 @@ You may use each integer in the set zero or more times.
 
 export type SumInput = [number, number[]]
 
-function sumCombination(
+async function sumCombination(
 	target: number,
 	sum: number,
 	inputs: number[],
 	combo: number[],
+	cooperative: () => Promise<any>,
 	current = 0
-): number {
+): Promise<number> {
 	if (sum === target) {
 		return 1
 	}
@@ -47,7 +48,15 @@ function sumCombination(
 		const nextCombo = [...combo]
 		nextCombo[current] = i
 
-		found += sumCombination(target, nextSum, inputs, nextCombo, current + 1)
+		found += await sumCombination(
+			target,
+			nextSum,
+			inputs,
+			nextCombo,
+			cooperative,
+			current + 1
+		)
+		await cooperative()
 
 		i++
 		nextSum = sum + i * baseInput
@@ -55,9 +64,12 @@ function sumCombination(
 	return found
 }
 
-export function sumCombinations(data: SumInput) {
+export async function sumCombinations(
+	data: SumInput,
+	cooperative: () => Promise<any>
+) {
 	const [target, inputs] = data
 	inputs.sort()
 	const combo = new Array(inputs.length).fill(0)
-	return sumCombination(target, 0, inputs, combo)
+	return await sumCombination(target, 0, inputs, combo, cooperative)
 }

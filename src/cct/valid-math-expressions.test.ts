@@ -8,8 +8,10 @@ describe('Find All Valid Math Expressions', function () {
 	this.timeout(5 /* s */ * 1000 /* ms */)
 
 	const solveExample =
-		(data: MathExpressionInput, expected: string[]) => () => {
-			const result = solveValidMathExpressions(data)
+		(data: MathExpressionInput, expected: string[]) => async () => {
+			const result = await solveValidMathExpressions(data, () =>
+				Promise.resolve()
+			)
 			expect(result).to.deep.equal(expected)
 		}
 

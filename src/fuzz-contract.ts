@@ -3,6 +3,7 @@ import { NsLogger } from './logging/logger'
 
 export async function main(ns: NS) {
 	const quietLogger = new NsLogger(ns)
+	const cooperative = async () => await ns.sleep(20 /* ms */)
 	const logger = new NsLogger(ns, true)
 
 	const [contractType, contractCount] = ns.args
@@ -30,9 +31,10 @@ export async function main(ns: NS) {
 
 		const start = performance.now()
 
-		const { known, result } = evaluateCct(
+		const { known, result } = await evaluateCct(
 			contractType,
 			data,
+			cooperative,
 			quietLogger.getLogger(),
 			true
 		)

@@ -2,8 +2,8 @@ import { expect } from 'chai'
 import { sumCombinations, SumInput } from './total-ways-to-sum2'
 
 describe('Total Ways to Sum II', () => {
-	const solveExample = (data: SumInput, expected: number) => () => {
-		const result = sumCombinations(data)
+	const solveExample = (data: SumInput, expected: number) => async () => {
+		const result = await sumCombinations(data, () => Promise.resolve())
 		expect(result).to.equal(expected)
 	}
 
