@@ -9,7 +9,7 @@ const { from } = IterableX
 
 const BudgetTicks = 6 /* 10s */
 const ToyBudgetMultiplier = 1 / 10_000_000 /* per minute */ / BudgetTicks
-const TooMuchRam = 2097152
+const MaxRam = 2 ** 20
 
 const Usd: Intl.NumberFormatOptions = { style: 'currency', currency: 'USD' }
 
@@ -64,10 +64,10 @@ export class ToyPurchaseService {
 		)
 
 		for (const server of purchasedServersByRam) {
-			const doubleRam = server.getMaxRam() * 2
-			if (doubleRam >= TooMuchRam) {
+			if (server.getMaxRam() >= MaxRam) {
 				break
 			}
+			const doubleRam = Math.min(MaxRam, server.getMaxRam() * 2)
 			const cost = this.ns.getPurchasedServerCost(doubleRam)
 			if (this.budget > cost) {
 				this.ns.killall(server.name)
