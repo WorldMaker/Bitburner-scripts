@@ -103,7 +103,7 @@ export async function evaluateCct(
 			return {
 				known: true,
 				attempt: true,
-				result: solveValidMathExpressions(data, cooperative),
+				result: await solveValidMathExpressions(data, cooperative),
 			}
 		case 'Find Largest Prime Factor':
 			return {
