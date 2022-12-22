@@ -23,8 +23,8 @@ async function* partition(
 		for await (const p of partition(n - i, cooperative, i)) {
 			yield [i, ...p]
 		}
-		await cooperative()
 	}
+	await cooperative()
 }
 
 export async function sumPartitions(
