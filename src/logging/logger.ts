@@ -32,7 +32,7 @@ export class NsLogger extends TemplateLogger {
 	}
 
 	hooray(strings: TemplateStringsArray, ...values: unknown[]) {
-		this.display('SUCCESS', ...interleaveArgs(strings, ...values))
+		this.display('SUCCESS ', ...interleaveArgs(strings, ...values))
 		return this.logger.log(69, 'SUCCESS', ...interleaveArgs(strings, ...values))
 	}
 }
