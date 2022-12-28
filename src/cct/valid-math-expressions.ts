@@ -30,7 +30,7 @@ import { toArray } from '@reactivex/ix-esnext-esm/asynciterable/toarray'
 
 export type MathExpressionInput = [string, number]
 
-const NotLeadingZeroRegex = /\d+[\+\*\-]/
+const NotLeadingZeroRegex = /0[\+\*\-]/
 
 async function* generatePossibleSolutions(
 	input: number[],

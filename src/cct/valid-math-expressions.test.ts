@@ -15,6 +15,14 @@ describe('Find All Valid Math Expressions', function () {
 			expect(result).to.deep.equal(expected)
 		}
 
+	const solveExampleLength =
+		(data: MathExpressionInput, expected: number) => async () => {
+			const result = await solveValidMathExpressions(data, () =>
+				Promise.resolve()
+			)
+			expect(result).to.have.length(expected)
+		}
+
 	it('solves given 123 example', solveExample(['123', 6], ['1*2*3', '1+2+3']))
 	it('solves given 105 example', solveExample(['105', 5], ['1*0+5', '10-5']))
 
@@ -669,7 +677,11 @@ describe('Find All Valid Math Expressions', function () {
 		)
 	)
 	it.skip(
-		'solves wild example 264810649091',
-		solveExample(['264810649091', 9], [])
+		'solves slow wild example 73282764099 without eval error',
+		solveExampleLength(['73282764099', 83], 1114)
+	)
+	it.skip(
+		'solves slow wild example 264810649091',
+		solveExampleLength(['264810649091', 9], 8603)
 	)
 })
