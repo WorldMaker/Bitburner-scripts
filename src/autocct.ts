@@ -4,6 +4,8 @@ import { simpleTargetFactory } from './models/target'
 import { ScannerService } from './services/scanner'
 import { ServerCacheService } from './services/server-cache'
 
+export const CooperativeThreadingTime = 1000 /* ms */
+
 export async function main(ns: NS) {
 	const [command, rawDepth] = ns.args
 
@@ -19,7 +21,14 @@ export async function main(ns: NS) {
 		depth
 	)
 
-	const cooperative = async () => await ns.sleep(20 /* ms */)
+	let lastCooperative = performance.now()
+	const cooperative = async () => {
+		const now = performance.now()
+		if (now - lastCooperative >= CooperativeThreadingTime) {
+			await ns.sleep(Math.random() * 1000 /* ms */)
+			lastCooperative = now
+		}
+	}
 
 	scannerService.scan()
 

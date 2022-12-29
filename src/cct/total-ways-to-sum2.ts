@@ -39,6 +39,7 @@ async function sumCombination(
 	let found = 0
 	let i = 0
 	let nextSum = sum
+
 	const baseInput = inputs[current]
 	while (nextSum <= target) {
 		if (nextSum === target) {
@@ -56,11 +57,12 @@ async function sumCombination(
 			cooperative,
 			current + 1
 		)
-		await cooperative()
 
 		i++
 		nextSum = sum + i * baseInput
 	}
+
+	await cooperative()
 	return found
 }
 
@@ -69,7 +71,7 @@ export async function sumCombinations(
 	cooperative: () => Promise<any>
 ) {
 	const [target, inputs] = data
-	inputs.sort()
+	inputs.sort((a, b) => b - a)
 	const combo = new Array(inputs.length).fill(0)
 	return await sumCombination(target, 0, inputs, combo, cooperative)
 }

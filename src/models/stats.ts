@@ -1,7 +1,7 @@
 import { DesiredHackingSkim } from './hackmath'
 import { Target } from './target'
 
-const targetHackingLevelMultiplier = 1 / 3
+const targetHackingLevelMultiplier = 1 / 2
 
 export interface Stats {
 	readonly hackingLevel: number
