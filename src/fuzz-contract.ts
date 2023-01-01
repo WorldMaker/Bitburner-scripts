@@ -16,6 +16,7 @@ export async function main(ns: NS) {
 		ns.codingcontract.createDummyContract(contractType)
 	}
 
+	const skiplist = new Set<string>()
 	const contracts = ns.ls('home', '.cct')
 	const elapsed: number[] = []
 	let successes = 0
@@ -36,6 +37,7 @@ export async function main(ns: NS) {
 			data,
 			cooperative,
 			quietLogger.getLogger(),
+			skiplist,
 			true
 		)
 
