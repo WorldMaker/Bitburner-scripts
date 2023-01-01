@@ -28,10 +28,10 @@ import { solveValidMathExpressions } from './valid-math-expressions'
 export interface CctEvaluation {
 	known: boolean
 	attempt: boolean
-	result: any
+	solver: () => Promise<any>
 }
 
-export async function evaluateCct(
+export function evaluateCct(
 	type: string,
 	data: any,
 	cooperative: (summarize: () => string) => Promise<any> = () =>
@@ -39,163 +39,163 @@ export async function evaluateCct(
 	logger?: Logger<any>,
 	skiplist = new Set<string>(),
 	allResults = false
-): Promise<CctEvaluation> {
+): CctEvaluation {
 	const attempt = allResults || !skiplist.has(type)
 	switch (type) {
 		case 'Algorithmic Stock Trader I':
 			return {
 				known: true,
 				attempt,
-				result: stockTrader1(data),
+				solver: async () => stockTrader1(data),
 			}
 		case 'Algorithmic Stock Trader II':
 			return {
 				known: true,
 				attempt,
-				result: stockTrader2(data),
+				solver: async () => stockTrader2(data),
 			}
 		case 'Algorithmic Stock Trader III':
 			return {
 				known: true,
 				attempt,
-				result: stocktrader3(data),
+				solver: async () => stocktrader3(data),
 			}
 		case 'Algorithmic Stock Trader IV':
 			return {
 				known: true,
 				attempt,
-				result: stockTrader4(data, logger),
+				solver: async () => stockTrader4(data, logger),
 			}
 		case 'Array Jumping Game':
 			return {
 				known: true,
 				attempt,
-				result: arrayJumpingGame1(data),
+				solver: async () => arrayJumpingGame1(data),
 			}
 		case 'Array Jumping Game II':
 			return {
 				known: true,
 				attempt,
-				result: arrayJumpingGame2(data, logger),
+				solver: async () => arrayJumpingGame2(data, logger),
 			}
 		case 'Compression I: RLE Compression':
 			return {
 				known: true,
 				attempt,
-				result: comp1rle(data),
+				solver: async () => comp1rle(data),
 			}
 		case 'Compression II: LZ Decompression':
 			return {
 				known: true,
 				attempt,
-				result: comp2lz(data, logger),
+				solver: async () => comp2lz(data, logger),
 			}
 		case 'Encryption I: Caesar Cipher':
 			return {
 				known: true,
 				attempt,
-				result: enc1caeser(data),
+				solver: async () => enc1caeser(data),
 			}
 		case 'Encryption II: Vigenère Cipher':
 			return {
 				known: true,
 				attempt,
-				result: enc2(data),
+				solver: async () => enc2(data),
 			}
 		case 'Find All Valid Math Expressions':
 			return {
 				known: true,
 				attempt,
-				result: await solveValidMathExpressions(data, cooperative),
+				solver: () => solveValidMathExpressions(data, cooperative),
 			}
 		case 'Find Largest Prime Factor':
 			return {
 				known: true,
 				attempt,
-				result: largestPrimeFactor(data),
+				solver: async () => largestPrimeFactor(data),
 			}
 		case 'Generate IP Addresses':
 			return {
 				known: true,
 				attempt,
-				result: solveGenerateIps(data),
+				solver: async () => solveGenerateIps(data),
 			}
 		case 'HammingCodes: Encoded Binary to Integer':
 			return {
 				known: true,
 				attempt,
-				result: decodeHamming(data),
+				solver: async () => decodeHamming(data),
 			}
 		case 'HammingCodes: Integer to Encoded Binary':
 			return {
 				known: true,
 				attempt,
-				result: encodeHamming(data),
+				solver: async () => encodeHamming(data),
 			}
 		case 'Merge Overlapping Intervals':
 			return {
 				known: true,
 				attempt,
-				result: mergeOverlappingIntervals(data),
+				solver: async () => mergeOverlappingIntervals(data),
 			}
 		case 'Minimum Path Sum in a Triangle':
 			return {
 				known: true,
 				attempt,
-				result: minimumTrianglePathSum(data, logger),
+				solver: async () => minimumTrianglePathSum(data, logger),
 			}
 		case 'Proper 2-Coloring of a Graph':
 			return {
 				known: true,
 				attempt,
-				result: colorBipartiteGraph(data),
+				solver: async () => colorBipartiteGraph(data),
 			}
 		case 'Shortest Path in a Grid':
 			return {
 				known: true,
 				attempt,
-				result: shortestGridPath(data),
+				solver: async () => shortestGridPath(data),
 			}
 		case 'Spiralize Matrix':
 			return {
 				known: true,
 				attempt,
-				result: spiralizeMatrix(data),
+				solver: async () => spiralizeMatrix(data),
 			}
 		case 'Subarray with Maximum Sum':
 			return {
 				known: true,
 				attempt,
-				result: subarrayMaximumSum(data, logger),
+				solver: async () => subarrayMaximumSum(data, logger),
 			}
 		case 'Total Ways to Sum':
 			return {
 				known: true,
 				attempt,
-				result: await sumPartitions(data, cooperative),
+				solver: () => sumPartitions(data, cooperative),
 			}
 		case 'Total Ways to Sum II':
 			return {
 				known: true,
 				attempt,
-				result: await sumCombinations(data, cooperative),
+				solver: () => sumCombinations(data, cooperative),
 			}
 		case 'Unique Paths in a Grid I':
 			return {
 				known: true,
 				attempt,
-				result: uniquePathsGrid1(data),
+				solver: async () => uniquePathsGrid1(data),
 			}
 		case 'Unique Paths in a Grid II':
 			return {
 				known: true,
 				attempt,
-				result: uniquePathsGrid2(data, logger),
+				solver: async () => uniquePathsGrid2(data, logger),
 			}
 	}
 	return {
 		known: false,
 		attempt: false,
-		result: undefined,
+		solver: async () => undefined,
 	}
 }

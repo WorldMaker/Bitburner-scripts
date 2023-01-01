@@ -15,6 +15,7 @@ export async function main(ns: NS) {
 	const depth = Number(rawDepth) ?? 100
 
 	let runonce = false
+	let showSkippedResults = false
 
 	if (command) {
 		switch (command) {
@@ -34,6 +35,7 @@ export async function main(ns: NS) {
 
 			case 'run':
 				runonce = true
+				showSkippedResults = true
 				break
 
 			default:
@@ -89,7 +91,7 @@ export async function main(ns: NS) {
 				for (const cctFile of cctFiles) {
 					const type = ns.codingcontract.getContractType(cctFile, server.name)
 					const data = ns.codingcontract.getData(cctFile, server.name)
-					const { known, attempt, result } = await evaluateCct(
+					const { known, attempt, solver } = evaluateCct(
 						type,
 						data,
 						cooperative,
@@ -100,7 +102,7 @@ export async function main(ns: NS) {
 					if (attempt || (known && force)) {
 						attempts++
 						const succeeded = ns.codingcontract.attempt(
-							result,
+							await solver(),
 							cctFile,
 							server.name,
 							{ returnReward: true }
@@ -125,8 +127,8 @@ export async function main(ns: NS) {
 						if (known) {
 							skips++
 							logger.log(`\t➖ ${cctFile} – ${type}: ${JSON.stringify(data)}`)
-							if (result) {
-								logger.log(`\t\t${JSON.stringify(result)}`)
+							if (showSkippedResults) {
+								logger.log(`\t\t${JSON.stringify(await solver())}`)
 							}
 						} else {
 							unknowns++

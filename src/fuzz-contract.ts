@@ -32,7 +32,7 @@ export async function main(ns: NS) {
 
 		const start = performance.now()
 
-		const { known, result } = await evaluateCct(
+		const { known, solver } = evaluateCct(
 			contractType,
 			data,
 			cooperative,
@@ -40,6 +40,8 @@ export async function main(ns: NS) {
 			skiplist,
 			true
 		)
+
+		const result = await solver()
 
 		const end = performance.now()
 
