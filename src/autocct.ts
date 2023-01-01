@@ -6,13 +6,51 @@ import { ServerCacheService } from './services/server-cache'
 
 export const CooperativeThreadingTime = 1000 /* ms */
 
+let running = false
+
 export async function main(ns: NS) {
 	const [command, rawDepth] = ns.args
 
-	const force = command === 'force'
+	let force = false
 	const depth = Number(rawDepth) ?? 100
 
-	const logger = new NsLogger(ns)
+	let runonce = false
+
+	if (command) {
+		switch (command) {
+			case 'stop':
+				running = false
+				return
+
+			case 'start':
+				running = false
+				ns.tail()
+				break
+
+			case 'force':
+				runonce = true
+				force = true
+				break
+
+			case 'run':
+				runonce = true
+				break
+
+			default:
+				ns.tprint(`WARN Unknown command ${command}`)
+				break
+		}
+	}
+
+	if (!runonce) {
+		if (running) {
+			return
+		}
+
+		running = true
+	}
+
+	const logger = new NsLogger(ns, runonce)
 	const servers = new ServerCacheService(ns, simpleTargetFactory)
 	const scannerService = new ScannerService(
 		ns,
@@ -20,78 +58,94 @@ export async function main(ns: NS) {
 		simpleTargetFactory,
 		depth
 	)
+	const skiplist = new Set<string>()
 
 	let lastCooperative = performance.now()
-	const cooperative = async () => {
+	const cooperative = async (summarize: () => string) => {
 		const now = performance.now()
 		if (now - lastCooperative >= CooperativeThreadingTime) {
+			logger.log(summarize())
 			await ns.sleep(Math.random() * 1000 /* ms */)
 			lastCooperative = now
 		}
 	}
 
-	scannerService.scan()
-
 	let successes = 0
 	let attempts = 0
-	let unknowns = 0
-	let skips = 0
+	let ran = false
 
-	for (const server of servers.values()) {
-		const cctFiles = ns.ls(server.name, '.cct')
-		if (cctFiles.length) {
-			logger.display(server.name)
-			for (const cctFile of cctFiles) {
-				const type = ns.codingcontract.getContractType(cctFile, server.name)
-				const data = ns.codingcontract.getData(cctFile, server.name)
-				const { known, attempt, result } = await evaluateCct(
-					type,
-					data,
-					cooperative,
-					logger.getLogger(),
-					force
-				)
-				if (attempt || (known && force)) {
-					attempts++
-					const succeeded = ns.codingcontract.attempt(
-						result,
-						cctFile,
-						server.name,
-						{ returnReward: true }
+	while ((runonce && !ran) || (!runonce && running)) {
+		ran = true
+
+		scannerService.scan()
+
+		let unknowns = 0
+		let skips = 0
+
+		for (const server of servers.values()) {
+			const cctFiles = ns.ls(server.name, '.cct')
+			if (cctFiles.length) {
+				logger.log(server.name)
+				for (const cctFile of cctFiles) {
+					const type = ns.codingcontract.getContractType(cctFile, server.name)
+					const data = ns.codingcontract.getData(cctFile, server.name)
+					const { known, attempt, result } = await evaluateCct(
+						type,
+						data,
+						cooperative,
+						logger.getLogger(),
+						skiplist,
+						force
 					)
-					if (succeeded) {
-						successes++
-						logger.display(`\t✔ ${cctFile} – ${type}: ${succeeded}`)
-					} else {
-						logger.display(`\t❌ ${cctFile} – ${type}: ${JSON.stringify(data)}`)
-					}
-
-					// add a tiny pause for the game's sake to keep from locking the terminal on long solutions
-					await ns.sleep(20 /* ms */)
-				} else {
-					if (known) {
-						skips++
-						logger.display(`\t➖ ${cctFile} – ${type}: ${JSON.stringify(data)}`)
-						if (result) {
-							logger.display(`\t\t${JSON.stringify(result)}`)
+					if (attempt || (known && force)) {
+						attempts++
+						const succeeded = ns.codingcontract.attempt(
+							result,
+							cctFile,
+							server.name,
+							{ returnReward: true }
+						)
+						if (succeeded) {
+							successes++
+							logger.display(
+								`\t✔ ${server.name}\t${cctFile} – ${type}: ${succeeded}`
+							)
+						} else {
+							logger.display(
+								`\t❌ ${server.name}\t${cctFile} – ${type}: ${JSON.stringify(
+									data
+								)}`
+							)
+							skiplist.add(type)
 						}
+
+						// add a tiny pause for the game's sake to keep from locking the terminal on long solutions
+						await cooperative(() => `attempting contracts on ${server.name}`)
 					} else {
-						unknowns++
-						logger.display(`\t❓ ${cctFile} – ${type}: ${JSON.stringify(data)}`)
+						if (known) {
+							skips++
+							logger.log(`\t➖ ${cctFile} – ${type}: ${JSON.stringify(data)}`)
+							if (result) {
+								logger.log(`\t\t${JSON.stringify(result)}`)
+							}
+						} else {
+							unknowns++
+							logger.log(`\t❓ ${cctFile} – ${type}: ${JSON.stringify(data)}`)
+						}
 					}
 				}
 			}
 		}
-	}
 
-	if (unknowns > 0 || skips > 0) {
-		logger.display(
-			`INFO ${unknowns} unknown contracts; ${skips} skipped contracts`
-		)
-	}
-	if (successes === attempts) {
-		logger.display(`SUCCESS ${successes}/${attempts} contracts completed`)
-	} else {
-		logger.display(`WARN ${successes}/${attempts} contracts completed`)
+		if (unknowns > 0 || skips > 0) {
+			logger.info`${unknowns} unknown contracts; ${skips} skipped contracts`
+		}
+		if (successes === attempts) {
+			logger.success`${successes}/${attempts} contracts completed`
+		} else {
+			logger.warn`${successes}/${attempts} contracts completed`
+		}
+
+		await ns.sleep(10 /* s */ * 1000 /* ms */)
 	}
 }

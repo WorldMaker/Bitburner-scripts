@@ -15,7 +15,7 @@ How many different distinct ways can the number 17 be written as a sum of at lea
 
 async function* partition(
 	n: number,
-	cooperative: () => Promise<any>,
+	cooperative: (summarize: () => string) => Promise<any>,
 	I = 1
 ): AsyncIterable<number[]> {
 	yield [n]
@@ -24,12 +24,12 @@ async function* partition(
 			yield [i, ...p]
 		}
 	}
-	await cooperative()
+	await cooperative(() => `partioning ${n}; ${I}`)
 }
 
 export async function sumPartitions(
 	input: number,
-	cooperative: () => Promise<any>
+	cooperative: (summarize: () => string) => Promise<any>
 ) {
 	let count = 0
 	for await (const p of partition(input, cooperative)) {
