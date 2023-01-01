@@ -20,6 +20,7 @@ export async function main(ns: NS) {
 		simpleTargetFactory,
 		depth
 	)
+	const skiplist = new Set<string>()
 
 	let lastCooperative = performance.now()
 	const cooperative = async (summarize: () => string) => {
@@ -50,6 +51,7 @@ export async function main(ns: NS) {
 					data,
 					cooperative,
 					logger.getLogger(),
+					skiplist,
 					force
 				)
 				if (attempt || (known && force)) {
@@ -65,6 +67,7 @@ export async function main(ns: NS) {
 						logger.display(`\t✔ ${cctFile} – ${type}: ${succeeded}`)
 					} else {
 						logger.display(`\t❌ ${cctFile} – ${type}: ${JSON.stringify(data)}`)
+						skiplist.add(type)
 					}
 
 					// add a tiny pause for the game's sake to keep from locking the terminal on long solutions

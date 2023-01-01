@@ -34,159 +34,162 @@ export interface CctEvaluation {
 export async function evaluateCct(
 	type: string,
 	data: any,
-	cooperative: (summarize: () => string) => Promise<any> = () => Promise.resolve(),
+	cooperative: (summarize: () => string) => Promise<any> = () =>
+		Promise.resolve(),
 	logger?: Logger<any>,
+	skiplist = new Set<string>(),
 	allResults = false
 ): Promise<CctEvaluation> {
+	const attempt = allResults || !skiplist.has(type)
 	switch (type) {
 		case 'Algorithmic Stock Trader I':
 			return {
 				known: true,
-				attempt: true,
+				attempt,
 				result: stockTrader1(data),
 			}
 		case 'Algorithmic Stock Trader II':
 			return {
 				known: true,
-				attempt: true,
+				attempt,
 				result: stockTrader2(data),
 			}
 		case 'Algorithmic Stock Trader III':
 			return {
 				known: true,
-				attempt: true,
+				attempt,
 				result: stocktrader3(data),
 			}
 		case 'Algorithmic Stock Trader IV':
 			return {
 				known: true,
-				attempt: true,
+				attempt,
 				result: stockTrader4(data, logger),
 			}
 		case 'Array Jumping Game':
 			return {
 				known: true,
-				attempt: true,
+				attempt,
 				result: arrayJumpingGame1(data),
 			}
 		case 'Array Jumping Game II':
 			return {
 				known: true,
-				attempt: true,
+				attempt,
 				result: arrayJumpingGame2(data, logger),
 			}
 		case 'Compression I: RLE Compression':
 			return {
 				known: true,
-				attempt: true,
+				attempt,
 				result: comp1rle(data),
 			}
 		case 'Compression II: LZ Decompression':
 			return {
 				known: true,
-				attempt: true,
+				attempt,
 				result: comp2lz(data, logger),
 			}
 		case 'Encryption I: Caesar Cipher':
 			return {
 				known: true,
-				attempt: true,
+				attempt,
 				result: enc1caeser(data),
 			}
 		case 'Encryption II: Vigenère Cipher':
 			return {
 				known: true,
-				attempt: true,
+				attempt,
 				result: enc2(data),
 			}
 		case 'Find All Valid Math Expressions':
 			return {
 				known: true,
-				attempt: true,
+				attempt,
 				result: await solveValidMathExpressions(data, cooperative),
 			}
 		case 'Find Largest Prime Factor':
 			return {
 				known: true,
-				attempt: true,
+				attempt,
 				result: largestPrimeFactor(data),
 			}
 		case 'Generate IP Addresses':
 			return {
 				known: true,
-				attempt: true,
+				attempt,
 				result: solveGenerateIps(data),
 			}
 		case 'HammingCodes: Encoded Binary to Integer':
 			return {
 				known: true,
-				attempt: true,
+				attempt,
 				result: decodeHamming(data),
 			}
 		case 'HammingCodes: Integer to Encoded Binary':
 			return {
 				known: true,
-				attempt: true,
+				attempt,
 				result: encodeHamming(data),
 			}
 		case 'Merge Overlapping Intervals':
 			return {
 				known: true,
-				attempt: true,
+				attempt,
 				result: mergeOverlappingIntervals(data),
 			}
 		case 'Minimum Path Sum in a Triangle':
 			return {
 				known: true,
-				attempt: true,
+				attempt,
 				result: minimumTrianglePathSum(data, logger),
 			}
 		case 'Proper 2-Coloring of a Graph':
 			return {
 				known: true,
-				attempt: true,
+				attempt,
 				result: colorBipartiteGraph(data),
 			}
 		case 'Shortest Path in a Grid':
 			return {
 				known: true,
-				attempt: true,
+				attempt,
 				result: shortestGridPath(data),
 			}
 		case 'Spiralize Matrix':
 			return {
 				known: true,
-				attempt: true,
+				attempt,
 				result: spiralizeMatrix(data),
 			}
 		case 'Subarray with Maximum Sum':
 			return {
 				known: true,
-				attempt: true,
+				attempt,
 				result: subarrayMaximumSum(data, logger),
 			}
 		case 'Total Ways to Sum':
 			return {
 				known: true,
-				attempt: true,
+				attempt,
 				result: await sumPartitions(data, cooperative),
 			}
 		case 'Total Ways to Sum II':
 			return {
 				known: true,
-				attempt: true,
+				attempt,
 				result: await sumCombinations(data, cooperative),
 			}
 		case 'Unique Paths in a Grid I':
 			return {
 				known: true,
-				attempt: true,
+				attempt,
 				result: uniquePathsGrid1(data),
 			}
 		case 'Unique Paths in a Grid II':
 			return {
 				known: true,
-				attempt: true,
+				attempt,
 				result: uniquePathsGrid2(data, logger),
 			}
 	}
