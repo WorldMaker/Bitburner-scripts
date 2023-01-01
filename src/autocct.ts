@@ -42,6 +42,14 @@ export async function main(ns: NS) {
 		}
 	}
 
+	if (!runonce) {
+		if (running) {
+			return
+		}
+
+		running = true
+	}
+
 	const logger = new NsLogger(ns, runonce)
 	const servers = new ServerCacheService(ns, simpleTargetFactory)
 	const scannerService = new ScannerService(
@@ -64,9 +72,10 @@ export async function main(ns: NS) {
 
 	let successes = 0
 	let attempts = 0
+	let ran = false
 
-	while (running || runonce) {
-		runonce = false
+	while ((runonce && !ran) || (!runonce && running)) {
+		ran = true
 
 		scannerService.scan()
 
@@ -76,7 +85,7 @@ export async function main(ns: NS) {
 		for (const server of servers.values()) {
 			const cctFiles = ns.ls(server.name, '.cct')
 			if (cctFiles.length) {
-				logger.display(server.name)
+				logger.log(server.name)
 				for (const cctFile of cctFiles) {
 					const type = ns.codingcontract.getContractType(cctFile, server.name)
 					const data = ns.codingcontract.getData(cctFile, server.name)
