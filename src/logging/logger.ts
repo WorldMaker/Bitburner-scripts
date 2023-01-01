@@ -3,7 +3,7 @@ import { interleaveArgs, TemplateLogger } from './template-logger'
 import { logArgs } from './tslog-util'
 
 export class NsLogger extends TemplateLogger {
-	constructor(private ns: NS, displayLogger = false) {
+	constructor(private ns: NS, private displayLogger = false) {
 		super(new Logger({ type: 'hidden' }, { nsDisplay: displayLogger }))
 		this.logger.attachTransport((logObj) => {
 			if (logObj.nsDisplay) {
@@ -25,6 +25,9 @@ export class NsLogger extends TemplateLogger {
 
 	log(...args: any[]) {
 		this.ns.print(...args)
+		if (this.displayLogger) {
+			this.ns.tprint(...args)
+		}
 	}
 
 	success(strings: TemplateStringsArray, ...values: unknown[]) {
