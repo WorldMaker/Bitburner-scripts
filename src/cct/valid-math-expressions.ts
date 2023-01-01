@@ -34,7 +34,7 @@ const NotLeadingZeroRegex = /0[\+\*\-]/
 
 async function* generatePossibleSolutions(
 	input: number[],
-	cooperative: () => Promise<any>,
+	cooperative: (summarize: () => string) => Promise<any>,
 	position = 0
 ): AsyncIterable<string> {
 	if (position >= input.length) {
@@ -124,21 +124,26 @@ async function* generatePossibleSolutions(
 			yield `${digit}*${nextDigit}*${solution}`
 		}
 	}
-	await cooperative()
+	await cooperative(
+		() =>
+			`generating combos of valid math expressions; position ${position}/${input.length}`
+	)
 }
 
 async function solve(
 	input: number[],
 	target: number,
-	cooperative: () => Promise<void>
+	cooperative: (summarize: () => string) => Promise<void>
 ) {
 	const solutions = AsyncIterableX.from(
 		generatePossibleSolutions(input, cooperative)
 	).pipe(
 		// "script precedence", so use eval() as simple, relative fast solution validator
 		filter((possibleSolution) => eval(possibleSolution) === target),
-		map(async (solution) => {
-			await cooperative()
+		map(async (solution, index) => {
+			await cooperative(
+				() => `testing for valid math expressions; found ${index}`
+			)
 			return solution
 		}),
 		orderBy((solution) => solution)
@@ -149,7 +154,7 @@ async function solve(
 export async function validMathExpressions(
 	text: string,
 	target: number,
-	cooperative: () => Promise<any>
+	cooperative: (summarize: () => string) => Promise<any>
 ) {
 	const input = text.split('').map((d) => parseInt(d, 10))
 	return await solve(input, target, cooperative)
@@ -157,7 +162,7 @@ export async function validMathExpressions(
 
 export async function solveValidMathExpressions(
 	data: MathExpressionInput,
-	cooperative: () => Promise<any>
+	cooperative: (summarize: () => string) => Promise<any>
 ) {
 	const [text, target] = data
 	const results = await validMathExpressions(text, target, cooperative)

@@ -34,7 +34,7 @@ export interface CctEvaluation {
 export async function evaluateCct(
 	type: string,
 	data: any,
-	cooperative: () => Promise<any> = () => Promise.resolve(),
+	cooperative: (summarize: () => string) => Promise<any> = () => Promise.resolve(),
 	logger?: Logger<any>,
 	allResults = false
 ): Promise<CctEvaluation> {

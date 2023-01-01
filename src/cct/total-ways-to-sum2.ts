@@ -17,7 +17,7 @@ async function sumCombination(
 	sum: number,
 	inputs: number[],
 	combo: number[],
-	cooperative: () => Promise<any>,
+	cooperative: (summarize: () => string) => Promise<any>,
 	current = 0
 ): Promise<number> {
 	if (sum === target) {
@@ -62,13 +62,15 @@ async function sumCombination(
 		nextSum = sum + i * baseInput
 	}
 
-	await cooperative()
+	await cooperative(
+		() => `summing combinations; ${current}/${inputs.length}; found ${found}`
+	)
 	return found
 }
 
 export async function sumCombinations(
 	data: SumInput,
-	cooperative: () => Promise<any>
+	cooperative: (summarize: () => string) => Promise<any>
 ) {
 	const [target, inputs] = data
 	inputs.sort((a, b) => b - a)

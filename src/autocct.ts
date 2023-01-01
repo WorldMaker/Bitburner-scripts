@@ -22,9 +22,10 @@ export async function main(ns: NS) {
 	)
 
 	let lastCooperative = performance.now()
-	const cooperative = async () => {
+	const cooperative = async (summarize: () => string) => {
 		const now = performance.now()
 		if (now - lastCooperative >= CooperativeThreadingTime) {
+			logger.log(summarize())
 			await ns.sleep(Math.random() * 1000 /* ms */)
 			lastCooperative = now
 		}
