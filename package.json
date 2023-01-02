@@ -7,7 +7,9 @@
 	"scripts": {
 		"pretypecheck": "npm run prettier:check",
 		"typecheck": "tsc -p tsconfig.json",
-		"prebuild": "npm run typecheck",
+		"prelint": "npm run typecheck",
+		"lint": "eslint src/**/*.ts",
+		"prebuild": "npm run lint",
 		"build": "node ./esbuild.mjs",
 		"pretest": "npm run build",
 		"test": "mocha --recursive",
