@@ -6,5 +6,5 @@
 		"forceConsistentCasingInFileNames": true,
 		"moduleResolution": "node"
 	},
-	"include": ["lib.d.ts", "src/**/*.ts"]
+	"include": ["bitburner.d.ts", "src/**/*.ts"]
 }

@@ -1,17 +1,10 @@
-import {
-	Cities,
-	Company,
-	Jobs,
-	MyCompany,
-	StartingCity,
-} from '../../models/corporation'
+import { Company, MyCompany, StartingCity } from '../../models/corporation'
 import { NsLogger } from '../../logging/logger'
 import { PhaseManager } from './phase'
 
 const SmartSupply = 'Smart Supply'
 const SellAll = 'MAX'
 const SellAtMarketPrice = 'MP'
-const StartingEmployees = 3
 
 export class UnstartedPhaseManager implements PhaseManager {
 	constructor(
@@ -37,7 +30,7 @@ export class UnstartedPhaseManager implements PhaseManager {
 			MyCompany.MaterialDivision.Name
 		)
 		this.ns.corporation.unlockUpgrade(SmartSupply)
-		for (const city of Cities) {
+		for (const city of Object.values(this.ns.enums.CityName)) {
 			if (city !== StartingCity) {
 				this.ns.corporation.expandCity(MyCompany.MaterialDivision.Name, city)
 				this.ns.corporation.purchaseWarehouse(
@@ -59,21 +52,25 @@ export class UnstartedPhaseManager implements PhaseManager {
 					SellAtMarketPrice
 				)
 			}
-			for (let i = 0; i < StartingEmployees; i++) {
-				const newEmployee = this.ns.corporation.hireEmployee(
-					MyCompany.MaterialDivision.Name,
-					city
-				)
-				// first three jobs should be Operations, Engineer, Business
-				if (newEmployee) {
-					this.ns.corporation.assignJob(
-						MyCompany.MaterialDivision.Name,
-						city,
-						newEmployee.name,
-						Jobs[i]
-					)
-				}
-			}
+			// first three jobs should be Operations, Engineer, Business
+			this.ns.corporation.setAutoJobAssignment(
+				MyCompany.MaterialDivision.Name,
+				city,
+				'Operations',
+				1
+			)
+			this.ns.corporation.setAutoJobAssignment(
+				MyCompany.MaterialDivision.Name,
+				city,
+				'Engineer',
+				1
+			)
+			this.ns.corporation.setAutoJobAssignment(
+				MyCompany.MaterialDivision.Name,
+				city,
+				'Business',
+				1
+			)
 		}
 		this.ns.corporation.hireAdVert(MyCompany.MaterialDivision.Name)
 		return Promise.resolve()
