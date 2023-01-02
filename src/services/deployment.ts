@@ -23,7 +23,7 @@ export class DeploymentService {
 		const servers = this.scannerService.scan()
 
 		// hack the planet
-		let rooted = new Set<Target>()
+		const rooted = new Set<Target>()
 
 		for (const server of servers) {
 			if (this.hackerService.rootServer(server)) {

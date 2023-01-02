@@ -24,9 +24,10 @@ export async function main(ns: NS) {
 			for (const server of servers) {
 				logger.display(`${server.name}\t${stats.getTargetEfficiency(server)}`)
 			}
+			break
 		case 'targets':
 		default:
-			let rooted = new Set<Target>()
+			const rooted = new Set<Target>()
 
 			for (const server of servers) {
 				if (ns.hasRootAccess(server.name)) {

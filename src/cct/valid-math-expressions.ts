@@ -27,14 +27,15 @@ import { filter } from '@reactivex/ix-esnext-esm/asynciterable/operators/filter'
 import { orderBy } from '@reactivex/ix-esnext-esm/asynciterable/operators/orderby'
 import { map } from '@reactivex/ix-esnext-esm/asynciterable/operators/map'
 import { toArray } from '@reactivex/ix-esnext-esm/asynciterable/toarray'
+import { Cooperative } from '.'
 
 export type MathExpressionInput = [string, number]
 
-const NotLeadingZeroRegex = /0[\+\*\-]/
+const NotLeadingZeroRegex = /0[+*-]/
 
 async function* generatePossibleSolutions(
 	input: number[],
-	cooperative: (summarize: () => string) => Promise<any>,
+	cooperative: Cooperative,
 	position = 0
 ): AsyncIterable<string> {
 	if (position >= input.length) {
@@ -133,7 +134,7 @@ async function* generatePossibleSolutions(
 async function solve(
 	input: number[],
 	target: number,
-	cooperative: (summarize: () => string) => Promise<void>
+	cooperative: Cooperative
 ) {
 	const solutions = AsyncIterableX.from(
 		generatePossibleSolutions(input, cooperative)
@@ -154,7 +155,7 @@ async function solve(
 export async function validMathExpressions(
 	text: string,
 	target: number,
-	cooperative: (summarize: () => string) => Promise<any>
+	cooperative: Cooperative
 ) {
 	const input = text.split('').map((d) => parseInt(d, 10))
 	return await solve(input, target, cooperative)
@@ -162,7 +163,7 @@ export async function validMathExpressions(
 
 export async function solveValidMathExpressions(
 	data: MathExpressionInput,
-	cooperative: (summarize: () => string) => Promise<any>
+	cooperative: Cooperative
 ) {
 	const [text, target] = data
 	const results = await validMathExpressions(text, target, cooperative)

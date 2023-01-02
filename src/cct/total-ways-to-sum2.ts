@@ -10,6 +10,8 @@ How many different distinct ways can the number 82 be written as a sum of intege
 You may use each integer in the set zero or more times.
 */
 
+import { Cooperative } from '.'
+
 export type SumInput = [number, number[]]
 
 async function sumCombination(
@@ -17,7 +19,7 @@ async function sumCombination(
 	sum: number,
 	inputs: number[],
 	combo: number[],
-	cooperative: (summarize: () => string) => Promise<any>,
+	cooperative: Cooperative,
 	current = 0
 ): Promise<number> {
 	if (sum === target) {
@@ -70,7 +72,7 @@ async function sumCombination(
 
 export async function sumCombinations(
 	data: SumInput,
-	cooperative: (summarize: () => string) => Promise<any>
+	cooperative: Cooperative
 ) {
 	const [target, inputs] = data
 	inputs.sort((a, b) => b - a)

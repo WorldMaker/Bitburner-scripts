@@ -2,7 +2,7 @@ import { Target } from './models/target'
 
 const currentTargetActions = 10
 
-let nextTarget: string = 'n00dles'
+let nextTarget = 'n00dles'
 let running = false
 
 export async function main(ns: NS) {

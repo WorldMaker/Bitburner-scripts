@@ -214,12 +214,12 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 
 				let safeBatchCount = 0
 				let lastBatchEnd = 0
-				let lastBatch: Batch<any> | null = null
+				let lastBatch: Batch<BatchType> | null = null
 				for (const batch of batches) {
 					if (!batch.isSafe()) {
 						this.logger.warn`desync ${target.name} ${batch.type}`
 						for (const { server, process } of batch.getProcesses()!) {
-							let killlist = killProcesses.get(server.name) ?? []
+							const killlist = killProcesses.get(server.name) ?? []
 							killlist.push(process)
 							killProcesses.set(server.name, killlist)
 						}
@@ -334,7 +334,7 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 
 			const deployServers: Array<{ server: Target; deploy: DeployPlan }>[] = []
 			for (const deploy of batchDeployments.deploys) {
-				let nextfreelist: FreeRam[] = []
+				const nextfreelist: FreeRam[] = []
 				let threadsNeeded = deploy.threads
 				const curDeployServers: Array<{ server: Target; deploy: DeployPlan }> =
 					[]

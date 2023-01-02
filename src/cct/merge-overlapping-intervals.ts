@@ -35,7 +35,7 @@ export function mergeOverlappingIntervals(data: [number, number][]) {
 	const results: [number, number][] = []
 	let [curmin, curmax] = sorted.shift()!
 	while (sorted.length > 0) {
-		let [min, max] = sorted.shift()!
+		const [min, max] = sorted.shift()!
 		if (curmin <= min && min <= curmax) {
 			curmax = Math.max(curmax, max)
 		} else {

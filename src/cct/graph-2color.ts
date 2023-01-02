@@ -24,7 +24,7 @@ export interface ColorNode {
 	color: number | null
 }
 
-function colorNode(graph: ColorNode[], id: number, color: number = 0): boolean {
+function colorNode(graph: ColorNode[], id: number, color = 0): boolean {
 	const node = graph[id]
 	let valid = true
 	if (node.color === null) {

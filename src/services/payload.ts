@@ -2,8 +2,6 @@ import { getBatchArgs } from '../models/batch.js'
 import { PayloadPlan } from '../models/payload-plan.js'
 
 export class PayloadService {
-	constructor() {}
-
 	deliverAll(plans: Iterable<PayloadPlan>) {
 		let delivered = 0
 		for (const plan of plans) {

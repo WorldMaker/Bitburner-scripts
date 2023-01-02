@@ -13,9 +13,11 @@ It is possible write four as a sum in exactly four different ways:
 How many different distinct ways can the number 17 be written as a sum of at least two positive integers?
 */
 
+import { Cooperative } from '.'
+
 async function* partition(
 	n: number,
-	cooperative: (summarize: () => string) => Promise<any>,
+	cooperative: Cooperative,
 	I = 1
 ): AsyncIterable<number[]> {
 	yield [n]
@@ -27,10 +29,7 @@ async function* partition(
 	await cooperative(() => `partioning ${n}; ${I}`)
 }
 
-export async function sumPartitions(
-	input: number,
-	cooperative: (summarize: () => string) => Promise<any>
-) {
+export async function sumPartitions(input: number, cooperative: Cooperative) {
 	let count = 0
 	for await (const p of partition(input, cooperative)) {
 		if (p.length > 1) {

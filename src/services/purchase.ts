@@ -1,4 +1,4 @@
-import { LazyTarget, Target } from '../models/target.js'
+import { LazyTarget } from '../models/target.js'
 import { ServerCacheService } from './server-cache.js'
 
 const PurchasedServerRamMultiplier = 0.015625

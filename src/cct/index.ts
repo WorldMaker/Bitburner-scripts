@@ -32,11 +32,12 @@ export interface CctEvaluation {
 	solver: () => Promise<any>
 }
 
+export type Cooperative = (summarize: () => string) => Promise<unknown>
+
 export function evaluateCct(
 	type: string,
 	data: any,
-	cooperative: (summarize: () => string) => Promise<any> = () =>
-		Promise.resolve(),
+	cooperative: Cooperative = () => Promise.resolve(),
 	logger?: Logger<any>,
 	skiplist = new Set<string>(),
 	allResults = false

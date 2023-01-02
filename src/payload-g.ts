@@ -1,4 +1,4 @@
-let target: string = 'n00dles'
+let target = 'n00dles'
 let securityThreshold = 0
 let running = false
 

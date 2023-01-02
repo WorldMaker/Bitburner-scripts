@@ -36,8 +36,8 @@ export class BadBatch implements Batch<'bad'> {
 	}
 
 	plan(
-		expectedMoneyAvailable: number,
-		expectedSecurityLevel: number
+		_expectedMoneyAvailable: number,
+		_expectedSecurityLevel: number
 	): BatchPlans {
 		throw new Error('Attempted to plan a Bad Batch')
 	}
