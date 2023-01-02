@@ -12,6 +12,7 @@ import { encodeHamming } from './hamming-encode'
 import { largestPrimeFactor } from './largest-prime-factor'
 import { mergeOverlappingIntervals } from './merge-overlapping-intervals'
 import { minimumTrianglePathSum } from './min-triangle-path-sum'
+import { sanitizeParentheses } from './sanitize-parentheses'
 import { shortestGridPath } from './shortest-path-grid'
 import { spiralizeMatrix } from './spiralize-matrix'
 import { stockTrader1 } from './stock-trader1'
@@ -149,6 +150,12 @@ export function evaluateCct(
 				known: true,
 				attempt,
 				solver: async () => colorBipartiteGraph(data),
+			}
+		case 'Sanitize Parentheses in Expression':
+			return {
+				known: true,
+				attempt,
+				solver: async () => sanitizeParentheses(data, logger),
 			}
 		case 'Shortest Path in a Grid':
 			return {
