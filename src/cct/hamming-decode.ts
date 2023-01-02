@@ -22,7 +22,7 @@ export function decodeHamming(data: string) {
 	let parity = 0
 	let checkbits = 0
 
-	let bits = [...data]
+	const bits = [...data]
 
 	for (let i = 0; i < bits.length; i++) {
 		parity = bits[i] === '1' ? parity ^ 1 : parity ^ 0
@@ -43,7 +43,7 @@ export function decodeHamming(data: string) {
 		}
 	}
 
-	let result: string[] = []
+	const result: string[] = []
 	for (let i = 3; i < bits.length; i++) {
 		if (!isPowerOf2(i)) {
 			result.push(bits[i])

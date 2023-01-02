@@ -1,4 +1,4 @@
-import { BoostMaterial, Cities, Company } from '../../models/corporation'
+import { BoostMaterial, Company } from '../../models/corporation'
 import { NsLogger } from '../../logging/logger'
 import { BasePhaseManager } from './base-phase'
 

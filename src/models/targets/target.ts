@@ -152,31 +152,31 @@ export class Target {
 	}
 
 	checkRunning(
-		script: FilenameOrPID,
-		...args: (string | number | boolean)[]
+		_script: FilenameOrPID,
+		..._args: (string | number | boolean)[]
 	): boolean {
 		throw new Error('Not implemented in base Target')
 	}
 
-	copyFiles(files: string | string[], source?: string): boolean {
+	copyFiles(_files: string | string[], _source?: string): boolean {
 		throw new Error('Not implemented in base Target')
 	}
 
-	clearProcesses(safetyGuard?: boolean): boolean {
+	clearProcesses(_safetyGuard?: boolean): boolean {
 		throw new Error('Not implemented in base Target')
 	}
 
 	clearProcess(
-		script: string,
-		...args: (string | number | boolean)[]
+		_script: string,
+		..._args: (string | number | boolean)[]
 	): boolean {
 		throw new Error('Not implemented in base Target')
 	}
 
 	startProcess(
-		script: string,
-		threads = 1,
-		...args: (string | number | boolean)[]
+		_script: string,
+		_threads = 1,
+		..._args: (string | number | boolean)[]
 	): number {
 		throw new Error('Not implemented in base Target')
 	}

@@ -32,7 +32,7 @@ export class ProductRound3Manager
 			return
 		}
 
-		let availableResearch = productDivision.research
+		const availableResearch = productDivision.research
 		for (const research of DesiredResearch) {
 			this.researchDesired++
 			if (this.ns.corporation.hasResearched(productDivision.name, research)) {

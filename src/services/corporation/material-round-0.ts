@@ -47,7 +47,9 @@ export class MaterialRound0Manager
 	assignEmployees(materialDivision: Division, city: string) {
 		const office = this.ns.corporation.getOffice(materialDivision.name, city)
 		if (office.employeeJobs.Unassigned > 0) {
-			while (this.ns.corporation.hireEmployee(materialDivision.name, city)) {}
+			while (this.ns.corporation.hireEmployee(materialDivision.name, city)) {
+				// keep hiring
+			}
 			this.ns.corporation.setAutoJobAssignment(
 				materialDivision.name,
 				city,
@@ -108,7 +110,10 @@ export class MaterialRound0Manager
 				// Office API may not be available yet
 				try {
 					this.assignEmployees(materialDivision, city)
-				} catch {}
+				} catch (err) {
+					this.logger
+						.warn`Unable to assign employees in material division; ${err}`
+				}
 				const warehouseCost = this.ns.corporation.getPurchaseWarehouseCost()
 				if (this.funds >= warehouseCost) {
 					this.ns.corporation.purchaseWarehouse(materialDivision.name, city)

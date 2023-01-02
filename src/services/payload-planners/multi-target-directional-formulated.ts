@@ -314,7 +314,7 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 		let curfreelist = from(freelist)
 		for (const { target, app, threads: targetThreads } of needsThreads) {
 			let needFulfilled = targetThreads
-			let nextfreelist: FreeRam[] = []
+			const nextfreelist: FreeRam[] = []
 			let attacked = false
 
 			for (const { server, available, running } of curfreelist) {

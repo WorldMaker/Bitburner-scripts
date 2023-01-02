@@ -10,7 +10,7 @@ export class PathfinderService {
 		suffix: string[] = [],
 		visited = new Set<string>()
 	): Iterable<string[]> {
-		for (var parent of target.getParents()) {
+		for (const parent of target.getParents()) {
 			if (parent === 'home') {
 				yield [target.name, ...suffix]
 				return
