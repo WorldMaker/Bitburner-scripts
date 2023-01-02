@@ -1,5 +1,4 @@
 import {
-	Cities,
 	Company,
 	LevelUpgrades,
 	ProductDevelopment,
@@ -89,7 +88,7 @@ export class ProductPurchaseService {
 			productDivision.name,
 			ProductDevelopment.City
 		)
-		for (const city of Cities) {
+		for (const city of Object.values(this.ns.enums.CityName)) {
 			if (city !== ProductDevelopment.City) {
 				const office = this.ns.corporation.getOffice(productDivision.name, city)
 				const researchSize =
@@ -123,7 +122,7 @@ export class ProductPurchaseService {
 		)
 		if (this.hasEnoughBaselineResearch) {
 			let researchBudget = productDivision.research * AdditionalResearchBudget
-			for (const research of this.ns.corporation.getResearchNames()) {
+			for (const research of this.ns.corporation.getConstants().researchNames) {
 				if (
 					!this.ns.corporation.hasResearched(productDivision.name, research)
 				) {

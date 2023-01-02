@@ -53,9 +53,7 @@ export async function main(ns: NS) {
 		const time = start - end
 		elapsed.push(time)
 
-		const success = ns.codingcontract.attempt(result, contract, 'home', {
-			returnReward: true,
-		})
+		const success = ns.codingcontract.attempt(result, contract, 'home')
 
 		if (success) {
 			logger.success`✔ in ${time} given ${data}: ${success}`

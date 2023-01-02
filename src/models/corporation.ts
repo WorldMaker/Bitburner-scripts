@@ -15,13 +15,6 @@ export const MyCompany = Object.freeze({
 	}),
 })
 
-export const Jobs = [
-	'Operations',
-	'Engineer',
-	'Business',
-	'Management',
-	'Research & Development',
-]
 export const BoostMaterials = Object.freeze({
 	Hardware: 'Hardware',
 	Robots: 'Robots',
@@ -42,14 +35,6 @@ export const LevelUpgrades = Object.freeze({
 	ProjectInsight: 'Project Insight',
 })
 export type LevelUpgrade = typeof LevelUpgrades[keyof typeof LevelUpgrades]
-export const Cities = [
-	'Aevum',
-	'Chongqing',
-	'New Tokyo',
-	'Sector-12',
-	'Ishima',
-	'Volhaven',
-]
 export const StartingCity = 'Sector-12'
 export const ProductDevelopment = Object.freeze({
 	City: 'Aevum',
@@ -110,6 +95,11 @@ export class Company {
 	}
 
 	updateState() {
+		if (!this.ns.corporation.hasCorporation()) {
+			this.corp = null
+			this.state = 'Unstarted'
+			return
+		}
 		try {
 			this.corp = this.ns.corporation.getCorporation()
 		} catch {
@@ -117,7 +107,8 @@ export class Company {
 			this.state = 'Unstarted'
 			return
 		}
-		for (const division of this.corp.divisions) {
+		for (const divisionName of this.corp.divisions) {
+			const division = this.ns.corporation.getDivision(divisionName)
 			this.divisionsByType.set(division.type, division)
 		}
 		if (this.corp.public) {

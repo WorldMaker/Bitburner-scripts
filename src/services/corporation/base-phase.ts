@@ -1,8 +1,7 @@
 import { IterableX } from '@reactivex/ix-esnext-esm/iterable/iterablex'
-import { flatMap } from '@reactivex/ix-esnext-esm/iterable/operators/flatmap'
 import { map } from '@reactivex/ix-esnext-esm/iterable/operators/map'
 import { reduce } from '@reactivex/ix-esnext-esm/iterable/reduce'
-import { Cities, Company, LevelUpgrade } from '../../models/corporation'
+import { Company, LevelUpgrade } from '../../models/corporation'
 import { NsLogger } from '../../logging/logger'
 
 const { from } = IterableX
@@ -45,22 +44,17 @@ export class BasePhaseManager {
 	}
 
 	checkMorale(materialDivision: Division) {
+		const cities = Object.values(this.ns.enums.CityName)
 		const counts = reduce(
-			from(Cities).pipe(
-				flatMap((city) =>
-					from(
-						this.ns.corporation.getOffice(materialDivision.name, city).employees
-					).pipe(
-						map((name) =>
-							this.ns.corporation.getEmployee(materialDivision.name, city, name)
-						)
-					)
+			from(cities).pipe(
+				map((city) =>
+					this.ns.corporation.getOffice(materialDivision.name, city)
 				)
 			),
 			(acc, cur) => ({
-				mor: acc.mor + cur.mor,
-				hap: acc.hap + cur.hap,
-				ene: acc.ene + cur.ene,
+				mor: acc.mor + cur.avgMor,
+				hap: acc.hap + cur.avgHap,
+				ene: acc.ene + cur.avgMor,
 				total: acc.total + 1,
 			}),
 			{ mor: 0, hap: 0, ene: 0, total: 0 }

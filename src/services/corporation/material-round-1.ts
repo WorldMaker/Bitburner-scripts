@@ -1,7 +1,6 @@
 import {
 	BoostMaterial,
 	BoostMaterials,
-	Cities,
 	Company,
 	LevelUpgrade,
 	LevelUpgrades,
@@ -37,7 +36,7 @@ export class MaterialRound1Manager
 	}
 
 	increaseHeadCount(materialDivision: Division) {
-		for (const city of Cities) {
+		for (const city of Object.values(this.ns.enums.CityName)) {
 			const office = this.ns.corporation.getOffice(materialDivision.name, city)
 			if (office.size < 9) {
 				this.ns.corporation.upgradeOfficeSize(
@@ -83,7 +82,7 @@ export class MaterialRound1Manager
 	}
 
 	reassignResearch(materialDivision: Division) {
-		for (const city of Cities) {
+		for (const city of Object.values(this.ns.enums.CityName)) {
 			this.ns.corporation.setAutoJobAssignment(
 				materialDivision.name,
 				city,

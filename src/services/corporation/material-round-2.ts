@@ -1,7 +1,6 @@
 import {
 	BoostMaterial,
 	BoostMaterials,
-	Cities,
 	Company,
 	MyCompany,
 	ProductDevelopment,
@@ -62,7 +61,7 @@ export class MaterialRound2Manager
 			MyCompany.ProductDivision.Type,
 			MyCompany.ProductDivision.Name
 		)
-		for (const city of Cities) {
+		for (const city of Object.values(this.ns.enums.CityName)) {
 			if (city !== StartingCity) {
 				this.ns.corporation.expandCity(MyCompany.ProductDivision.Name, city)
 			}

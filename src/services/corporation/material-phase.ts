@@ -55,7 +55,7 @@ export class MaterialPhaseManager extends BasePhaseManager {
 		materialDivision: Division,
 		desiredMaterial: DesiredMaterial
 	) {
-		let buyCity: string | null = null
+		let buyCity: CityName | null = null
 		let buyMaterial: string | null = null
 
 		for (const city of materialDivision.cities) {

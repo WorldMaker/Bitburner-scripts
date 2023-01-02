@@ -106,8 +106,7 @@ export async function main(ns: NS) {
 							succeeded = ns.codingcontract.attempt(
 								await solver(),
 								cctFile,
-								server.name,
-								{ returnReward: true }
+								server.name
 							)
 						} catch (err) {
 							logger.error`Error solving ${type}: ${err}`
