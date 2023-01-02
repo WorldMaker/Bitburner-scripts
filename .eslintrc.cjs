@@ -18,5 +18,6 @@ module.exports = {
 	plugins: ['@typescript-eslint'],
 	rules: {
 		'no-case-declarations': 'warn',
+		'no-fallthrough': 'warn',
 	},
 }
