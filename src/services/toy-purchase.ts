@@ -9,6 +9,8 @@ const { from } = IterableX
 
 const BudgetTicks = 6 /* 10s */
 const ToyBudgetMultiplier = 1 / 10_000_000 /* per minute */ / BudgetTicks
+const HacknetBudgetThreshold = 10_000_000
+const HacknetBudgetMultiplier = 1 / 3 /* per minute */ / BudgetTicks
 const MaxRam = 2 ** 20
 
 const Usd: Intl.NumberFormatOptions = { style: 'currency', currency: 'USD' }
@@ -37,10 +39,32 @@ export class ToyPurchaseService {
 		if (this.budget === null) {
 			return
 		}
+
+		// *** Base Toy Budget ***
+
 		const moneyAvailable = this.servers.getHome().checkMoneyAvailable()
 		const budgetPerTick = moneyAvailable * ToyBudgetMultiplier
+
 		this.budget += budgetPerTick
 		this.budgetPerMinute = Math.round(budgetPerTick * BudgetTicks)
+
+		// *** Hacknet Production Bonus ***
+
+		if (moneyAvailable > HacknetBudgetThreshold) {
+			let hacknetProduction = 0
+			for (let i = 0; i < this.ns.hacknet.numNodes(); i++) {
+				hacknetProduction += this.ns.hacknet.getNodeStats(i).production
+			}
+			const hacknetProductionPerMinute = hacknetProduction * 60 /* s */
+			const hacknetBudgetPerTick =
+				hacknetProductionPerMinute * HacknetBudgetMultiplier
+			if (hacknetBudgetPerTick < moneyAvailable - this.budget) {
+				this.budget += hacknetBudgetPerTick
+				this.budgetPerMinute += Math.round(hacknetBudgetPerTick * BudgetTicks)
+			}
+		}
+
+		// *** Bankruptcy Check ***
 
 		if (this.budget > moneyAvailable) {
 			// bankruptcy
