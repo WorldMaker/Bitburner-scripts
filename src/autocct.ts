@@ -101,12 +101,17 @@ export async function main(ns: NS) {
 					)
 					if (attempt || (known && force)) {
 						attempts++
-						const succeeded = ns.codingcontract.attempt(
-							await solver(),
-							cctFile,
-							server.name,
-							{ returnReward: true }
-						)
+						let succeeded: string | boolean = false
+						try {
+							succeeded = ns.codingcontract.attempt(
+								await solver(),
+								cctFile,
+								server.name,
+								{ returnReward: true }
+							)
+						} catch (err) {
+							logger.error`Error solving ${type}: ${err}`
+						}
 						if (succeeded) {
 							successes++
 							logger.display(
