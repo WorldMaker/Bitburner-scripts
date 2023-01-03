@@ -4,7 +4,7 @@ import { simpleTargetFactory } from './models/target'
 import { ScannerService } from './services/scanner'
 import { ServerCacheService } from './services/server-cache'
 
-export const CooperativeThreadingTime = 1000 /* ms */
+const CooperativeThreadingTime = 1000 /* ms */
 
 let running = false
 
@@ -62,9 +62,9 @@ export async function main(ns: NS) {
 	)
 	const skiplist = new Set<string>()
 
-	let lastCooperative = performance.now()
+	let lastCooperative = Date.now()
 	const cooperative = async (summarize: () => string) => {
-		const now = performance.now()
+		const now = Date.now()
 		if (now - lastCooperative >= CooperativeThreadingTime) {
 			logger.log(summarize())
 			await ns.sleep(Math.random() * 1000 /* ms */)

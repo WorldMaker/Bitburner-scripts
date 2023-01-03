@@ -1,10 +1,21 @@
 import { evaluateCct } from './cct'
 import { NsLogger } from './logging/logger'
 
+const CooperativeThreadingTime = 1000 /* ms */
+
 export async function main(ns: NS) {
 	const quietLogger = new NsLogger(ns)
-	const cooperative = async () => await ns.sleep(20 /* ms */)
 	const logger = new NsLogger(ns, true)
+
+	let lastCooperative = Date.now()
+	const cooperative = async (summarize: () => string) => {
+		const now = Date.now()
+		if (now - lastCooperative >= CooperativeThreadingTime) {
+			logger.log(summarize())
+			await ns.sleep(Math.random() * 1000 /* ms */)
+			lastCooperative = now
+		}
+	}
 
 	const [contractType, contractCount] = ns.args
 	if (typeof contractType !== 'string' || typeof contractCount !== 'number') {
