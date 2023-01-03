@@ -2,7 +2,6 @@ import { IterableX } from '@reactivex/ix-esnext-esm/iterable/iterablex'
 import { filter } from '@reactivex/ix-esnext-esm/iterable/operators/filter'
 import { orderBy } from '@reactivex/ix-esnext-esm/iterable/operators/orderby'
 import { NsLogger } from '../logging/logger'
-import { LazyTarget } from '../models/target'
 import { ServerCacheService } from './server-cache'
 
 const { from } = IterableX
@@ -92,15 +91,9 @@ export class ToyPurchaseService {
 				break
 			}
 			const doubleRam = Math.min(MaxRam, server.getMaxRam() * 2)
-			const cost = this.ns.getPurchasedServerCost(doubleRam)
+			const cost = this.ns.getPurchasedServerUpgradeCost(server.name, doubleRam)
 			if (this.budget > cost) {
-				this.ns.killall(server.name)
-				if (this.ns.deleteServer(server.name)) {
-					const hostname = this.ns.purchaseServer(server.name, doubleRam)
-					this.budget -= cost
-					this.servers.set(new LazyTarget(this.ns, hostname, true))
-					break
-				}
+				this.ns.upgradePurchasedServer(server.name, doubleRam)
 			}
 		}
 
