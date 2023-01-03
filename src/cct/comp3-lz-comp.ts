@@ -33,6 +33,7 @@ import {
 } from '@reactivex/ix-esnext-esm/iterable/operators/orderby'
 import { take } from '@reactivex/ix-esnext-esm/iterable/operators/take'
 import { Logger } from 'tslog'
+import { Cooperative } from '.'
 import { TemplateLogger } from '../logging/template-logger'
 
 const { from } = IterableX
@@ -129,7 +130,11 @@ function* compressDirectOptions(
 	}
 }
 
-export function comp3lzComp(input: string, baseLogger?: Logger<any>): string {
+export async function comp3lzComp(
+	input: string,
+	cooperative: Cooperative,
+	baseLogger?: Logger<any>
+): Promise<string> {
 	const logger = new TemplateLogger(
 		baseLogger ?? new Logger({ type: 'hidden' })
 	)
@@ -166,6 +171,8 @@ export function comp3lzComp(input: string, baseLogger?: Logger<any>): string {
 			compressed += compressedChunk
 			position += 9
 		}
+
+		await cooperative(() => `compressing @ ${position}`)
 	}
 
 	return compressed
