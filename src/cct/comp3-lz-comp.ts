@@ -25,17 +25,27 @@ Examples (some have other possible encodings of minimal length):
     aaaaaaaaaaaaaa  ->  1a91041
 */
 
+import { IterableX } from '@reactivex/ix-esnext-esm/iterable/iterablex'
+import {
+	orderByDescending,
+	thenBy,
+} from '@reactivex/ix-esnext-esm/iterable/operators/orderby'
+import { take } from '@reactivex/ix-esnext-esm/iterable/operators/take'
 import { Logger } from 'tslog'
 import { TemplateLogger } from '../logging/template-logger'
 
-function compressReferent(
+const { from } = IterableX
+
+function* compressReferentOptions(
 	directChunk: string,
 	nextInput: string,
 	dictionary: string,
 	position: number,
-	direct: number,
-	logger: TemplateLogger
+	direct: number
 ) {
+	if (!dictionary) {
+		return
+	}
 	for (let referentCount = 9; referentCount > 0; referentCount--) {
 		for (let referentOffset = 1; referentOffset <= 9; referentOffset++) {
 			const endChunk = dictionary.slice(-referentOffset)
@@ -45,15 +55,47 @@ function compressReferent(
 			}
 			const referentPosition = position + direct
 			if (nextInput.startsWith(chunk)) {
-				logger.debug`direct ${direct}: ${directChunk}`
-				logger.debug`referent ${referentCount} ${referentOffset}: ${chunk}`
 				const compressedChunk = `${direct}${directChunk}${referentCount}${referentOffset}`
-				const nextPosition = referentPosition + referentCount + 1
-				return { found: true, compressedChunk, nextPosition }
+				const nextPosition = referentPosition + referentCount
+				yield { compressedChunk, nextPosition }
 			}
 		}
 	}
-	return { found: false, compressedChunk: '', nextPosition: position }
+}
+
+function* compressDirectOptions(
+	input: string,
+	position: number,
+	logger: TemplateLogger
+) {
+	for (let direct = 0; direct <= 9; direct++) {
+		if (direct === input.length - position) {
+			const chunk = input.slice(position, position + direct)
+			yield {
+				compressedChunk: `${direct}${chunk}`,
+				nextPosition: position + direct,
+			}
+			return
+		}
+		const directChunk = input.slice(position, position + direct)
+		const nextInput = input.slice(position + direct, position + 9)
+		const encoded = input.slice(0, position)
+		const dictionary =
+			(direct < 9 ? encoded.slice(-(9 - direct)) : '') + directChunk
+		if (!dictionary) {
+			continue
+		}
+		logger.trace`${direct}, ${dictionary}`
+		for (const referentOption of compressReferentOptions(
+			directChunk,
+			nextInput,
+			dictionary,
+			position,
+			direct
+		)) {
+			yield referentOption
+		}
+	}
 }
 
 export function comp3lzComp(input: string, baseLogger?: Logger<any>): string {
@@ -68,63 +110,27 @@ export function comp3lzComp(input: string, baseLogger?: Logger<any>): string {
 
 	let position = 0
 	while (position < input.length) {
-		let updatedPosition = false
-		for (let direct = 1; direct <= 9; direct++) {
-			if (direct === input.length - position) {
-				const chunk = input.slice(position, position + direct)
-				logger.debug`Final ${direct} direct: ${chunk}`
-				compressed += `${direct}${chunk}`
-				position += direct + 1
-				updatedPosition = true
-				break
-			}
-			const directChunk = input.slice(position, position + direct)
-			const nextInput = input.slice(position + direct, position + 9)
-			const encoded = input.slice(0, position)
-			const dictionary =
-				encoded.slice(-(9 - direct)) + input.slice(position, direct)
-			const { found, compressedChunk, nextPosition } = compressReferent(
-				directChunk,
-				nextInput,
-				dictionary,
-				position,
-				direct,
-				logger
-			)
-			if (found) {
-				compressed += compressedChunk
-				position = nextPosition
-				updatedPosition = true
-				break
-			}
-		}
-		if (!updatedPosition && position > 0) {
-			// try direct 0 (which generally encodes longer)
-			const encoded = input.slice(0, position)
-			const dictionary = encoded.slice(-9)
-			const nextInput = input.slice(position, position + 9)
-			const { found, compressedChunk, nextPosition } = compressReferent(
-				'',
-				nextInput,
-				dictionary,
-				position,
-				0,
-				logger
-			)
-			if (found) {
-				compressed += compressedChunk
-				position = nextPosition
-				updatedPosition = true
-			}
-		}
+		const bestOption = [
+			...from(compressDirectOptions(input, position, logger)).pipe(
+				orderByDescending((option) => option.nextPosition),
+				thenBy((option) => option.compressedChunk.length),
+				take(1)
+			),
+		][0]
 
-		if (!updatedPosition) {
+		if (bestOption) {
+			logger.debug`${input.slice(position, bestOption.nextPosition)}: ${
+				bestOption.compressedChunk
+			}`
+			compressed += bestOption.compressedChunk
+			position = bestOption.nextPosition
+		} else {
 			// worst case: 9 direct, no referent
 			const chunk = input.slice(position, 9)
-			logger.debug`9 direct, referent 0: ${chunk}`
-			compressed += `9${chunk}0`
+			const compressedChunk = `9${chunk}0`
+			logger.debug`${chunk}: ${compressedChunk}`
+			compressed += compressedChunk
 			position += 9
-			updatedPosition = true
 		}
 	}
 
