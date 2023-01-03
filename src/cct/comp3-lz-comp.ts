@@ -47,7 +47,11 @@ function* compressReferentOptions(
 		return
 	}
 	for (let referentCount = 9; referentCount > 0; referentCount--) {
-		for (let referentOffset = 1; referentOffset <= 9; referentOffset++) {
+		for (
+			let referentOffset = 1;
+			referentOffset <= dictionary.length;
+			referentOffset++
+		) {
 			const endChunk = dictionary.slice(-referentOffset)
 			let chunk = ''
 			for (let i = 0; i < referentCount; i++) {
@@ -78,7 +82,7 @@ function* compressDirectOptions(
 			return
 		}
 		const directChunk = input.slice(position, position + direct)
-		const nextInput = input.slice(position + direct, position + 9)
+		const nextInput = input.slice(position + direct, position + direct + 9)
 		const encoded = input.slice(0, position)
 		const dictionary =
 			(direct < 9 ? encoded.slice(-(9 - direct)) : '') + directChunk
