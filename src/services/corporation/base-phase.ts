@@ -54,7 +54,7 @@ export class BasePhaseManager {
 			(acc, cur) => ({
 				mor: acc.mor + cur.avgMor,
 				hap: acc.hap + cur.avgHap,
-				ene: acc.ene + cur.avgMor,
+				ene: acc.ene + cur.avgEne,
 				total: acc.total + 1,
 			}),
 			{ mor: 0, hap: 0, ene: 0, total: 0 }
