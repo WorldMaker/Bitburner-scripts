@@ -96,7 +96,7 @@ export function evaluateCct(
 		case 'Compression III: LZ Compression':
 			return {
 				known: true,
-				attempt,
+				attempt: allResults,
 				solver: () => comp3lzComp(data, cooperative, logger),
 			}
 		case 'Encryption I: Caesar Cipher':
