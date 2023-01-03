@@ -61,7 +61,7 @@ export async function main(ns: NS) {
 			return
 		}
 
-		const time = start - end
+		const time = end - start
 		elapsed.push(time)
 
 		const success = ns.codingcontract.attempt(result, contract, 'home')
