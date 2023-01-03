@@ -148,7 +148,7 @@ export async function comp3lzComp(
 	while (position < input.length) {
 		const bestOption = [
 			...from(
-				compressDirectOptions(input, position, position + 9, logger)
+				compressDirectOptions(input, position, position + 18, logger)
 			).pipe(
 				orderByDescending((option) => option.nextPosition),
 				thenBy((option) => option.compressedChunk.length),

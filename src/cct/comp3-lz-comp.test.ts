@@ -72,14 +72,14 @@ describe('Compression III: LZ Compression', function () {
 		'solves wild example xiv4Nv…',
 		compressExample(
 			'xiv4Nv4Nv4Nv4DBe7XBe7XBe7Xqtyt7lZlZlZlZloqZla6oyiAyupvwzSg4UWkwzSj0kwzSj0k1s0Q',
-			'5xiv4N835DBe7X349XBe7Xqtyt162lZ627loqZla6163yiA139upvwzSg4U07WkwzSj0168wzSj0k1s141Q'
+			'5xiv4N835DBe7X847qtyt7lZ722oq187la6oyiA139upvwzSg4U07WkwzSj07641s0Q'
 		)
 	)
 	it(
 		'solves wild example FpiAfw…',
 		compressExample(
 			'FpiAfw6EdV1fG1fG1f1fj0b22zRpj4h7w4Kg7w4Kg7w4ALPv2N4ALPv2N4qm',
-			'9FpiAfw6Ed04V1fG437f1fj0b2113zRp1874h7w4Kg856ALPv2N278LPv2N4qm'
+			'9FpiAfw6Ed04V1fG5361fj0b2118zRpj4h7w142Kg856ALPv2N179ALPv2N4qm'
 		)
 	)
 })
