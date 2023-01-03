@@ -56,6 +56,11 @@ export class UnstartedPhaseManager implements PhaseManager {
 					SellAtMarketPrice
 				)
 			}
+			while (
+				this.ns.corporation.hireEmployee(MyCompany.MaterialDivision.Name, city)
+			) {
+				// wait for all hired
+			}
 			// first three jobs should be Operations, Engineer, Business
 			this.ns.corporation.setAutoJobAssignment(
 				MyCompany.MaterialDivision.Name,
