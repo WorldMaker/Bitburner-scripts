@@ -29,8 +29,8 @@ describe('Compression III: LZ Compression', function () {
 	const compressExample = (data: string, expected: string) => () => {
 		const result = comp3lzComp(data, logger)
 		expect(result).to.equal(expected)
-		const roundtrip = comp2lz(result)
-		expect(roundtrip).to.equal(data)
+		const roundtrip = comp2lz(result, logger)
+		expect(roundtrip).to.equal(data, 'expected to roundtrip')
 	}
 
 	it(
@@ -54,22 +54,22 @@ describe('Compression III: LZ Compression', function () {
 		compressExample('abcdefghijk', '9abcdefghi02jk')
 	)
 	it(
-		'solves given example aaaaaaaaaaaa',
-		compressExample('aaaaaaaaaaaa', '3aaa91')
+		'solves given example aaaaaaaaaaaa (12a)',
+		compressExample('aaaaaaaaaaaa', '3aaa93')
 	)
 	it(
-		'solves given example aaaaaaaaaaaaa',
+		'solves given example aaaaaaaaaaaaa (13a)',
 		compressExample('aaaaaaaaaaaaa', '4aaaa94')
 	)
 	it(
-		'solves given example aaaaaaaaaaaaaa',
+		'solves given example aaaaaaaaaaaaaa (14a)',
 		compressExample('aaaaaaaaaaaaaa', '1a71068')
 	)
 	it(
 		'solves wild example xiv4Nv…',
 		compressExample(
 			'xiv4Nv4Nv4Nv4DBe7XBe7XBe7Xqtyt7lZlZlZlZloqZla6oyiAyupvwzSg4UWkwzSj0kwzSj0k1s0Q',
-			'5xiv4N835DBe7X349XBe7Xqtyt162lZ627loqZla6163yiA13907WkwzSj0168wzSj0k1s141Q'
+			'5xiv4N835DBe7X349XBe7Xqtyt162lZ627loqZla6163yiA139upvwzSg4U07WkwzSj0168wzSj0k1s141Q'
 		)
 	)
 	it(

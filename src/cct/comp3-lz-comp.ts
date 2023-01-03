@@ -160,7 +160,7 @@ export function comp3lzComp(input: string, baseLogger?: Logger<any>): string {
 			position = bestOption.nextPosition
 		} else {
 			// worst case: 9 direct, no referent
-			const chunk = input.slice(position, 9)
+			const chunk = input.slice(position, position + 9)
 			const compressedChunk = `9${chunk}0`
 			logger.debug`${chunk}: ${compressedChunk}`
 			compressed += compressedChunk
