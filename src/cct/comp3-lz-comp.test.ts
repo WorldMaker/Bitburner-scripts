@@ -1,6 +1,7 @@
 import { expect } from 'chai'
 import { Logger } from 'tslog'
 import { logArgs } from '../logging/tslog-util'
+import { comp2lz } from './comp2-lz'
 import { comp3lzComp } from './comp3-lz-comp'
 
 describe('Compression III: LZ Compression', () => {
@@ -26,6 +27,8 @@ describe('Compression III: LZ Compression', () => {
 	const compressExample = (data: string, expected: string) => () => {
 		const result = comp3lzComp(data, logger)
 		expect(result).to.equal(expected)
+		const roundtrip = comp2lz(result)
+		expect(roundtrip).to.equal(data)
 	}
 
 	it(
