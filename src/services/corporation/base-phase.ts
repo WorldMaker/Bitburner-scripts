@@ -65,7 +65,7 @@ export class BasePhaseManager {
 			ene: counts.ene / counts.total,
 		}
 
-		if (averages.mor < 98 || averages.hap < 98 || averages.ene < 98) {
+		if (averages.mor < 97 || averages.hap < 97 || averages.ene < 97) {
 			for (const city of Object.values(this.ns.enums.CityName)) {
 				const office = this.ns.corporation.getOffice(division.name, city)
 				if (office.avgMor < 95 || office.avgHap < 95) {
@@ -88,7 +88,7 @@ export class BasePhaseManager {
 
 			this.logger.debug`Waiting for morale; ${averages.mor.toFixed(
 				3
-			)}/98; ${averages.hap.toFixed(3)}/98; ${averages.ene.toFixed(3)}/98`
+			)}/97; ${averages.hap.toFixed(3)}/97; ${averages.ene.toFixed(3)}/97`
 
 			return false
 		}
