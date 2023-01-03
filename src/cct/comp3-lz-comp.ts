@@ -29,6 +29,7 @@ import { IterableX } from '@reactivex/ix-esnext-esm/iterable/iterablex'
 import {
 	orderByDescending,
 	thenBy,
+	thenByDescending,
 } from '@reactivex/ix-esnext-esm/iterable/operators/orderby'
 import { take } from '@reactivex/ix-esnext-esm/iterable/operators/take'
 import { Logger } from 'tslog'
@@ -114,7 +115,6 @@ function* compressDirectOptions(
 		if (!dictionary) {
 			continue
 		}
-		logger.trace`${direct}, ${dictionary}`
 		for (const referentOption of compressReferentOptions(
 			directChunk,
 			input,
@@ -147,6 +147,7 @@ export function comp3lzComp(input: string, baseLogger?: Logger<any>): string {
 			).pipe(
 				orderByDescending((option) => option.nextPosition),
 				thenBy((option) => option.compressedChunk.length),
+				thenByDescending((option) => option.compressedChunk),
 				take(1)
 			),
 		][0]
