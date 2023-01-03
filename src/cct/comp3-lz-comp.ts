@@ -25,33 +25,34 @@ Examples (some have other possible encodings of minimal length):
     aaaaaaaaaaaaaa  ->  1a91041
 */
 
-import { IterableX } from '@reactivex/ix-esnext-esm/iterable/iterablex'
+import { AsyncIterableX } from '@reactivex/ix-esnext-esm/asynciterable/asynciterablex'
 import {
 	orderByDescending,
 	thenBy,
 	thenByDescending,
-} from '@reactivex/ix-esnext-esm/iterable/operators/orderby'
-import { take } from '@reactivex/ix-esnext-esm/iterable/operators/take'
+} from '@reactivex/ix-esnext-esm/asynciterable/operators/orderby'
+import { first } from '@reactivex/ix-esnext-esm/asynciterable/first'
 import { Logger } from 'tslog'
 import { Cooperative } from '.'
 import { TemplateLogger } from '../logging/template-logger'
 
-const { from } = IterableX
+const { from } = AsyncIterableX
 
 interface CompressionOption {
 	compressedChunk: string
 	nextPosition: number
 }
 
-function* compressReferentOptions(
+async function* compressReferentOptions(
 	directChunk: string,
 	input: string,
 	dictionary: string,
 	position: number,
 	direct: number,
 	maxPosition: number,
+	cooperative: Cooperative,
 	logger: TemplateLogger
-): Iterable<CompressionOption> {
+): AsyncIterable<CompressionOption> {
 	if (!dictionary) {
 		return
 	}
@@ -74,10 +75,11 @@ function* compressReferentOptions(
 				yield { compressedChunk, nextPosition }
 				// if we didn't eat the entire next input, try to find the next smallest chunk
 				if (referentCount < nextInput.length && nextPosition < maxPosition) {
-					for (const nextDirect of compressDirectOptions(
+					for await (const nextDirect of compressDirectOptions(
 						input,
 						nextPosition,
 						maxPosition,
+						cooperative,
 						logger
 					)) {
 						yield {
@@ -89,12 +91,14 @@ function* compressReferentOptions(
 			}
 		}
 	}
+	await cooperative(() => `compressing referent @ ${position}`)
 }
 
-function* compressDirectOptions(
+async function* compressDirectOptions(
 	input: string,
 	position: number,
 	maxPosition: number,
+	cooperative: Cooperative,
 	logger: TemplateLogger
 ) {
 	if (position > maxPosition) {
@@ -116,18 +120,20 @@ function* compressDirectOptions(
 		if (!dictionary) {
 			continue
 		}
-		for (const referentOption of compressReferentOptions(
+		for await (const referentOption of compressReferentOptions(
 			directChunk,
 			input,
 			dictionary,
 			position,
 			direct,
 			maxPosition,
+			cooperative,
 			logger
 		)) {
 			yield referentOption
 		}
 	}
+	await cooperative(() => `compressing direct @ ${position}`)
 }
 
 export async function comp3lzComp(
@@ -146,16 +152,21 @@ export async function comp3lzComp(
 
 	let position = 0
 	while (position < input.length) {
-		const bestOption = [
-			...from(
-				compressDirectOptions(input, position, position + 9, logger)
+		const bestOption = await first(
+			from(
+				compressDirectOptions(
+					input,
+					position,
+					position + 17,
+					cooperative,
+					logger
+				)
 			).pipe(
 				orderByDescending((option) => option.nextPosition),
 				thenBy((option) => option.compressedChunk.length),
-				thenByDescending((option) => option.compressedChunk),
-				take(1)
-			),
-		][0]
+				thenByDescending((option) => option.compressedChunk)
+			)
+		)
 
 		if (bestOption) {
 			logger.debug`${input.slice(position, bestOption.nextPosition)}: ${
