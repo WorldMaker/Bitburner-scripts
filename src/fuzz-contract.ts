@@ -11,7 +11,7 @@ export async function main(ns: NS) {
 	const cooperative = async (summarize: () => string) => {
 		const now = Date.now()
 		if (now - lastCooperative >= CooperativeThreadingTime) {
-			logger.log(summarize())
+			quietLogger.log(summarize())
 			await ns.sleep(Math.random() * 1000 /* ms */)
 			lastCooperative = now
 		}
