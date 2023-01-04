@@ -18,9 +18,13 @@ export class UnstartedPhaseManager implements PhaseManager {
 	}
 
 	manage(): Promise<void> {
-		const created =
-			this.ns.corporation.createCorporation(MyCompany.Name, false) ||
-			this.ns.corporation.createCorporation(MyCompany.Name, true)
+		let created = false
+		try {
+			created ||= this.ns.corporation.createCorporation(MyCompany.Name, false)
+		} catch (err) {
+			this.logger.warn`Can't self-fund: ${err}`
+		}
+		created ||= this.ns.corporation.createCorporation(MyCompany.Name, true)
 		if (!created) {
 			this.logger.error`unable to start company`
 			return Promise.resolve()
@@ -51,6 +55,11 @@ export class UnstartedPhaseManager implements PhaseManager {
 					SellAll,
 					SellAtMarketPrice
 				)
+			}
+			while (
+				this.ns.corporation.hireEmployee(MyCompany.MaterialDivision.Name, city)
+			) {
+				// wait for all hired
 			}
 			// first three jobs should be Operations, Engineer, Business
 			this.ns.corporation.setAutoJobAssignment(

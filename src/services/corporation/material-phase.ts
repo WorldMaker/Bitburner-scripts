@@ -55,6 +55,9 @@ export class MaterialPhaseManager extends BasePhaseManager {
 		materialDivision: Division,
 		desiredMaterial: DesiredMaterial
 	) {
+		if (this.warehouseLevelsMet < this.warehouseLevelsDesired) {
+			return
+		}
 		let buyCity: CityName | null = null
 		let buyMaterial: string | null = null
 

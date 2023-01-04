@@ -6,6 +6,8 @@ import { NsLogger } from '../../logging/logger'
 
 const { from } = IterableX
 
+const PartyBudget = 500_000 /* $/employee */
+
 export type DesiredLevelUpgrades = Partial<Record<LevelUpgrade, number>>
 
 export class BasePhaseManager {
@@ -43,18 +45,16 @@ export class BasePhaseManager {
 		}
 	}
 
-	checkMorale(materialDivision: Division) {
+	checkMorale(division: Division) {
 		const cities = Object.values(this.ns.enums.CityName)
 		const counts = reduce(
 			from(cities).pipe(
-				map((city) =>
-					this.ns.corporation.getOffice(materialDivision.name, city)
-				)
+				map((city) => this.ns.corporation.getOffice(division.name, city))
 			),
 			(acc, cur) => ({
 				mor: acc.mor + cur.avgMor,
 				hap: acc.hap + cur.avgHap,
-				ene: acc.ene + cur.avgMor,
+				ene: acc.ene + cur.avgEne,
 				total: acc.total + 1,
 			}),
 			{ mor: 0, hap: 0, ene: 0, total: 0 }
@@ -65,18 +65,31 @@ export class BasePhaseManager {
 			ene: counts.ene / counts.total,
 		}
 
-		if (
-			averages.mor < 99.99999 ||
-			averages.hap < 99.998 ||
-			averages.ene < 99.998
-		) {
-			this.logger.log(
-				`Waiting for morale; ${averages.mor.toFixed(
-					3
-				)}/100; ${averages.hap.toFixed(3)}/99.998; ${averages.ene.toFixed(
-					3
-				)}/99.998`
-			)
+		if (averages.mor < 97 || averages.hap < 97 || averages.ene < 97) {
+			for (const city of Object.values(this.ns.enums.CityName)) {
+				const office = this.ns.corporation.getOffice(division.name, city)
+				if (office.avgMor < 95 || office.avgHap < 95) {
+					this.logger.debug`throwing party for ${division.name} ${city}`
+					try {
+						this.ns.corporation.throwParty(division.name, city, PartyBudget)
+					} catch (err) {
+						this.logger.warn`unable to throw party: ${err}`
+					}
+				}
+				if (office.avgEne < 95) {
+					this.logger.debug`buying coffee for ${division.name} ${city}`
+					try {
+						this.ns.corporation.buyCoffee(division.name, city)
+					} catch (err) {
+						this.logger.warn`unable to buy coffee: ${err}`
+					}
+				}
+			}
+
+			this.logger.debug`Waiting for morale; ${averages.mor.toFixed(
+				3
+			)}/97; ${averages.hap.toFixed(3)}/97; ${averages.ene.toFixed(3)}/97`
+
 			return false
 		}
 		return true
