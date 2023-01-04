@@ -26,11 +26,7 @@ Examples (some have other possible encodings of minimal length):
 */
 
 import { AsyncIterableX } from '@reactivex/ix-esnext-esm/asynciterable/asynciterablex'
-import {
-	orderByDescending,
-	thenBy,
-	thenByDescending,
-} from '@reactivex/ix-esnext-esm/asynciterable/operators/orderby'
+import { orderByDescending } from '@reactivex/ix-esnext-esm/asynciterable/operators/orderby'
 import { first } from '@reactivex/ix-esnext-esm/asynciterable/first'
 import { Logger } from 'tslog'
 import { Cooperative } from '.'
@@ -38,102 +34,61 @@ import { TemplateLogger } from '../logging/template-logger'
 
 const { from } = AsyncIterableX
 
-interface CompressionOption {
-	compressedChunk: string
-	nextPosition: number
+interface Reference {
+	position: number
+	count: number
+	offset: number
 }
 
-async function* compressReferentOptions(
-	directChunk: string,
+async function* findLargestReferences(
 	input: string,
-	dictionary: string,
-	position: number,
-	direct: number,
-	maxPosition: number,
+	start: number,
+	end: number,
+	lookahead: number,
 	cooperative: Cooperative,
 	logger: TemplateLogger
-): AsyncIterable<CompressionOption> {
-	if (!dictionary) {
-		return
-	}
-	const nextInput = input.slice(position + direct, position + direct + 9)
-	for (let referentCount = 9; referentCount > 0; referentCount--) {
+): AsyncIterable<Reference> {
+	const searchStart =
+		lookahead > 0 ? Math.max(end + lookahead - 9, end - 3) : end - 3
+	const searchEnd = lookahead > 0 ? end + lookahead : end
+	logger.trace`searching ${start} to ${end} with lookahead ${lookahead}; ${searchStart}, ${searchEnd}`
+	let longestReference = 2 // references are best used >= 3
+	for (let position = searchStart; position >= start; position--) {
+		const dictionary = input.slice(Math.max(0, position - 9), position)
 		for (
-			let referentOffset = 1;
-			referentOffset <= dictionary.length;
-			referentOffset++
+			let referentCount = Math.min(9, searchEnd - position);
+			referentCount > longestReference;
+			referentCount--
 		) {
-			const endChunk = dictionary.slice(-referentOffset)
-			let chunk = ''
-			for (let i = 0; i < referentCount; i++) {
-				chunk += endChunk.charAt(i % endChunk.length)
-			}
-			const referentPosition = position + direct
-			if (nextInput.startsWith(chunk)) {
-				const compressedChunk = `${direct}${directChunk}${referentCount}${referentOffset}`
-				const nextPosition = referentPosition + referentCount
-				yield { compressedChunk, nextPosition }
-				// if we didn't eat the entire next input, try to find the next smallest chunk
-				if (referentCount < nextInput.length && nextPosition < maxPosition) {
-					for await (const nextDirect of compressDirectOptions(
-						input,
-						nextPosition,
-						maxPosition,
-						cooperative,
-						logger
-					)) {
-						yield {
-							compressedChunk: `${compressedChunk}${nextDirect.compressedChunk}`,
-							nextPosition: nextDirect.nextPosition,
-						}
+			const encodable = input.slice(position, position + referentCount)
+			for (
+				let referentOffset = 1;
+				referentOffset <= dictionary.length;
+				referentOffset++
+			) {
+				const endChunk = dictionary.slice(-referentOffset)
+				let chunk = ''
+				for (let i = 0; i < referentCount; i++) {
+					chunk += endChunk.charAt(i % endChunk.length)
+				}
+				if (encodable === chunk) {
+					longestReference = referentCount
+					yield {
+						position,
+						count: referentCount,
+						offset: referentOffset,
 					}
+					if (referentCount === 9) {
+						// maximum possible reference size, we can greedily stop searching
+						return
+					}
+					await cooperative(
+						() => `finding compression references @ ${position}`
+					)
 				}
 			}
 		}
 	}
-	await cooperative(() => `compressing referent @ ${position}`)
-}
-
-async function* compressDirectOptions(
-	input: string,
-	position: number,
-	maxPosition: number,
-	cooperative: Cooperative,
-	logger: TemplateLogger
-) {
-	if (position > maxPosition) {
-		return
-	}
-	for (let direct = 0; direct <= 9; direct++) {
-		if (direct === input.length - position) {
-			const chunk = input.slice(position, position + direct)
-			yield {
-				compressedChunk: `${direct}${chunk}`,
-				nextPosition: position + direct,
-			}
-			return
-		}
-		const directChunk = input.slice(position, position + direct)
-		const encoded = input.slice(0, position)
-		const dictionary =
-			(direct < 9 ? encoded.slice(-(9 - direct)) : '') + directChunk
-		if (!dictionary) {
-			continue
-		}
-		for await (const referentOption of compressReferentOptions(
-			directChunk,
-			input,
-			dictionary,
-			position,
-			direct,
-			maxPosition,
-			cooperative,
-			logger
-		)) {
-			yield referentOption
-		}
-	}
-	await cooperative(() => `compressing direct @ ${position}`)
 }
 
 export async function comp3lzComp(
@@ -151,36 +106,96 @@ export async function comp3lzComp(
 	}
 
 	let position = 0
-	while (position < input.length) {
-		const bestOption = await first(
+	let start = 1 // we need to start with a direct, so our first search starts at 1
+
+	while (start < input.length) {
+		const end = Math.min(input.length, start + 9)
+		// lookahead most of 3 "windows" ahead
+		const furthestPossible = 3 * 9 - 1
+		const remaining = input.length - end
+		const lookahead = Math.min(remaining, furthestPossible)
+		const bestReference = await first(
 			from(
-				compressDirectOptions(
-					input,
-					position,
-					position + 17,
-					cooperative,
-					logger
-				)
-			).pipe(
-				orderByDescending((option) => option.nextPosition),
-				thenBy((option) => option.compressedChunk.length),
-				thenByDescending((option) => option.compressedChunk)
-			)
+				findLargestReferences(input, start, end, lookahead, cooperative, logger)
+			).pipe(orderByDescending((ref) => ref.count))
 		)
 
-		if (bestOption) {
-			logger.debug`${input.slice(position, bestOption.nextPosition)}: ${
-				bestOption.compressedChunk
-			}`
-			compressed += bestOption.compressedChunk
-			position = bestOption.nextPosition
+		if (bestReference) {
+			const references = [bestReference]
+			let distance = references[0].position - start
+			// additional references make sense if they can encode 3 or more
+			while (distance >= 3) {
+				const nextBestReference = await first(
+					from(
+						findLargestReferences(
+							input,
+							start,
+							references[0].position,
+							0,
+							cooperative,
+							logger
+						)
+					).pipe(orderByDescending((ref) => ref.count))
+				)
+				if (nextBestReference) {
+					references.unshift(nextBestReference)
+					distance = references[0].position - start
+				} else {
+					break
+				}
+			}
+
+			let reference = references.shift()
+			while (reference) {
+				let direct = reference.position - position
+				if (direct === 0) {
+					logger.debug`skip direct`
+					compressed += '0'
+				} else {
+					while (direct > 9) {
+						// worst case: 9 direct, no referent
+						const directChunk = input.slice(position, position + 9)
+						const compressedChunk = `9${directChunk}0`
+						logger.debug`${directChunk}: ${compressedChunk}`
+						compressed += compressedChunk
+						direct -= 9
+						position += 9
+					}
+					const directChunk = input.slice(position, position + direct)
+					const compressedChunk = `${direct}${directChunk}`
+					logger.debug`${directChunk}: ${compressedChunk}`
+					compressed += compressedChunk
+				}
+				const referenceChunk = input.slice(
+					reference.position,
+					reference.position + reference.count
+				)
+				const compressedReference = `${reference.count}${reference.offset}`
+				logger.debug`${referenceChunk}: ${compressedReference}`
+				compressed += compressedReference
+
+				position = reference.position + reference.count
+				start = position
+				reference = references.shift()
+			}
 		} else {
-			// worst case: 9 direct, no referent
+			// no references in window, only direct
 			const chunk = input.slice(position, position + 9)
-			const compressedChunk = `9${chunk}0`
-			logger.debug`${chunk}: ${compressedChunk}`
-			compressed += compressedChunk
-			position += 9
+			if (chunk.length < 9) {
+				// best case: final chunk of the input
+				const compressedChunk = `${chunk.length}${chunk}`
+				logger.debug`${chunk}: ${compressedChunk}`
+				compressed += compressedChunk
+				position += 9
+				start = position
+			} else {
+				// worst case: 9 direct, no referent
+				const compressedChunk = `9${chunk}0`
+				logger.debug`${chunk}: ${compressedChunk}`
+				compressed += compressedChunk
+				position += 9
+				start = position + 1 // skip one because next must be at least 1 direct next
+			}
 		}
 
 		await cooperative(() => `compressing @ ${position}`)

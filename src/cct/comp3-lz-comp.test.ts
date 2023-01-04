@@ -43,7 +43,7 @@ describe('Compression III: LZ Compression', function () {
 	)
 	it(
 		'solves given example aAAaAAaAaAA',
-		compressExample('aAAaAAaAaAA', '3aAA53038')
+		compressExample('aAAaAAaAaAA', '3aAA53035')
 	)
 	it(
 		'solves given example 2718281828',
@@ -54,32 +54,31 @@ describe('Compression III: LZ Compression', function () {
 		compressExample('abcdefghijk', '9abcdefghi02jk')
 	)
 
-	// skipped tests are too slow
-	it.skip(
+	it(
 		'solves given example aaaaaaaaaaaa (12a)',
-		compressExample('aaaaaaaaaaaa', '3aaa93')
+		compressExample('aaaaaaaaaaaa', '3aaa91')
 	)
-	it.skip(
+	it(
 		'solves given example aaaaaaaaaaaaa (13a)',
-		compressExample('aaaaaaaaaaaaa', '4aaaa94')
+		compressExample('aaaaaaaaaaaaa', '1a31091')
 	)
-	it.skip(
+	it(
 		'solves given example aaaaaaaaaaaaaa (14a)',
-		compressExample('aaaaaaaaaaaaaa', '1a71068')
+		compressExample('aaaaaaaaaaaaaa', '1a41091')
 	)
 
 	it(
 		'solves wild example xiv4Nv…',
 		compressExample(
 			'xiv4Nv4Nv4Nv4DBe7XBe7XBe7Xqtyt7lZlZlZlZloqZla6oyiAyupvwzSg4UWkwzSj0kwzSj0k1s0Q',
-			'5xiv4N835DBe7X847qtyt7lZ726oqZla6163yiA139upvwzSg4U07WkwzSj07641s0Q'
+			'5xiv4N835DBe7X847qtyt7lZ729oqZla6oyi09AyupvwzSg044UWk382j07641s0Q'
 		)
 	)
 	it(
 		'solves wild example FpiAfw…',
 		compressExample(
 			'FpiAfw6EdV1fG1fG1f1fj0b22zRpj4h7w4Kg7w4Kg7w4ALPv2N4ALPv2N4qm',
-			'9FpiAfw6Ed04V1fG5361fj0b2118zRpj4h7w142Kg856ALPv2N872qm'
+			'9FpiAfw6Ed04V1fG5391fj0b22zR09pj4h7w4Kg856ALPv2N872qm'
 		)
 	)
 })
