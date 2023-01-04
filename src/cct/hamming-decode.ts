@@ -35,8 +35,8 @@ export function decodeHamming(data: string) {
 	if (checkbits > 0) {
 		// try to flip a single error
 		bits[checkbits] = bits[checkbits] === '1' ? '0' : '1'
-		// reversed because of the flip: a 1 now was previously a 0 and a 0 now was previously a 1
-		const parityCheck = parity ^ (bits[checkbits] === '1' ? 0 : 1)
+		// one changed
+		const parityCheck = parity ^ 1
 		if (parityCheck !== 0) {
 			// may have been a double error
 			return ''
