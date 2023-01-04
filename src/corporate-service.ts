@@ -5,6 +5,7 @@ import { ProductManager } from './services/corporation/product'
 import { ProductOfficeManager } from './services/corporation/product-office'
 import { ProductPriceService } from './services/corporation/product-price'
 import { ProductPurchaseService } from './services/corporation/product-purchase'
+import { MandatoryFunService } from './services/corporation/mandatory-fun'
 
 let running = false
 
@@ -36,6 +37,7 @@ export async function main(ns: NS) {
 
 	const logger = new NsLogger(ns)
 	const company = new Company(ns)
+	const mandatoryFun = new MandatoryFunService(ns, logger, company)
 	const officeManager = new ProductOfficeManager(ns, logger, company)
 	const productManager = new ProductManager(ns, logger, company)
 	const productPriceService = new ProductPriceService(ns, company)
@@ -55,11 +57,13 @@ export async function main(ns: NS) {
 			await phaseManager.manage()
 		}
 
+		mandatoryFun.manage()
 		officeManager.manage()
 		productManager.manage()
 		productPriceService.manage()
 		productPurchaseService.purchase()
 
+		logger.log(mandatoryFun.summarize())
 		logger.log(officeManager.summarize())
 		logger.log(productManager.summarize())
 		logger.log(productPriceService.summarize())
