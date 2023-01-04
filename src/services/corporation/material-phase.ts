@@ -56,6 +56,9 @@ export class MaterialPhaseManager extends BasePhaseManager {
 		desiredMaterial: DesiredMaterial
 	) {
 		if (this.warehouseLevelsMet < this.warehouseLevelsDesired) {
+			for (const amountDesired of Object.values(desiredMaterial)) {
+				this.materialsDesired += amountDesired * materialDivision.cities.length
+			}
 			return
 		}
 		let buyCity: CityName | null = null
