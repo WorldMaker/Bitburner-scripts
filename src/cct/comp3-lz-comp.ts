@@ -110,18 +110,36 @@ export async function comp3lzComp(
 
 	while (start < input.length) {
 		const end = Math.min(input.length, start + 9)
-		// lookahead most of 3 "windows" ahead
-		const furthestPossible = 3 * 9 - 1
 		const remaining = input.length - end
-		const lookahead = Math.min(remaining, furthestPossible)
 		const bestReference = await first(
 			from(
-				findLargestReferences(input, start, end, lookahead, cooperative, logger)
+				findLargestReferences(input, start, end, remaining, cooperative, logger)
 			).pipe(orderByDescending((ref) => ref.count))
 		)
 
-		if (bestReference) {
-			const references = [bestReference]
+		if (!bestReference) {
+			// no references in window, only direct
+			const chunk = input.slice(position, position + 9)
+			if (chunk.length < 9) {
+				// best case: final chunk of the input
+				const compressedChunk = `${chunk.length}${chunk}`
+				logger.debug`${chunk}: ${compressedChunk}`
+				compressed += compressedChunk
+				position += 9
+				start = position
+			} else {
+				// worst case: 9 direct, no referent
+				const compressedChunk = `9${chunk}0`
+				logger.debug`${chunk}: ${compressedChunk}`
+				compressed += compressedChunk
+				position += 9
+				start = position + 1 // skip one because next must be at least 1 direct next
+			}
+			continue
+		}
+
+		const references = [bestReference]
+		while (references.length) {
 			let distance = references[0].position - start
 			// additional references make sense if they can encode 3 or more
 			while (distance >= 3) {
@@ -137,7 +155,16 @@ export async function comp3lzComp(
 						)
 					).pipe(orderByDescending((ref) => ref.count))
 				)
-				if (nextBestReference) {
+				if (
+					nextBestReference &&
+					!(
+						// skip an immediate 2 count reference with no direct
+						(
+							nextBestReference.position === position &&
+							nextBestReference.count === 2
+						)
+					)
+				) {
 					references.unshift(nextBestReference)
 					distance = references[0].position - start
 				} else {
@@ -146,13 +173,12 @@ export async function comp3lzComp(
 			}
 
 			let reference = references.shift()
-			while (reference) {
+			if (reference) {
 				let direct = reference.position - position
 				if (direct === 0) {
 					if (reference.count < 3) {
 						logger.debug`skip small reference`
-						reference = references.shift()
-						if (reference) {
+						if (references.length) {
 							continue
 						}
 						direct = input.length - position
@@ -205,24 +231,6 @@ export async function comp3lzComp(
 				position = reference.position + reference.count
 				start = position
 				reference = references.shift()
-			}
-		} else {
-			// no references in window, only direct
-			const chunk = input.slice(position, position + 9)
-			if (chunk.length < 9) {
-				// best case: final chunk of the input
-				const compressedChunk = `${chunk.length}${chunk}`
-				logger.debug`${chunk}: ${compressedChunk}`
-				compressed += compressedChunk
-				position += 9
-				start = position
-			} else {
-				// worst case: 9 direct, no referent
-				const compressedChunk = `9${chunk}0`
-				logger.debug`${chunk}: ${compressedChunk}`
-				compressed += compressedChunk
-				position += 9
-				start = position + 1 // skip one because next must be at least 1 direct next
 			}
 		}
 
