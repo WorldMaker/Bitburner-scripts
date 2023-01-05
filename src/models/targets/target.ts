@@ -135,7 +135,7 @@ export class Target {
 		throw new Error('Not implemented in base Target')
 	}
 
-	getMaxRam(): number {
+	getMaxRam(_recheck = false): number {
 		throw new Error('Not implemented in base Target')
 	}
 

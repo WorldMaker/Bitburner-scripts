@@ -24,8 +24,8 @@ export class LazyTarget extends DeployTarget {
 		return this.hackingPorts
 	}
 
-	getMaxRam() {
-		if (this.maxRam === null) {
+	getMaxRam(recheck = false) {
+		if (recheck || this.maxRam === null) {
 			this.maxRam = this.ns.getServerMaxRam(this.name)
 		}
 		return this.maxRam
