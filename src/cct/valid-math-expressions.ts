@@ -28,6 +28,9 @@ import { orderBy } from '@reactivex/ix-esnext-esm/asynciterable/operators/orderb
 import { map } from '@reactivex/ix-esnext-esm/asynciterable/operators/map'
 import { toArray } from '@reactivex/ix-esnext-esm/asynciterable/toarray'
 import { Cooperative } from '.'
+import { TemplateLogger } from '../logging/template-logger'
+import { NsLogger } from '../logging/logger'
+import { Logger } from 'tslog'
 
 export type MathExpressionInput = [string, number]
 
@@ -134,13 +137,22 @@ async function* generatePossibleSolutions(
 async function solve(
 	input: number[],
 	target: number,
-	cooperative: Cooperative
+	cooperative: Cooperative,
+	logger: TemplateLogger
 ) {
 	const solutions = AsyncIterableX.from(
 		generatePossibleSolutions(input, cooperative)
 	).pipe(
 		// "script precedence", so use eval() as simple, relative fast solution validator
-		filter((possibleSolution) => eval(possibleSolution) === target),
+		filter((possibleSolution) => {
+			try {
+				const result = eval(possibleSolution)
+				return result === target
+			} catch (err) {
+				logger.warn`attempted to eval ${possibleSolution}: ${err}`
+				return false
+			}
+		}),
 		map(async (solution, index) => {
 			await cooperative(
 				() => `testing for valid math expressions; found ${index}`
@@ -155,18 +167,23 @@ async function solve(
 export async function validMathExpressions(
 	text: string,
 	target: number,
-	cooperative: Cooperative
+	cooperative: Cooperative,
+	logger: TemplateLogger
 ) {
 	const input = text.split('').map((d) => parseInt(d, 10))
-	return await solve(input, target, cooperative)
+	return await solve(input, target, cooperative, logger)
 }
 
 export async function solveValidMathExpressions(
 	data: MathExpressionInput,
-	cooperative: Cooperative
+	cooperative: Cooperative,
+	baseLogger?: Logger<any>
 ) {
+	const logger = new TemplateLogger(
+		baseLogger ?? new Logger({ type: 'hidden' })
+	)
 	const [text, target] = data
-	const results = await validMathExpressions(text, target, cooperative)
+	const results = await validMathExpressions(text, target, cooperative, logger)
 	return results
 }
 
@@ -175,10 +192,12 @@ export async function main(ns: NS) {
 	if (typeof target !== 'number') {
 		return
 	}
+	const logger = new NsLogger(ns, true)
 	const results = await validMathExpressions(
 		text.toString(),
 		target,
-		async () => await ns.sleep(20 /* ms */)
+		async () => await ns.sleep(20 /* ms */),
+		logger
 	)
 	ns.tprint(`[${results.join(', ')}]`)
 }

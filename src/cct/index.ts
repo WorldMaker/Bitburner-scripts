@@ -115,7 +115,7 @@ export function evaluateCct(
 			return {
 				known: true,
 				attempt,
-				solver: () => solveValidMathExpressions(data, cooperative),
+				solver: () => solveValidMathExpressions(data, cooperative, logger),
 			}
 		case 'Find Largest Prime Factor':
 			return {
