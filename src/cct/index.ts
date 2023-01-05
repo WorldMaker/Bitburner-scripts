@@ -3,6 +3,7 @@ import { arrayJumpingGame1 } from './array-jumping-game1'
 import { arrayJumpingGame2 } from './array-jumping-game2'
 import { comp1rle } from './comp1-rle'
 import { comp2lz } from './comp2-lz'
+import { comp3lzComp } from './comp3-lz-comp'
 import { enc1caeser } from './enc1-caesar'
 import { enc2 } from './enc2'
 import { solveGenerateIps } from './generate-ip-addresses'
@@ -91,6 +92,12 @@ export function evaluateCct(
 				known: true,
 				attempt,
 				solver: async () => comp2lz(data, logger),
+			}
+		case 'Compression III: LZ Compression':
+			return {
+				known: true,
+				attempt: allResults,
+				solver: () => comp3lzComp(data, cooperative, logger),
 			}
 		case 'Encryption I: Caesar Cipher':
 			return {
