@@ -152,10 +152,32 @@ export async function comp3lzComp(
 					if (reference.count < 3) {
 						logger.debug`skip small reference`
 						reference = references.shift()
-						continue
+						if (reference) {
+							continue
+						}
+						direct = input.length - position
+						if (direct > 9) {
+							// worst case: 9 direct, no referent
+							const directChunk = input.slice(position, position + 9)
+							const compressedChunk = `9${directChunk}0`
+							logger.debug`${directChunk}: ${compressedChunk}`
+							compressed += compressedChunk
+							position += 9
+							start = position + 1 // skip one because next must be at least 1 direct next
+						} else {
+							// final direct
+							const directChunk = input.slice(position, direct)
+							const compressedChunk = `${direct}${directChunk}`
+							logger.debug`${directChunk}: ${compressedChunk}`
+							compressed += compressedChunk
+							position += direct
+							start = position
+						}
+						break
+					} else {
+						logger.debug`skip direct`
+						compressed += '0'
 					}
-					logger.debug`skip direct`
-					compressed += '0'
 				} else {
 					while (direct > 9) {
 						// worst case: 9 direct, no referent
@@ -171,6 +193,7 @@ export async function comp3lzComp(
 					logger.debug`${directChunk}: ${compressedChunk}`
 					compressed += compressedChunk
 				}
+
 				const referenceChunk = input.slice(
 					reference.position,
 					reference.position + reference.count
