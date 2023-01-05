@@ -162,7 +162,7 @@ export function evaluateCct(
 		case 'Sanitize Parentheses in Expression':
 			return {
 				known: true,
-				attempt,
+				attempt: allResults,
 				solver: async () => sanitizeParentheses(data, logger),
 			}
 		case 'Shortest Path in a Grid':
