@@ -1,4 +1,6 @@
 import { expect } from 'chai'
+import { Logger } from 'tslog'
+import { logArgs } from '../logging/tslog-util'
 import {
 	MathExpressionInput,
 	solveValidMathExpressions,
@@ -7,10 +9,31 @@ import {
 describe('Find All Valid Math Expressions', function () {
 	this.timeout(5 /* s */ * 1000 /* ms */)
 
+	const logs: any[] = []
+	const logger = new Logger({ type: 'hidden' })
+	logger.attachTransport((logObj) => logs.push(logObj))
+	const prettyLogger = new Logger({ type: 'pretty' })
+
+	afterEach(function () {
+		if (this.currentTest?.state === 'failed') {
+			for (const log of logs) {
+				prettyLogger.log(
+					log._meta.logLevelId,
+					log._meta.logLevelName,
+					...logArgs(log)
+				)
+			}
+		}
+		// clear logs
+		logs.length = 0
+	})
+
 	const solveExample =
 		(data: MathExpressionInput, expected: string[]) => async () => {
-			const result = await solveValidMathExpressions(data, () =>
-				Promise.resolve()
+			const result = await solveValidMathExpressions(
+				data,
+				() => Promise.resolve(),
+				logger
 			)
 			expect(result).to.deep.equal(expected)
 		}
@@ -25,6 +48,11 @@ describe('Find All Valid Math Expressions', function () {
 
 	it('solves given 123 example', solveExample(['123', 6], ['1*2*3', '1+2+3']))
 	it('solves given 105 example', solveExample(['105', 5], ['1*0+5', '10-5']))
+
+	it(
+		'solves wild two-zero failure ["480205",-97]',
+		solveExample(['480205', -97], [])
+	)
 
 	it(
 		'solves wild example 6323557575',

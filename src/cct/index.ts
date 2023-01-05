@@ -115,7 +115,7 @@ export function evaluateCct(
 			return {
 				known: true,
 				attempt,
-				solver: () => solveValidMathExpressions(data, cooperative),
+				solver: () => solveValidMathExpressions(data, cooperative, logger),
 			}
 		case 'Find Largest Prime Factor':
 			return {
@@ -162,7 +162,7 @@ export function evaluateCct(
 		case 'Sanitize Parentheses in Expression':
 			return {
 				known: true,
-				attempt,
+				attempt: allResults,
 				solver: async () => sanitizeParentheses(data, logger),
 			}
 		case 'Shortest Path in a Grid':
