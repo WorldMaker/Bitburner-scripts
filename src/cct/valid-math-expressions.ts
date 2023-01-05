@@ -34,7 +34,7 @@ import { Logger } from 'tslog'
 
 export type MathExpressionInput = [string, number]
 
-const NotLeadingZeroRegex = /0[+*-]/
+const LeadingZeroRegex = /0\d/
 
 async function* generatePossibleSolutions(
 	input: number[],
@@ -96,9 +96,9 @@ async function* generatePossibleSolutions(
 		cooperative,
 		position + 2
 	)) {
-		const notLeadingZero = NotLeadingZeroRegex.test(solution)
+		const leadingZero = LeadingZeroRegex.test(solution)
 		yield `${digit}${nextDigit}${solution}`
-		if (digitAfter !== 0 || notLeadingZero) {
+		if (digitAfter !== 0 || !leadingZero) {
 			yield `${digit}${nextDigit}+${solution}`
 			yield `${digit}${nextDigit}-${solution}`
 			yield `${digit}${nextDigit}*${solution}`
@@ -106,7 +106,7 @@ async function* generatePossibleSolutions(
 		if (nextDigit !== 0) {
 			yield `${digit}+${nextDigit}${solution}`
 		}
-		if (digitAfter !== 0 || notLeadingZero) {
+		if (digitAfter !== 0 || !leadingZero) {
 			yield `${digit}+${nextDigit}+${solution}`
 			yield `${digit}+${nextDigit}-${solution}`
 			yield `${digit}+${nextDigit}*${solution}`
@@ -114,7 +114,7 @@ async function* generatePossibleSolutions(
 		if (nextDigit !== 0) {
 			yield `${digit}-${nextDigit}${solution}`
 		}
-		if (digitAfter !== 0 || notLeadingZero) {
+		if (digitAfter !== 0 || !leadingZero) {
 			yield `${digit}-${nextDigit}+${solution}`
 			yield `${digit}-${nextDigit}-${solution}`
 			yield `${digit}-${nextDigit}*${solution}`
@@ -122,7 +122,7 @@ async function* generatePossibleSolutions(
 		if (nextDigit !== 0) {
 			yield `${digit}*${nextDigit}${solution}`
 		}
-		if (digitAfter !== 0 || notLeadingZero) {
+		if (digitAfter !== 0 || !leadingZero) {
 			yield `${digit}*${nextDigit}+${solution}`
 			yield `${digit}*${nextDigit}-${solution}`
 			yield `${digit}*${nextDigit}*${solution}`

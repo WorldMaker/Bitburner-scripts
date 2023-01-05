@@ -50,14 +50,8 @@ describe('Find All Valid Math Expressions', function () {
 	it('solves given 105 example', solveExample(['105', 5], ['1*0+5', '10-5']))
 
 	it(
-		'solves wild failure ["480205",-97]',
-		solveExample(
-			['480205', -97],
-			[
-				'0',
-				/* TODO */
-			]
-		)
+		'solves wild two-zero failure ["480205",-97]',
+		solveExample(['480205', -97], [])
 	)
 
 	it(
