@@ -52,15 +52,15 @@ async function* findLargestReferences(
 		lookahead > 0 ? Math.max(end + lookahead - 9, end - 3) : end - 3
 	const searchEnd = lookahead > 0 ? end + lookahead : end
 	logger.trace`searching ${start} to ${end} with lookahead ${lookahead}; ${searchStart}, ${searchEnd}`
-	let longestReference = 2 // references are best used >= 3
+	let longestReference = 1 // references are best used >= 3, but the bare minimum is 1
 	for (let position = searchStart; position >= start; position--) {
 		const dictionary = input.slice(Math.max(0, position - 9), position)
+		const encodable = input.slice(position, position + 9)
 		for (
 			let referentCount = Math.min(9, searchEnd - position);
 			referentCount > longestReference;
 			referentCount--
 		) {
-			const encodable = input.slice(position, position + referentCount)
 			for (
 				let referentOffset = 1;
 				referentOffset <= dictionary.length;
@@ -71,14 +71,14 @@ async function* findLargestReferences(
 				for (let i = 0; i < referentCount; i++) {
 					chunk += endChunk.charAt(i % endChunk.length)
 				}
-				if (encodable === chunk) {
-					longestReference = referentCount
+				if (encodable.startsWith(chunk)) {
+					longestReference = chunk.length
 					yield {
 						position,
-						count: referentCount,
+						count: chunk.length,
 						offset: referentOffset,
 					}
-					if (referentCount === 9) {
+					if (chunk.length === 9) {
 						// maximum possible reference size, we can greedily stop searching
 						return
 					}
@@ -149,6 +149,11 @@ export async function comp3lzComp(
 			while (reference) {
 				let direct = reference.position - position
 				if (direct === 0) {
+					if (reference.count < 3) {
+						logger.debug`skip small reference`
+						reference = references.shift()
+						continue
+					}
 					logger.debug`skip direct`
 					compressed += '0'
 				} else {
