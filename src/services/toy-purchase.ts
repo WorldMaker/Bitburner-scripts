@@ -93,7 +93,9 @@ export class ToyPurchaseService {
 			const doubleRam = Math.min(MaxRam, server.getMaxRam() * 2)
 			const cost = this.ns.getPurchasedServerUpgradeCost(server.name, doubleRam)
 			if (this.budget > cost) {
-				this.ns.upgradePurchasedServer(server.name, doubleRam)
+				if (this.ns.upgradePurchasedServer(server.name, doubleRam)) {
+					server.getMaxRam(true)
+				}
 			}
 		}
 

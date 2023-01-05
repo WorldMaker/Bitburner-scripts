@@ -24,7 +24,10 @@ export class ServerTarget extends DeployTarget {
 		return this.server.numOpenPortsRequired
 	}
 
-	getMaxRam() {
+	getMaxRam(recheck = false) {
+		if (recheck) {
+			this.server = this.ns.getServer(this.name)
+		}
 		return this.server.maxRam
 	}
 
