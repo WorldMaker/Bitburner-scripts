@@ -12,7 +12,6 @@ import {
 } from '../batch'
 import {
 	calculateGrowThreads,
-	DesiredHackingSkim,
 	GrowthSecurityRaisePerThread,
 	HackSecurityRaisePerThread,
 	WeakenSecurityLowerPerThread,
@@ -20,6 +19,8 @@ import {
 import { RunningProcess } from '../memory'
 
 const { from } = IterableX
+
+export const BatchDesiredHackingSkim = 0.05
 
 export class HwgwBatch implements Batch<'hwgw'> {
 	public readonly type = 'hwgw'
@@ -156,7 +157,7 @@ export class HwgwBatch implements Batch<'hwgw'> {
 			this.ns.formulas.hacking.hackPercent(assumedServer, this.player) *
 			this.hackProcess.threads
 		// hack shouldn't skim too much
-		if (hackSkim > DesiredHackingSkim) {
+		if (hackSkim > BatchDesiredHackingSkim) {
 			return false
 		}
 		const hackSecurityGrowth =
@@ -206,7 +207,10 @@ export class HwgwBatch implements Batch<'hwgw'> {
 			expectedServer,
 			this.player
 		)
-		const hackThreads = Math.max(1, Math.ceil(DesiredHackingSkim / hackPercent))
+		const hackThreads = Math.max(
+			1,
+			Math.ceil(BatchDesiredHackingSkim / hackPercent)
+		)
 		const hackTime = this.ns.formulas.hacking.hackTime(
 			expectedServer,
 			this.player
