@@ -186,7 +186,7 @@ export function evaluateCct(
 		case 'Total Ways to Sum':
 			return {
 				known: true,
-				attempt: data < 80 && attempt,
+				attempt: data < 65 && attempt,
 				solver: () => sumPartitions(data, cooperative),
 			}
 		case 'Total Ways to Sum II':

@@ -102,6 +102,7 @@ export async function main(ns: NS) {
 					if (attempt || (known && force)) {
 						attempts++
 						let succeeded: string | boolean = false
+						logger.debug`\t⚒ ${cctFile} – ${type}: ${JSON.stringify(data)}`
 						try {
 							succeeded = ns.codingcontract.attempt(
 								await solver(),
