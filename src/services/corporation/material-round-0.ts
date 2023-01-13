@@ -23,7 +23,7 @@ const DesiredMaterial: Partial<Record<BoostMaterial, number>> = {
 	[BoostMaterials.AiCores]: 75,
 	[BoostMaterials.RealEstate]: 27_000,
 }
-const DesiredOffer = 100_000_000_000
+const DesiredOffer = 200_000_000_000
 
 const SellAll = 'MAX'
 const SellAtMarketPrice = 'MP'
