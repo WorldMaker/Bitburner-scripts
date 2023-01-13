@@ -87,7 +87,7 @@ export class MaterialRound1Manager
 				materialDivision.name,
 				city,
 				'Research & Development',
-				1
+				0
 			)
 			this.ns.corporation.setAutoJobAssignment(
 				materialDivision.name,

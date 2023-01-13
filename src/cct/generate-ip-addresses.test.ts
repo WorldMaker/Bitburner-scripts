@@ -13,4 +13,10 @@ describe('Generate IP Addresses', () => {
 		const result = solveGenerateIps('2228490113')
 		expect(result).to.equal('[222.84.90.113]')
 	})
+
+	it('generates an example that exhausts itself in three quads', () => {
+		expect(solveGenerateIps('156251145')).to.deep.equal(
+			'[1.56.251.145, 15.6.251.145, 15.62.51.145, 156.2.51.145, 156.25.1.145, 156.25.11.45, 156.25.114.5, 156.251.1.45, 156.251.14.5]'
+		)
+	})
 })

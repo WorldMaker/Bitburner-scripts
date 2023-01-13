@@ -32,7 +32,7 @@ export function generateIps(
 		return
 	}
 
-	if (position === input.length) {
+	if (quads === 3 && position === input.length) {
 		results.push(ip)
 		return
 	}
