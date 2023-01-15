@@ -12,7 +12,12 @@ import { NsLogger } from '../../logging/logger'
 
 const { from } = IterableX
 
+const BaseTotalProducts = 3
+
 export class ProductManager {
+	private hasResearchedUpgradeCapacity1 = false
+	private hasResearchedUpgradeCapacity2 = false
+
 	constructor(
 		private ns: NS,
 		private logger: NsLogger,
@@ -32,6 +37,16 @@ export class ProductManager {
 			return
 		}
 		const productDivision = this.company.getProductDivision()!
+
+		this.hasResearchedUpgradeCapacity1 ||= this.ns.corporation.hasResearched(
+			productDivision.name,
+			'uPgrade: Capacity.I'
+		)
+
+		this.hasResearchedUpgradeCapacity2 ||= this.ns.corporation.hasResearched(
+			productDivision.name,
+			'uPgrade: Capacity.II'
+		)
 
 		const products = from(productDivision.products).pipe(
 			map((product) =>
@@ -53,10 +68,17 @@ export class ProductManager {
 		// *** Start Development of new Products ***
 		// If there is no product in development, make one; discontinue the lowest rated existing product if necessary
 
+		let totalProducts = BaseTotalProducts
+
+		if (this.hasResearchedUpgradeCapacity1) {
+			totalProducts++
+		}
+		if (this.hasResearchedUpgradeCapacity2) {
+			totalProducts++
+		}
+
 		if (developmentProducts.length < 1) {
-			if (
-				productionProducts.length >= MyCompany.ProductDivision.TotalProducts
-			) {
+			if (productionProducts.length >= totalProducts) {
 				const discontinuedProduct = productionProducts.shift()!
 				this.ns.corporation.discontinueProduct(
 					productDivision.name,

@@ -11,7 +11,6 @@ export const MyCompany = Object.freeze({
 		ProductBaseName: 'wacky',
 		DesignInvestment: 1_000_000_000,
 		MarketingInvestment: 1_000_000_000,
-		TotalProducts: 3, // Bitburner restriction
 	}),
 })
 
