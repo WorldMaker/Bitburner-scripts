@@ -2,6 +2,7 @@ import { LazyTarget } from '../models/target.js'
 import { ServerCacheService } from './server-cache.js'
 
 const PurchasedServerRamMultiplier = 0.015625
+const MaxStartingRam = 2 ** 10
 
 export class PurchaseService {
 	private purchasedServerCount: number
@@ -21,7 +22,10 @@ export class PurchaseService {
 		this.hacknetNodesCount = this.ns.hacknet.numNodes()
 		this.nextHacknetNodePurchaseCost = this.ns.hacknet.getPurchaseNodeCost()
 		const homeRam = this.servers.getHome().getMaxRam()
-		this.ram = Math.max(8, Math.floor(homeRam * PurchasedServerRamMultiplier))
+		this.ram = Math.min(
+			MaxStartingRam,
+			Math.max(8, Math.floor(homeRam * PurchasedServerRamMultiplier))
+		)
 		this.nextServerPurchaseCost = this.ns.getPurchasedServerCost(this.ram)
 	}
 
