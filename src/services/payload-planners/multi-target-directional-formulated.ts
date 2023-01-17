@@ -78,7 +78,13 @@ function areThreadsSufficient(ns: NS, target: Target, threads: number) {
 			return false
 		case 'hack':
 			const hackPercent = ns.hackAnalyze(target.name) * threads
-			if (hackPercent >= DesiredHackingSkim) {
+			const desiredMoney =
+				target.checkMoneyAvailable() - target.getMoneyThreshold()
+			const desiredHackPercent = desiredMoney / target.getWorth()
+			if (
+				hackPercent >= DesiredHackingSkim ||
+				hackPercent >= desiredHackPercent
+			) {
 				return true
 			}
 			return false
@@ -143,10 +149,15 @@ function calculateTargetThreads(
 		case 'hack':
 			const hackPercent = ns.hackAnalyze(target.name)
 			const totalPossibleHackThreads = Math.floor(ramBudget / app.ramCost)
+			const desiredMoney =
+				target.checkMoneyAvailable() - target.getMoneyThreshold()
+			const desiredHackPercent = desiredMoney / target.getWorth()
 			return Math.max(
 				1,
 				Math.min(
-					Math.ceil(DesiredHackingSkim / hackPercent),
+					Math.ceil(
+						Math.min(DesiredHackingSkim, desiredHackPercent) / hackPercent
+					),
 					totalPossibleHackThreads
 				)
 			)
