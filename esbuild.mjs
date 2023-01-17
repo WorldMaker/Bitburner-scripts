@@ -88,7 +88,8 @@ buildSync({
 
 buildSync({
 	entryPoints: {
-		boot: './src/bootstrap-service.ts',
+		able: './src/bootstrap-service.ts',
+		boot: './src/bootstrap-service-cct.ts',
 		corp: './src/corporate-service.ts',
 	},
 	bundle,
