@@ -24,11 +24,11 @@ export class DeploymentService {
 		private payloadPlanner: PayloadPlanner,
 		private payloadService: PayloadService,
 		private scannerService: ScannerService,
-		private stats: Stats,
 		private targetService: TargetService
 	) {}
 
-	summarize() {
+	summarize(stats: Stats) {
+		this.logger.log(this.payloadPlanner.summarize())
 		if (this.plans) {
 			this.logger
 				.info`${this.plans} deployment plans; ${this.existingPlans} existing, ${this.changedPlans} changed`
@@ -48,25 +48,29 @@ export class DeploymentService {
 			}
 		} else {
 			this.logger
-				.info`no deployments; no targets equal or below ${this.stats.getTargetHackingLevel()}`
+				.info`no deployments; no targets equal or below ${stats.getTargetHackingLevel()}`
 		}
 	}
 
-	deploy(strategy: string | null = null) {
+	deploy(
+		stats: Stats,
+		strategy: string | null = null,
+		forceMaxDepth: number | null = null
+	) {
 		// scan the planet
-		const servers = this.scannerService.scan()
+		const servers = this.scannerService.scan(undefined, forceMaxDepth)
 
 		// hack the planet
 		const rooted = new Set<Target>()
 
 		for (const server of servers) {
-			if (this.hackerService.rootServer(server)) {
+			if (this.hackerService.rootServer(server, stats)) {
 				rooted.add(server)
 			}
 		}
 
 		// pick a target
-		if (this.targetService.findTarget(this.stats, rooted)) {
+		if (this.targetService.findTarget(stats, rooted)) {
 			this.logger.display(
 				`INFO Target changed to ${this.targetService.getTopTarget()?.name}`
 			)

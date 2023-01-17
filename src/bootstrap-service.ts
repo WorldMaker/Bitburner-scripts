@@ -71,27 +71,26 @@ export async function main(ns: NS) {
 		apps,
 		logger
 	)
+	const hackerService = new HackerService(ns, logger)
+	const scannerService = new ScannerService(
+		ns,
+		servers,
+		targetFactory,
+		forceMaxDepth
+	)
+	const deploymentService = new DeploymentService(
+		hackerService,
+		logger,
+		payloadPlanner,
+		payloadService,
+		scannerService,
+		targetService
+	)
 
 	while (running) {
 		// *** hacking and deploying payloads ***
 		const stats = new PlayerStats(ns)
-		const hackerService = new HackerService(ns, logger, stats)
-		const scannerService = new ScannerService(
-			ns,
-			servers,
-			targetFactory,
-			forceMaxDepth
-		)
-		const deploymentService = new DeploymentService(
-			hackerService,
-			logger,
-			payloadPlanner,
-			payloadService,
-			scannerService,
-			stats,
-			targetService
-		)
-		deploymentService.deploy()
+		deploymentService.deploy(stats, strategy, forceMaxDepth)
 
 		// *** purchasing servers ***
 		if (purchaseService.wantsToPurchase()) {
@@ -106,8 +105,7 @@ export async function main(ns: NS) {
 		// *** status logging ***
 		logger.log(toyPurchaseService.summarize())
 		logger.log(purchaseService.summarize())
-		logger.log(payloadPlanner.summarize())
-		deploymentService.summarize()
+		deploymentService.summarize(stats)
 
 		await ns.sleep(10 /* s */ * 1000 /* ms */)
 	}
