@@ -3,6 +3,7 @@ import { groupBy } from '@reactivex/ix-esnext-esm/iterable/operators/groupby'
 import { map } from '@reactivex/ix-esnext-esm/iterable/operators/map'
 import { orderByDescending } from '@reactivex/ix-esnext-esm/iterable/operators/orderby'
 import { reduce } from '@reactivex/ix-esnext-esm/iterable/reduce'
+import { NsLogger } from '../../logging/logger'
 import {
 	App,
 	PayloadAll,
@@ -163,15 +164,16 @@ interface ThreadsNeeded {
 }
 
 export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
-	private appSelector: SalvoAppSelector
+	private readonly appSelector: SalvoAppSelector
 	private totalRam = 0
 	private freeRam = 0
 	private satisfiedTargets = 0
 	private attackedTargets = 0
 
 	constructor(
-		private ns: NS,
-		private targetService: TargetService,
+		private readonly ns: NS,
+		private readonly logger: NsLogger,
+		private readonly targetService: TargetService,
 		apps: AppCacheService
 	) {
 		this.appSelector = new SalvoAppSelector(apps)
@@ -251,9 +253,13 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 				app,
 				this.totalRam
 			)
+
 			if (!targetProcesses) {
 				if (targetThreads >= 1) {
 					needsThreads.push({ target, app, threads: targetThreads })
+					this.logger.trace`${
+						target.name
+					}\t❌ ${0}/${targetThreads} ${target.getTargetDirection()}`
 				}
 			} else {
 				const processesByApp = new Map(
@@ -266,6 +272,9 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 				if (!appProcesses) {
 					if (targetThreads >= 1) {
 						needsThreads.push({ target, app, threads: targetThreads })
+						this.logger.trace`${
+							target.name
+						}\t❌ ${0}/${targetThreads} ${target.getTargetDirection()}`
 					}
 				} else {
 					const appThreads = reduce(
@@ -276,7 +285,13 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 					attackedSet.add(target.name)
 					if (areThreadsSufficient(this.ns, target, appThreads)) {
 						satisfied.add(target.name)
+						this.logger.trace`${
+							target.name
+						}\t✔ ${targetThreads}/${targetThreads} ${target.getTargetDirection()}`
 					} else {
+						this.logger.trace`${
+							target.name
+						}\t❌ ${appThreads}/${targetThreads} ${target.getTargetDirection()}`
 						const threadsNeeded = Math.ceil(targetThreads - appThreads)
 						if (threadsNeeded >= 1) {
 							needsThreads.push({
