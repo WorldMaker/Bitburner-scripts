@@ -4,7 +4,7 @@ import { ServerCacheService } from './server-cache.js'
 const ignorelist = new Set(['home'])
 
 export class ScannerService {
-	private readonly maxDepth
+	private maxDepth
 
 	constructor(
 		private ns: NS,
@@ -41,7 +41,10 @@ export class ScannerService {
 		}
 	}
 
-	scan(server = 'home') {
+	scan(server = 'home', forceMaxDepth: number | null = null) {
+		if (forceMaxDepth) {
+			this.maxDepth = forceMaxDepth
+		}
 		this.scanServer(server, new Set(), 0)
 		return [...this.servers.values()]
 	}

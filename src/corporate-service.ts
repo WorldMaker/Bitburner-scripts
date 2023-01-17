@@ -6,10 +6,28 @@ import { ProductOfficeManager } from './services/corporation/product-office'
 import { ProductPriceService } from './services/corporation/product-price'
 import { ProductPurchaseService } from './services/corporation/product-purchase'
 import { MandatoryFunService } from './services/corporation/mandatory-fun'
+import { ServerCacheService } from './services/server-cache'
+import { deployTargetFactory } from './models/target'
+import { ScannerService } from './services/scanner'
+import { CctService } from './services/cct'
+import { PurchaseService } from './services/purchase'
+import { ToyPurchaseService } from './services/toy-purchase'
+import { DeploymentService } from './services/deployment'
+import { PayloadPlanningService } from './services/payload-planners'
+import { HackerService } from './services/hacker'
+import { TargetService } from './services/target'
+import { PayloadService } from './services/payload'
+import { AppCacheService } from './services/app-cache'
+import { PlayerStats } from './models/stats'
 
 let running = false
+let strategy: string | null = null
 
 export async function main(ns: NS) {
+	ns.disableLog('scp')
+	ns.disableLog('kill')
+	ns.disableLog('exec')
+
 	const command = ns.args[0]?.toString()
 
 	if (command) {
@@ -21,6 +39,10 @@ export async function main(ns: NS) {
 			case 'start':
 				running = false
 				ns.tail()
+				break
+
+			case 'strategy':
+				strategy = ns.args[1]?.toString()
 				break
 
 			default:
@@ -43,6 +65,38 @@ export async function main(ns: NS) {
 	const productPriceService = new ProductPriceService(ns, company)
 	const productPurchaseService = new ProductPurchaseService(ns, logger, company)
 
+	// *** Auto-CCT ***
+	const servers = new ServerCacheService(ns, deployTargetFactory)
+	const scannerService = new ScannerService(ns, servers, deployTargetFactory)
+	const cctService = new CctService(ns, servers, logger)
+
+	// *** Hack Deployment & Purchasing ***
+	const toyPurchaseService = new ToyPurchaseService(ns, logger, servers, 0)
+	const purchaseService = new PurchaseService(
+		ns,
+		logger,
+		servers,
+		toyPurchaseService
+	)
+	const apps = new AppCacheService(ns)
+	const targetService = new TargetService()
+	const payloadService = new PayloadService()
+	const payloadPlanner = new PayloadPlanningService(
+		ns,
+		targetService,
+		apps,
+		logger
+	)
+	const hackerService = new HackerService(ns, logger)
+	const deploymentService = new DeploymentService(
+		hackerService,
+		logger,
+		payloadPlanner,
+		payloadService,
+		scannerService,
+		targetService
+	)
+
 	while (running) {
 		if (company.corporation) {
 			// try to align to a specific point in company cycle
@@ -63,6 +117,16 @@ export async function main(ns: NS) {
 		productPriceService.manage()
 		productPurchaseService.purchase()
 
+		const stats = new PlayerStats(ns)
+		deploymentService.deploy(stats, strategy)
+
+		purchaseService.purchase()
+
+		await cctService.manage()
+
+		purchaseService.summarize()
+		deploymentService.summarize(stats)
+		cctService.summarize()
 		logger.log(mandatoryFun.summarize())
 		logger.log(officeManager.summarize())
 		logger.log(productManager.summarize())

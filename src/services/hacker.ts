@@ -9,7 +9,7 @@ export class HackerService {
 	private httpWormExists: boolean
 	private sqlInjectExists: boolean
 
-	constructor(private ns: NS, private logger: NsLogger, private stats: Stats) {
+	constructor(private ns: NS, private logger: NsLogger) {
 		this.bruteSshExists = this.ns.fileExists('BruteSSH.exe')
 		this.ftpCrackExists = this.ns.fileExists('FTPCrack.exe')
 		this.relaySmtpExists = this.ns.fileExists('relaySMTP.exe')
@@ -17,11 +17,18 @@ export class HackerService {
 		this.sqlInjectExists = this.ns.fileExists('SQLInject.exe')
 	}
 
-	rootServer(server: Target) {
+	rootServer(server: Target, stats: Stats) {
 		if (server.checkRooted()) {
 			return true
 		}
-		if (server.hackingLevel <= this.stats.hackingLevel) {
+
+		this.bruteSshExists ||= this.ns.fileExists('BruteSSH.exe')
+		this.ftpCrackExists ||= this.ns.fileExists('FTPCrack.exe')
+		this.relaySmtpExists ||= this.ns.fileExists('relaySMTP.exe')
+		this.httpWormExists ||= this.ns.fileExists('HTTPWorm.exe')
+		this.sqlInjectExists ||= this.ns.fileExists('SQLInject.exe')
+
+		if (server.hackingLevel <= stats.hackingLevel) {
 			// hack
 			const ports = server.getHackingPorts()
 			switch (ports) {
@@ -64,7 +71,7 @@ export class HackerService {
 			}
 		} else {
 			this.logger
-				.warn`${server.name} hacking level ${server.hackingLevel} above ${this.stats.hackingLevel}`
+				.warn`${server.name} hacking level ${server.hackingLevel} above ${stats.hackingLevel}`
 		}
 		return false
 	}

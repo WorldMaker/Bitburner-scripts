@@ -2,6 +2,7 @@ import { NsLogger } from './logging/logger.js'
 import { PlayerStats } from './models/stats.js'
 import { deployTargetFactory } from './models/target.js'
 import { AppCacheService } from './services/app-cache.js'
+import { CctService } from './services/cct.js'
 import { DeploymentService } from './services/deployment.js'
 import { HackerService } from './services/hacker.js'
 import { PayloadPlanningService } from './services/payload-planners/index.js'
@@ -61,6 +62,7 @@ export async function main(ns: NS) {
 	const payloadService = new PayloadService()
 	const targetFactory = deployTargetFactory
 	const servers = new ServerCacheService(ns, targetFactory)
+	const cctService = new CctService(ns, servers, logger)
 	const toyPurchaseService = new ToyPurchaseService(ns, logger, servers, 0)
 	const purchaseService = new PurchaseService(
 		ns,
@@ -98,7 +100,10 @@ export async function main(ns: NS) {
 		// *** purchasing servers ***
 		purchaseService.purchase()
 
+		await cctService.manage()
+
 		// *** status logging ***
+		cctService.summarize()
 		purchaseService.summarize()
 		deploymentService.summarize(stats)
 

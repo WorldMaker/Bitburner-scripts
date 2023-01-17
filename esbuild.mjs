@@ -28,30 +28,6 @@ buildSync({
 	logLevel,
 })
 
-// CCT
-
-buildSync({
-	entryPoints: [
-		'./src/cct/comp2-lz.ts',
-		'./src/cct/enc1-caesar.ts',
-		'./src/cct/generate-ip-addresses.ts',
-		'./src/cct/graph-2color.ts',
-		'./src/cct/largest-prime-factor.ts',
-		'./src/cct/min-triangle-path-sum.ts',
-		'./src/cct/stock-trader1.ts',
-		'./src/cct/stock-trader2.ts',
-		'./src/cct/stock-trader3.ts',
-		'./src/cct/stock-trader4.ts',
-		'./src/cct/unique-paths-grid1.ts',
-		'./src/cct/valid-math-expressions.ts',
-	],
-	bundle,
-	target,
-	format,
-	outdir: './dist/cct/',
-	logLevel,
-})
-
 // Tests
 
 buildSync({
@@ -88,7 +64,8 @@ buildSync({
 
 buildSync({
 	entryPoints: {
-		boot: './src/bootstrap-service.ts',
+		able: './src/bootstrap-service.ts',
+		boot: './src/bootstrap-service-cct.ts',
 		corp: './src/corporate-service.ts',
 	},
 	bundle,

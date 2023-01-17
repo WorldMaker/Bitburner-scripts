@@ -8,31 +8,69 @@ import { NsLogger } from '../logging/logger.js'
 import { PayloadPlanner } from '../models/payload-plan.js'
 
 export class DeploymentService {
+	private lastServersCount = 0
+	private lastRootedCount = 0
+	private lastPayloadsCount = 0
+	private plans = 0
+	private existingPlans = 0
+	private changedPlans = 0
+	private servers = 0
+	private rooted = 0
+	private payloads = 0
+
 	constructor(
 		private hackerService: HackerService,
 		private logger: NsLogger,
 		private payloadPlanner: PayloadPlanner,
 		private payloadService: PayloadService,
 		private scannerService: ScannerService,
-		private stats: Stats,
 		private targetService: TargetService
 	) {}
 
-	deploy() {
+	summarize(stats: Stats) {
+		this.logger.log(this.payloadPlanner.summarize())
+		if (this.plans) {
+			this.logger
+				.info`${this.plans} deployment plans; ${this.existingPlans} existing, ${this.changedPlans} changed`
+			const statusMessage = `INFO ${this.servers} servers scanned; ${this.rooted} rooted, ${this.payloads} payloads`
+			// terminal notifications when changes occur otherwise regular logs
+			if (
+				this.servers !== this.lastServersCount ||
+				this.rooted !== this.lastRootedCount ||
+				this.payloads !== this.lastPayloadsCount
+			) {
+				this.logger.display(statusMessage)
+				this.lastServersCount = this.servers
+				this.lastRootedCount = this.rooted
+				this.lastPayloadsCount = this.payloads
+			} else {
+				this.logger.log(statusMessage)
+			}
+		} else {
+			this.logger
+				.info`no deployments; no targets equal or below ${stats.getTargetHackingLevel()}`
+		}
+	}
+
+	deploy(
+		stats: Stats,
+		strategy: string | null = null,
+		forceMaxDepth: number | null = null
+	) {
 		// scan the planet
-		const servers = this.scannerService.scan()
+		const servers = this.scannerService.scan(undefined, forceMaxDepth)
 
 		// hack the planet
 		const rooted = new Set<Target>()
 
 		for (const server of servers) {
-			if (this.hackerService.rootServer(server)) {
+			if (this.hackerService.rootServer(server, stats)) {
 				rooted.add(server)
 			}
 		}
 
 		// pick a target
-		if (this.targetService.findTarget(this.stats, rooted)) {
+		if (this.targetService.findTarget(stats, rooted)) {
 			this.logger.display(
 				`INFO Target changed to ${this.targetService.getTopTarget()?.name}`
 			)
@@ -51,18 +89,26 @@ export class DeploymentService {
 		}
 
 		// plan the payloads
-		const plans = [...this.payloadPlanner.plan(rooted)]
+		const plans = [...this.payloadPlanner.plan(rooted, strategy)]
 
 		// deliver the payloads
 		const payloads = this.payloadService.deliverAll(plans)
 
-		return {
-			servers: servers.length,
-			rooted: rooted.size,
-			plans: plans.length,
-			existingPlans: plans.filter((plan) => plan.type === 'existing').length,
-			changedPlans: plans.filter((plan) => plan.type === 'change').length,
-			payloads,
+		this.servers = servers.length
+		this.rooted = rooted.size
+		this.plans = plans.length
+		this.existingPlans = 0
+		this.changedPlans = 0
+		for (const plan of plans) {
+			switch (plan.type) {
+				case 'existing':
+					this.existingPlans++
+					break
+				case 'change':
+					this.changedPlans++
+					break
+			}
 		}
+		this.payloads = payloads
 	}
 }

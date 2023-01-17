@@ -2,11 +2,14 @@ import { Company, MyCompany, StartingCity } from '../../models/corporation'
 import { NsLogger } from '../../logging/logger'
 import { PhaseManager } from './phase'
 
+const CorporationBudget = 150_000_000_000
 const SmartSupply = 'Smart Supply'
 const SellAll = 'MAX'
 const SellAtMarketPrice = 'MP'
 
 export class UnstartedPhaseManager implements PhaseManager {
+	private waitingForCash = true
+
 	constructor(
 		private ns: NS,
 		private logger: NsLogger,
@@ -14,6 +17,9 @@ export class UnstartedPhaseManager implements PhaseManager {
 	) {}
 
 	summarize(): string {
+		if (this.waitingForCash) {
+			return `INFO waiting for funds to start a company`
+		}
 		return `INFO starting a company`
 	}
 
@@ -24,6 +30,13 @@ export class UnstartedPhaseManager implements PhaseManager {
 		} catch (err) {
 			this.logger.warn`Can't self-fund: ${err}`
 		}
+
+		if (this.ns.getServerMoneyAvailable('home') < CorporationBudget) {
+			this.waitingForCash = true
+			return Promise.resolve()
+		}
+		this.waitingForCash = false
+
 		created ||= this.ns.corporation.createCorporation(MyCompany.Name, true)
 		if (!created) {
 			this.logger.error`unable to start company`
