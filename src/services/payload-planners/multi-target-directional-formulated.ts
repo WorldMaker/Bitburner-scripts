@@ -101,9 +101,11 @@ function calculateTargetThreads(
 				moneyAvailable / (target.getWorth() - moneyAvailable)
 			const securityAvailable =
 				target.getSecurityThreshold() - target.checkSecurityLevel()
-			const totalPossibleGrowThreads = Math.min(
-				ramBudget / app.ramCost,
-				securityAvailable / GrowthSecurityRaisePerThread
+			const totalPossibleGrowThreads = Math.floor(
+				Math.min(
+					ramBudget / app.ramCost,
+					securityAvailable / GrowthSecurityRaisePerThread
+				)
 			)
 			if (formulasExist) {
 				const player = ns.getPlayer()
@@ -119,7 +121,7 @@ function calculateTargetThreads(
 					1,
 					Math.min(
 						totalPossibleGrowThreads,
-						Math.ceil(targetGrowPercent * (doubleThreads / 2))
+						Math.ceil(((2 /* 200% */ - targetGrowPercent) / 2) * doubleThreads)
 					)
 				)
 			}
