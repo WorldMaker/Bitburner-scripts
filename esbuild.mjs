@@ -46,7 +46,6 @@ buildSync({
 buildSync({
 	entryPoints: {
 		autocct: './src/autocct.ts',
-		cctfinder: './src/cctfinder.ts',
 		'fuzz-contract': './src/fuzz-contract.ts',
 		pathfinder: './src/pathfinder.ts',
 		'payload-b1': './src/payload-b1.ts',
