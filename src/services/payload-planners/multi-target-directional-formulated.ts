@@ -113,8 +113,15 @@ function calculateTargetThreads(
 					calculateGrowThreads(ns.formulas.hacking, server, player)
 				)
 			}
-			if (targetGrowPercent <= 1) {
-				return 1
+			if (targetGrowPercent < 1) {
+				const doubleThreads = ns.growthAnalyze(target.name, 2)
+				return Math.max(
+					1,
+					Math.min(
+						totalPossibleGrowThreads,
+						Math.ceil(targetGrowPercent * (doubleThreads / 2))
+					)
+				)
 			}
 			return Math.min(
 				totalPossibleGrowThreads,
