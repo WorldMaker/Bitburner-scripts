@@ -58,34 +58,40 @@ export class SalvoAppSelector {
 function areThreadsSufficient(ns: NS, target: Target, threads: number) {
 	switch (target.getTargetDirection()) {
 		case 'grow':
-			const moneyAvailable = target.checkMoneyAvailable()
-			const targetGrowPercent = Math.max(
-				1,
-				moneyAvailable / (target.getWorth() - moneyAvailable)
-			)
-			const targetThreads = ns.growthAnalyze(target.name, targetGrowPercent)
-			if (threads >= targetThreads) {
-				return true
+			{
+				const moneyAvailable = target.checkMoneyAvailable()
+				const targetGrowPercent = Math.max(
+					1,
+					moneyAvailable / (target.getWorth() - moneyAvailable)
+				)
+				const targetThreads = ns.growthAnalyze(target.name, targetGrowPercent)
+				if (threads >= targetThreads) {
+					return true
+				}
 			}
 			return false
 		case 'weaken':
-			const securityDesired =
-				target.checkSecurityLevel() - target.getMinSecurityLevel()
-			const desiredThreads = securityDesired / WeakenSecurityLowerPerThread
-			if (threads >= desiredThreads) {
-				return true
+			{
+				const securityDesired =
+					target.checkSecurityLevel() - target.getMinSecurityLevel()
+				const desiredThreads = securityDesired / WeakenSecurityLowerPerThread
+				if (threads >= desiredThreads) {
+					return true
+				}
 			}
 			return false
 		case 'hack':
-			const hackPercent = ns.hackAnalyze(target.name) * threads
-			const desiredMoney =
-				target.checkMoneyAvailable() - target.getMoneyThreshold()
-			const desiredHackPercent = desiredMoney / target.getWorth()
-			if (
-				hackPercent >= DesiredHackingSkim ||
-				hackPercent >= desiredHackPercent
-			) {
-				return true
+			{
+				const hackPercent = ns.hackAnalyze(target.name) * threads
+				const desiredMoney =
+					target.checkMoneyAvailable() - target.getMoneyThreshold()
+				const desiredHackPercent = desiredMoney / target.getWorth()
+				if (
+					hackPercent >= DesiredHackingSkim ||
+					hackPercent >= desiredHackPercent
+				) {
+					return true
+				}
 			}
 			return false
 		default:
@@ -101,7 +107,7 @@ function calculateTargetThreads(
 ) {
 	const formulasExist = ns.fileExists('Formulas.exe')
 	switch (target.getTargetDirection()) {
-		case 'grow':
+		case 'grow': {
 			const moneyAvailable = target.checkMoneyAvailable()
 			const targetGrowPercent =
 				moneyAvailable / (target.getWorth() - moneyAvailable)
@@ -135,7 +141,8 @@ function calculateTargetThreads(
 				totalPossibleGrowThreads,
 				Math.ceil(ns.growthAnalyze(target.name, targetGrowPercent))
 			)
-		case 'weaken':
+		}
+		case 'weaken': {
 			const securityDesired =
 				target.checkSecurityLevel() - target.getMinSecurityLevel()
 			const totalPossibleWeakenThreads = Math.floor(ramBudget / app.ramCost)
@@ -146,7 +153,8 @@ function calculateTargetThreads(
 					totalPossibleWeakenThreads
 				)
 			)
-		case 'hack':
+		}
+		case 'hack': {
 			const hackPercent = ns.hackAnalyze(target.name)
 			const totalPossibleHackThreads = Math.floor(ramBudget / app.ramCost)
 			const desiredMoney =
@@ -161,6 +169,7 @@ function calculateTargetThreads(
 					totalPossibleHackThreads
 				)
 			)
+		}
 		default:
 			return 0
 	}
