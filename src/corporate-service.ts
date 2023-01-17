@@ -6,6 +6,10 @@ import { ProductOfficeManager } from './services/corporation/product-office'
 import { ProductPriceService } from './services/corporation/product-price'
 import { ProductPurchaseService } from './services/corporation/product-purchase'
 import { MandatoryFunService } from './services/corporation/mandatory-fun'
+import { ServerCacheService } from './services/server-cache'
+import { simpleTargetFactory } from './models/target'
+import { ScannerService } from './services/scanner'
+import { CctService } from './services/cct'
 
 let running = false
 
@@ -43,6 +47,11 @@ export async function main(ns: NS) {
 	const productPriceService = new ProductPriceService(ns, company)
 	const productPurchaseService = new ProductPurchaseService(ns, logger, company)
 
+	// *** Auto-CCT ***
+	const servers = new ServerCacheService(ns, simpleTargetFactory)
+	const scannerService = new ScannerService(ns, servers, simpleTargetFactory)
+	const cctService = new CctService(ns, servers, logger)
+
 	while (running) {
 		if (company.corporation) {
 			// try to align to a specific point in company cycle
@@ -63,6 +72,10 @@ export async function main(ns: NS) {
 		productPriceService.manage()
 		productPurchaseService.purchase()
 
+		scannerService.scan()
+		await cctService.manage()
+
+		cctService.summarize()
 		logger.log(mandatoryFun.summarize())
 		logger.log(officeManager.summarize())
 		logger.log(productManager.summarize())
