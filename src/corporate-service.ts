@@ -122,7 +122,6 @@ export async function main(ns: NS) {
 
 		purchaseService.purchase()
 
-		scannerService.scan()
 		await cctService.manage()
 
 		purchaseService.summarize()
