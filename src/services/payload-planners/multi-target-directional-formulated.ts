@@ -264,7 +264,7 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 			if (!targetProcesses) {
 				if (targetThreads >= 1) {
 					needsThreads.push({ target, app, threads: targetThreads })
-					this.logger.trace`${
+					this.logger.debug`${
 						target.name
 					}\t❌ ${0}/${targetThreads} ${target.getTargetDirection()}`
 				}
@@ -279,7 +279,7 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 				if (!appProcesses) {
 					if (targetThreads >= 1) {
 						needsThreads.push({ target, app, threads: targetThreads })
-						this.logger.trace`${
+						this.logger.debug`${
 							target.name
 						}\t❌ ${0}/${targetThreads} ${target.getTargetDirection()}`
 					}
@@ -292,11 +292,11 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 					attackedSet.add(target.name)
 					if (areThreadsSufficient(this.ns, target, appThreads)) {
 						satisfied.add(target.name)
-						this.logger.trace`${
+						this.logger.debug`${
 							target.name
 						}\t✔ ${targetThreads}/${targetThreads} ${target.getTargetDirection()}`
 					} else {
-						this.logger.trace`${
+						this.logger.debug`${
 							target.name
 						}\t❌ ${appThreads}/${targetThreads} ${target.getTargetDirection()}`
 						const threadsNeeded = Math.ceil(targetThreads - appThreads)

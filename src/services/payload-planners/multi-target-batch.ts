@@ -328,7 +328,7 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 			)
 			if (batchDeployments.totalRam > totalFree) {
 				this.logger
-					.trace`${target.name}\t❌ not enough RAM available for ${batch.type}`
+					.debug`${target.name}\t❌ not enough RAM available for ${batch.type}`
 				continue
 			}
 
@@ -365,7 +365,7 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 					break
 				}
 				this.logger
-					.trace`${target.name}\t⚒ batching ${batch.type} from ${batch.start} to ${batch.end}`
+					.debug`${target.name}\t⚒ batching ${batch.type} from ${batch.start} to ${batch.end}`
 				deployServers.push(curDeployServers)
 				curfreelist = [
 					...from(nextfreelist).pipe(orderByDescending((f) => f.available)),
@@ -388,7 +388,7 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 			} else {
 				curfreelist = lastfreelist
 				this.logger
-					.trace`${target.name}\t❌ not enough contiguous RAM available for ${batch.type}`
+					.debug`${target.name}\t❌ not enough contiguous RAM available for ${batch.type}`
 			}
 		}
 

@@ -66,12 +66,12 @@ export class HackerService {
 					this.ns.nuke(server.name)
 					return server.checkRooted()
 				default:
-					this.ns.print(`WARN ${server.name} needs ${ports} ports`)
+					this.logger.warn`${server.name} needs ${ports} ports`
 					return false
 			}
 		} else {
 			this.logger
-				.warn`${server.name} hacking level ${server.hackingLevel} above ${stats.hackingLevel}`
+				.trace`${server.name} hacking level ${stats.hackingLevel}/${server.hackingLevel}`
 		}
 		return false
 	}
