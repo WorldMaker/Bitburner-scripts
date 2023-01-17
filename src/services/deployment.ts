@@ -52,7 +52,7 @@ export class DeploymentService {
 		}
 	}
 
-	deploy() {
+	deploy(strategy: string | null = null) {
 		// scan the planet
 		const servers = this.scannerService.scan()
 
@@ -85,7 +85,7 @@ export class DeploymentService {
 		}
 
 		// plan the payloads
-		const plans = [...this.payloadPlanner.plan(rooted)]
+		const plans = [...this.payloadPlanner.plan(rooted, strategy)]
 
 		// deliver the payloads
 		const payloads = this.payloadService.deliverAll(plans)

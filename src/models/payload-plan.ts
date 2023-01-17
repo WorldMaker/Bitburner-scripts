@@ -32,6 +32,9 @@ export interface ChangePayloadPlan {
 export type PayloadPlan = ExistingPayloadPlan | ChangePayloadPlan
 
 export interface PayloadPlanner {
-	plan(rooted: Iterable<Target>): Iterable<PayloadPlan>
+	plan(
+		rooted: Iterable<Target>,
+		strategy?: string | null
+	): Iterable<PayloadPlan>
 	summarize(): string
 }

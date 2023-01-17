@@ -4,9 +4,7 @@ import { deployTargetFactory } from './models/target.js'
 import { AppCacheService } from './services/app-cache.js'
 import { DeploymentService } from './services/deployment.js'
 import { HackerService } from './services/hacker.js'
-import { MultiTargetBatchPlanner } from './services/payload-planners/multi-target-batch.js'
-import { MultiTargetDirectionalFormulatedPlanner } from './services/payload-planners/multi-target-directional-formulated.js'
-import { MultiTargetDirectionalRoundRobinPlanner } from './services/payload-planners/multi-target-directional-round-robin.js'
+import { PayloadPlanningService } from './services/payload-planners/index.js'
 import { PayloadService } from './services/payload.js'
 import { PurchaseService } from './services/purchase.js'
 import { ScannerService } from './services/scanner.js'
@@ -67,32 +65,14 @@ export async function main(ns: NS) {
 	const servers = new ServerCacheService(ns, targetFactory)
 	const purchaseService = new PurchaseService(ns, servers, hacknetNodes)
 	const toyPurchaseService = new ToyPurchaseService(ns, logger, servers, 0)
-
-	const getPayloadPlanner = () => {
-		switch (strategy) {
-			case 'batch':
-				return new MultiTargetBatchPlanner(ns, logger, targetService, apps)
-			case 'multidirectional':
-				return new MultiTargetDirectionalRoundRobinPlanner(
-					logger,
-					targetService,
-					apps
-				)
-			case 'formulated':
-			default:
-				return new MultiTargetDirectionalFormulatedPlanner(
-					ns,
-					targetService,
-					apps
-				)
-		}
-	}
-
-	let payloadPlanner = getPayloadPlanner()
+	const payloadPlanner = new PayloadPlanningService(
+		ns,
+		targetService,
+		apps,
+		logger
+	)
 
 	while (running) {
-		payloadPlanner = getPayloadPlanner()
-
 		// *** hacking and deploying payloads ***
 		const stats = new PlayerStats(ns)
 		const hackerService = new HackerService(ns, logger, stats)
