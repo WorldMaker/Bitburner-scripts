@@ -68,10 +68,6 @@ export async function main(ns: NS) {
 	const purchaseService = new PurchaseService(ns, servers, hacknetNodes)
 	const toyPurchaseService = new ToyPurchaseService(ns, logger, servers, 0)
 
-	let lastServersCount = 0
-	let lastRootedCount = 0
-	let lastPayloadsCount = 0
-
 	const getPayloadPlanner = () => {
 		switch (strategy) {
 			case 'batch':
@@ -115,7 +111,7 @@ export async function main(ns: NS) {
 			stats,
 			targetService
 		)
-		const counts = deploymentService.deploy()
+		deploymentService.deploy()
 
 		// *** purchasing servers ***
 		if (purchaseService.wantsToPurchase()) {
@@ -131,25 +127,7 @@ export async function main(ns: NS) {
 		logger.log(toyPurchaseService.summarize())
 		logger.log(purchaseService.summarize())
 		logger.log(payloadPlanner.summarize())
-		if (counts) {
-			logger.info`${counts.plans} deployment plans; ${counts.existingPlans} existing, ${counts.changedPlans} changed`
-			const statusMessage = `INFO ${counts.servers} servers scanned; ${counts.rooted} rooted, ${counts.payloads} payloads`
-			// terminal notifications when changes occur otherwise regular logs
-			if (
-				counts.servers !== lastServersCount ||
-				counts.rooted !== lastRootedCount ||
-				counts.payloads !== lastPayloadsCount
-			) {
-				logger.display(statusMessage)
-				lastServersCount = counts.servers
-				lastRootedCount = counts.rooted
-				lastPayloadsCount = counts.payloads
-			} else {
-				logger.log(statusMessage)
-			}
-		} else {
-			logger.info`no deployments; no targets equal or below ${stats.getTargetHackingLevel()}`
-		}
+		deploymentService.summarize()
 
 		await ns.sleep(10 /* s */ * 1000 /* ms */)
 	}
