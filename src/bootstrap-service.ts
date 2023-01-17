@@ -18,7 +18,6 @@ let forceMaxDepth: number | null = null
 
 export async function main(ns: NS) {
 	const command = ns.args[0]?.toString()
-	let hacknetNodes = 5
 
 	ns.disableLog('scp')
 	ns.disableLog('kill')
@@ -33,7 +32,6 @@ export async function main(ns: NS) {
 			case 'start':
 				running = false
 				strategy = ns.args[1]?.toString() ?? strategy
-				hacknetNodes = Number(ns.args[2]) || hacknetNodes
 				ns.tail()
 				break
 
@@ -63,8 +61,13 @@ export async function main(ns: NS) {
 	const payloadService = new PayloadService()
 	const targetFactory = deployTargetFactory
 	const servers = new ServerCacheService(ns, targetFactory)
-	const purchaseService = new PurchaseService(ns, servers, hacknetNodes)
 	const toyPurchaseService = new ToyPurchaseService(ns, logger, servers, 0)
+	const purchaseService = new PurchaseService(
+		ns,
+		logger,
+		servers,
+		toyPurchaseService
+	)
 	const payloadPlanner = new PayloadPlanningService(
 		ns,
 		targetService,
@@ -93,18 +96,10 @@ export async function main(ns: NS) {
 		deploymentService.deploy(stats, strategy, forceMaxDepth)
 
 		// *** purchasing servers ***
-		if (purchaseService.wantsToPurchase()) {
-			purchaseService.purchase()
-			if (!purchaseService.wantsToPurchase()) {
-				logger.hooray`Finished purchasing`
-			}
-		}
-
-		toyPurchaseService.purchase()
+		purchaseService.purchase()
 
 		// *** status logging ***
-		logger.log(toyPurchaseService.summarize())
-		logger.log(purchaseService.summarize())
+		purchaseService.summarize()
 		deploymentService.summarize(stats)
 
 		await ns.sleep(10 /* s */ * 1000 /* ms */)

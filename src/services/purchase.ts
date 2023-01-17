@@ -1,5 +1,7 @@
+import { NsLogger } from '../logging/logger.js'
 import { LazyTarget } from '../models/target.js'
 import { ServerCacheService } from './server-cache.js'
+import { ToyPurchaseService } from './toy-purchase.js'
 
 const PurchasedServerRamMultiplier = 0.015625
 const MaxStartingRam = 2 ** 10
@@ -11,11 +13,15 @@ export class PurchaseService {
 	private nextServerPurchaseCost: number
 	private nextHacknetNodePurchaseCost: number
 	private ram: number
+	private finishedMajorPurchases = false
+	private announcedFinish = false
 
 	constructor(
 		private ns: NS,
+		private logger: NsLogger,
 		private servers: ServerCacheService,
-		private hacknetNodesToBuy = 0
+		private toyPurchaseService: ToyPurchaseService,
+		private hacknetNodesToBuy = 5
 	) {
 		this.purchasedServerCount = this.ns.getPurchasedServers().length
 		this.purchasedServerLimit = this.ns.getPurchasedServerLimit()
@@ -30,17 +36,33 @@ export class PurchaseService {
 	}
 
 	summarize() {
-		return `INFO bought ${this.purchasedServerCount}/${this.purchasedServerLimit} servers; ${this.hacknetNodesCount}/${this.hacknetNodesToBuy} hacknet`
+		this.logger.log(this.toyPurchaseService.summarize())
+		if (this.finishedMajorPurchases && !this.announcedFinish) {
+			this.logger.hooray`Finished purchasing`
+			this.announcedFinish = true
+		}
+		this.logger
+			.info`bought ${this.purchasedServerCount}/${this.purchasedServerLimit} servers; ${this.hacknetNodesCount}/${this.hacknetNodesToBuy} hacknet`
 	}
 
-	wantsToPurchase() {
+	purchase() {
+		if (this.wantsToPurchase()) {
+			this.ownPurchase()
+		} else {
+			this.finishedMajorPurchases = true
+		}
+
+		this.toyPurchaseService.purchase()
+	}
+
+	private wantsToPurchase() {
 		return (
 			this.purchasedServerCount < this.purchasedServerLimit ||
 			this.hacknetNodesCount < this.hacknetNodesToBuy
 		)
 	}
 
-	purchase() {
+	private ownPurchase() {
 		const money = this.servers.getHome().checkMoneyAvailable()
 		// Focus on active income over passive (purchased servers over hacknet nodes)
 		if (
