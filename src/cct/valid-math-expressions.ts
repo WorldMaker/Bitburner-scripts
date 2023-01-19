@@ -34,7 +34,7 @@ import { Logger } from 'tslog'
 
 export type MathExpressionInput = [string, number]
 
-const LeadingZeroRegex = /0\d/
+const LeadingZeroRegex = /^0\d/
 
 async function* generatePossibleSolutions(
 	input: number[],
