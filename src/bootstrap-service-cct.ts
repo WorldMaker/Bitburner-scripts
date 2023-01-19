@@ -20,9 +20,7 @@ let forceMaxDepth: number | null = null
 export async function main(ns: NS) {
 	const command = ns.args[0]?.toString()
 
-	ns.disableLog('scp')
-	ns.disableLog('kill')
-	ns.disableLog('exec')
+	ns.disableLog('ALL')
 
 	if (command) {
 		switch (command) {

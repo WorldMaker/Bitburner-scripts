@@ -42,6 +42,9 @@ export class CctService {
 	}
 
 	async manage(force = false, showSkippedResults = false) {
+		this.unknowns = 0
+		this.skips = 0
+
 		for (const server of this.servers.values()) {
 			const cctFiles = this.ns.ls(server.name, '.cct')
 			if (cctFiles.length) {

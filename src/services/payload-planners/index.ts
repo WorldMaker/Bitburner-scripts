@@ -43,6 +43,7 @@ export class PayloadPlanningService implements PayloadPlanner {
 			default:
 				return new MultiTargetDirectionalFormulatedPlanner(
 					this.ns,
+					this.logger,
 					this.targetService,
 					this.apps
 				)

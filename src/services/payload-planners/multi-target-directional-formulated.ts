@@ -3,6 +3,7 @@ import { groupBy } from '@reactivex/ix-esnext-esm/iterable/operators/groupby'
 import { map } from '@reactivex/ix-esnext-esm/iterable/operators/map'
 import { orderByDescending } from '@reactivex/ix-esnext-esm/iterable/operators/orderby'
 import { reduce } from '@reactivex/ix-esnext-esm/iterable/reduce'
+import { NsLogger } from '../../logging/logger'
 import {
 	App,
 	PayloadAll,
@@ -57,28 +58,40 @@ export class SalvoAppSelector {
 function areThreadsSufficient(ns: NS, target: Target, threads: number) {
 	switch (target.getTargetDirection()) {
 		case 'grow':
-			const moneyAvailable = target.checkMoneyAvailable()
-			const targetGrowPercent = Math.max(
-				1,
-				moneyAvailable / (target.getWorth() - moneyAvailable)
-			)
-			const targetThreads = ns.growthAnalyze(target.name, targetGrowPercent)
-			if (threads >= targetThreads) {
-				return true
+			{
+				const moneyAvailable = target.checkMoneyAvailable()
+				const targetGrowPercent = Math.max(
+					1,
+					moneyAvailable / (target.getWorth() - moneyAvailable)
+				)
+				const targetThreads = ns.growthAnalyze(target.name, targetGrowPercent)
+				if (threads >= targetThreads) {
+					return true
+				}
 			}
 			return false
 		case 'weaken':
-			const securityDesired =
-				target.checkSecurityLevel() - target.getMinSecurityLevel()
-			const desiredThreads = securityDesired / WeakenSecurityLowerPerThread
-			if (threads >= desiredThreads) {
-				return true
+			{
+				const securityDesired =
+					target.checkSecurityLevel() - target.getMinSecurityLevel()
+				const desiredThreads = securityDesired / WeakenSecurityLowerPerThread
+				if (threads >= desiredThreads) {
+					return true
+				}
 			}
 			return false
 		case 'hack':
-			const hackPercent = ns.hackAnalyze(target.name) * threads
-			if (hackPercent >= DesiredHackingSkim) {
-				return true
+			{
+				const hackPercent = ns.hackAnalyze(target.name) * threads
+				const desiredMoney =
+					target.checkMoneyAvailable() - target.getMoneyThreshold()
+				const desiredHackPercent = desiredMoney / target.getWorth()
+				if (
+					hackPercent >= DesiredHackingSkim ||
+					hackPercent >= desiredHackPercent
+				) {
+					return true
+				}
 			}
 			return false
 		default:
@@ -94,15 +107,17 @@ function calculateTargetThreads(
 ) {
 	const formulasExist = ns.fileExists('Formulas.exe')
 	switch (target.getTargetDirection()) {
-		case 'grow':
+		case 'grow': {
 			const moneyAvailable = target.checkMoneyAvailable()
 			const targetGrowPercent =
 				moneyAvailable / (target.getWorth() - moneyAvailable)
 			const securityAvailable =
 				target.getSecurityThreshold() - target.checkSecurityLevel()
-			const totalPossibleGrowThreads = Math.min(
-				ramBudget / app.ramCost,
-				securityAvailable / GrowthSecurityRaisePerThread
+			const totalPossibleGrowThreads = Math.floor(
+				Math.min(
+					ramBudget / app.ramCost,
+					securityAvailable / GrowthSecurityRaisePerThread
+				)
 			)
 			if (formulasExist) {
 				const player = ns.getPlayer()
@@ -112,14 +127,22 @@ function calculateTargetThreads(
 					calculateGrowThreads(ns.formulas.hacking, server, player)
 				)
 			}
-			if (targetGrowPercent <= 1) {
-				return 1
+			if (targetGrowPercent < 1) {
+				const doubleThreads = ns.growthAnalyze(target.name, 2)
+				return Math.max(
+					1,
+					Math.min(
+						totalPossibleGrowThreads,
+						Math.ceil(((2 /* 200% */ - targetGrowPercent) / 2) * doubleThreads)
+					)
+				)
 			}
 			return Math.min(
 				totalPossibleGrowThreads,
 				Math.ceil(ns.growthAnalyze(target.name, targetGrowPercent))
 			)
-		case 'weaken':
+		}
+		case 'weaken': {
 			const securityDesired =
 				target.checkSecurityLevel() - target.getMinSecurityLevel()
 			const totalPossibleWeakenThreads = Math.floor(ramBudget / app.ramCost)
@@ -130,16 +153,23 @@ function calculateTargetThreads(
 					totalPossibleWeakenThreads
 				)
 			)
-		case 'hack':
+		}
+		case 'hack': {
 			const hackPercent = ns.hackAnalyze(target.name)
 			const totalPossibleHackThreads = Math.floor(ramBudget / app.ramCost)
+			const desiredMoney =
+				target.checkMoneyAvailable() - target.getMoneyThreshold()
+			const desiredHackPercent = desiredMoney / target.getWorth()
 			return Math.max(
 				1,
 				Math.min(
-					Math.ceil(DesiredHackingSkim / hackPercent),
+					Math.ceil(
+						Math.min(DesiredHackingSkim, desiredHackPercent) / hackPercent
+					),
 					totalPossibleHackThreads
 				)
 			)
+		}
 		default:
 			return 0
 	}
@@ -163,15 +193,16 @@ interface ThreadsNeeded {
 }
 
 export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
-	private appSelector: SalvoAppSelector
+	private readonly appSelector: SalvoAppSelector
 	private totalRam = 0
 	private freeRam = 0
 	private satisfiedTargets = 0
 	private attackedTargets = 0
 
 	constructor(
-		private ns: NS,
-		private targetService: TargetService,
+		private readonly ns: NS,
+		private readonly logger: NsLogger,
+		private readonly targetService: TargetService,
 		apps: AppCacheService
 	) {
 		this.appSelector = new SalvoAppSelector(apps)
@@ -251,9 +282,13 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 				app,
 				this.totalRam
 			)
+
 			if (!targetProcesses) {
 				if (targetThreads >= 1) {
 					needsThreads.push({ target, app, threads: targetThreads })
+					this.logger.debug`${
+						target.name
+					}\t❌ ${0}/${targetThreads} ${target.getTargetDirection()}`
 				}
 			} else {
 				const processesByApp = new Map(
@@ -266,6 +301,9 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 				if (!appProcesses) {
 					if (targetThreads >= 1) {
 						needsThreads.push({ target, app, threads: targetThreads })
+						this.logger.debug`${
+							target.name
+						}\t❌ ${0}/${targetThreads} ${target.getTargetDirection()}`
 					}
 				} else {
 					const appThreads = reduce(
@@ -276,7 +314,13 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 					attackedSet.add(target.name)
 					if (areThreadsSufficient(this.ns, target, appThreads)) {
 						satisfied.add(target.name)
+						this.logger.debug`${
+							target.name
+						}\t✔ ${targetThreads}/${targetThreads} ${target.getTargetDirection()}`
 					} else {
+						this.logger.debug`${
+							target.name
+						}\t❌ ${appThreads}/${targetThreads} ${target.getTargetDirection()}`
 						const threadsNeeded = Math.ceil(targetThreads - appThreads)
 						if (threadsNeeded >= 1) {
 							needsThreads.push({
