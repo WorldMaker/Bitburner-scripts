@@ -54,6 +54,12 @@ describe('Find All Valid Math Expressions', function () {
 		solveExample(['480205', -97], [])
 	)
 
+	// slow test
+	it.skip(
+		'solves wild failure 98042474106',
+		solveExampleLength(['98042474106', 21], 1808)
+	)
+
 	it(
 		'solves wild example 6323557575',
 		solveExample(
