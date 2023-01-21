@@ -128,18 +128,21 @@ function calculateTargetThreads(
 				)
 			}
 			if (targetGrowPercent < 1) {
-				const doubleThreads = ns.growthAnalyze(target.name, 2)
+				const growthThreads = ns.growthAnalyze(
+					target.name,
+					1 + targetGrowPercent
+				)
 				return Math.max(
 					1,
-					Math.min(
-						totalPossibleGrowThreads,
-						Math.ceil(((2 /* 200% */ - targetGrowPercent) / 2) * doubleThreads)
-					)
+					Math.min(totalPossibleGrowThreads, Math.ceil(growthThreads))
 				)
 			}
-			return Math.min(
-				totalPossibleGrowThreads,
-				Math.ceil(ns.growthAnalyze(target.name, targetGrowPercent))
+			return Math.max(
+				1,
+				Math.min(
+					totalPossibleGrowThreads,
+					Math.ceil(ns.growthAnalyze(target.name, targetGrowPercent))
+				)
 			)
 		}
 		case 'weaken': {
@@ -289,6 +292,10 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 					this.logger.debug`${
 						target.name
 					}\t❌ ${0}/${targetThreads} ${target.getTargetDirection()}`
+				} else {
+					this.logger.warn`${
+						target.name
+					}\t❓ ${0} threads needed for ${target.getTargetDirection()}`
 				}
 			} else {
 				const processesByApp = new Map(
