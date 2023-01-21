@@ -15,13 +15,18 @@ IMPORTANT: The string may contain letters, not just parentheses. Examples:
 ")(" -> [""]
 */
 
+import { IterableX } from '@reactivex/ix-esnext-esm/iterable/iterablex'
+import { filter } from '@reactivex/ix-esnext-esm/iterable/operators/filter'
 import { Logger } from 'tslog'
 import { TemplateLogger } from '../logging/template-logger'
+
+const { from } = IterableX
 
 interface ParenMap {
 	open: Set<number>
 	close: Set<number>
 	closeBeforeOpen: Set<number>
+	openAfterClose: Set<number>
 	unclosed: number
 	valid: boolean
 }
@@ -30,6 +35,7 @@ function mapParentheses(input: string): ParenMap {
 	const open = new Set<number>()
 	const close = new Set<number>()
 	let firstOpen: number | null = null
+	let lastClosed: number | null = null
 	const closeBeforeOpen = new Set<number>()
 	let unclosed = 0
 	let unbalanced = false
@@ -50,14 +56,25 @@ function mapParentheses(input: string): ParenMap {
 					break
 				}
 				close.add(i)
+				lastClosed = i
 				unclosed--
 				break
 		}
 	}
+	const openAfterClose = new Set<number>(
+		from(open.keys()).pipe(
+			filter((paren) => lastClosed === null || paren > lastClosed)
+		)
+	)
+	for (const paren of openAfterClose) {
+		open.delete(paren)
+	}
+	unclosed -= openAfterClose.size
 	return {
 		open,
 		close,
 		closeBeforeOpen,
+		openAfterClose,
 		unclosed,
 		valid: !unbalanced && closeBeforeOpen.size === 0 && unclosed === 0,
 	}
@@ -100,12 +117,12 @@ function* combos(
 
 function cleanString(
 	input: string,
-	{ closeBeforeOpen }: ParenMap,
+	{ closeBeforeOpen, openAfterClose }: ParenMap,
 	remove: Set<number>
 ): string {
 	let result = ''
 	for (let i = 0; i < input.length; i++) {
-		if (closeBeforeOpen.has(i) || remove.has(i)) {
+		if (closeBeforeOpen.has(i) || openAfterClose.has(i) || remove.has(i)) {
 			continue
 		}
 		result += input.charAt(i)
@@ -129,10 +146,6 @@ export function sanitizeParentheses(
 
 	if (map.valid) {
 		return [input]
-	}
-
-	if (map.unclosed === 0) {
-		throw new Error(`Unbalanced parentheses in ${input}?`)
 	}
 
 	const results = new Set<string>()
