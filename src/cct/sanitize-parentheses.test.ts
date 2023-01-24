@@ -49,8 +49,21 @@ describe('Sanitize Parentheses in Expression', () => {
 			'(a)((a(a))a)',
 		])
 	)
+	it(
+		'solves wild failure with extra opens after last close )()))()()))aa)(((',
+		solveExample(')()))()()))aa)(((', [
+			'((()))aa',
+			'((())aa)',
+			'(()())aa',
+			'(()()aa)',
+			'()(())aa',
+			'()(()aa)',
+			'()()()aa',
+			'()()(aa)',
+		])
+	)
 	it.skip(
-		'solves given wild failure (a)()))))(aaa((()())',
+		'solves wild failure (a)()))))(aaa((()())',
 		solveExample('(a)()))))(aaa((()())', [
 			/* TODO: TO FIND */
 		])
