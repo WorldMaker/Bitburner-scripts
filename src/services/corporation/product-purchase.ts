@@ -6,12 +6,16 @@ import {
 import { NsLogger } from '../../logging/logger'
 
 const ToyPurchaseBudget = 1 / 10_000 /* per tick */
+const ToyPurchaseProfitBudget = 5 /* per tick => * 10 seconds per tick so 1/2 of profit per second */
 const AdditionalResearchBudget = 1 / 3
 
 export class ProductPurchaseService {
 	private funds = 0
+	private startingFunds = 0
+	private toyBudget = 0
 	private hasEnoughAnalytics = false
 	private hasEnoughBaselineResearch = false
+	private canUseRevenueBudget = false
 
 	constructor(
 		private ns: NS,
@@ -21,7 +25,10 @@ export class ProductPurchaseService {
 
 	summarize() {
 		if (this.company.hasProductDivision()) {
-			return `INFO purchasing upgrades`
+			return `INFO purchasing upgrades; ${this.ns.nFormat(
+				this.startingFunds - this.funds,
+				'0.00a'
+			)} / ${this.ns.nFormat(this.toyBudget, '0.00a')}`
 		}
 		return `INFO no product division upgrades`
 	}
@@ -32,7 +39,7 @@ export class ProductPurchaseService {
 		}
 		// recheck funds and other things
 		this.company.updateState()
-		this.funds = this.company.funds
+		this.startingFunds = this.funds = this.company.funds
 		this.hasEnoughAnalytics ||=
 			this.ns.corporation.getUpgradeLevel(LevelUpgrades.WilsonAnalytics) >= 10
 		const productDivision = this.company.getProductDivision()!
@@ -77,6 +84,34 @@ export class ProductPurchaseService {
 		}
 
 		let toyBudget = this.funds * ToyPurchaseBudget
+		this.toyBudget = toyBudget
+
+		this.canUseRevenueBudget ||= (() => {
+			switch (this.company.getState()) {
+				// Beginning at Product3Round there are no longer phase-based purchasing goals
+				case 'Product3Round':
+				case 'Product4Round':
+				case 'Public':
+					return true
+				default:
+					return false
+			}
+		})()
+
+		if (this.canUseRevenueBudget) {
+			const revenueBudget =
+				(this.company.corporation!.revenue -
+					this.company.corporation!.expenses) *
+				ToyPurchaseProfitBudget
+			if (revenueBudget < this.funds - toyBudget) {
+				toyBudget += revenueBudget
+				this.toyBudget = toyBudget
+			}
+		}
+
+		// "borrow" the toy budget from funds
+		this.funds -= this.toyBudget
+
 		for (const upgrade of Object.values(LevelUpgrades)) {
 			const upgradeCost = this.ns.corporation.getUpgradeLevelCost(upgrade)
 			if (upgradeCost < toyBudget) {
@@ -114,6 +149,9 @@ export class ProductPurchaseService {
 				}
 			}
 		}
+
+		// return unspent funds
+		this.funds += toyBudget
 
 		// *** Research ***
 		this.hasEnoughBaselineResearch ||= this.ns.corporation.hasResearched(
