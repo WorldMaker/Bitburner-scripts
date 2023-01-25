@@ -15,6 +15,10 @@ export class ShirtService {
 		return this.sleeves
 	}
 
+	getSleeves() {
+		return this.sleeves
+	}
+
 	summarize() {
 		return `INFO managing ${this.sleeves.length} sleeves; ${this.sleeves
 			.map((s) => s.getState())

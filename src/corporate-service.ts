@@ -20,6 +20,7 @@ import { PayloadService } from './services/payload'
 import { AppCacheService } from './services/app-cache'
 import { PlayerStats } from './models/stats'
 import { ShirtService } from './services/shirt'
+import { SleeveUpgrader } from './services/toy-purchase/sleeve-upgrader'
 
 let running = false
 let strategy: string | null = null
@@ -97,6 +98,7 @@ export async function main(ns: NS) {
 	)
 
 	const shirtService = new ShirtService(ns)
+	toyPurchaseService.register(new SleeveUpgrader(ns, shirtService))
 
 	while (running) {
 		if (company.corporation) {

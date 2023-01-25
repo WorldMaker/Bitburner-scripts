@@ -43,6 +43,14 @@ export class SleevePosition {
 		return this.state
 	}
 
+	getPerson() {
+		return this.person
+	}
+
+	getTask() {
+		return this.task
+	}
+
 	recover() {
 		return this.ns.sleeve.setToShockRecovery(this.id)
 	}
