@@ -62,6 +62,10 @@ describe('Sanitize Parentheses in Expression', () => {
 			'()()(aa)',
 		])
 	)
+	it(
+		'solves wild failure (aa)(())()(',
+		solveExample('(aa)(())()(', ['(aa)(())()'])
+	)
 	it.skip(
 		'solves wild failure (a)()))))(aaa((()())',
 		solveExample('(a)()))))(aaa((()())', [

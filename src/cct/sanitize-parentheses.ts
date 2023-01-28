@@ -144,7 +144,11 @@ export function sanitizeParentheses(
 
 	const map = mapParentheses(input)
 
-	if (map.valid) {
+	if (
+		map.valid &&
+		map.closeBeforeOpen.size === 0 &&
+		map.openAfterClose.size === 0
+	) {
 		return [input]
 	}
 
