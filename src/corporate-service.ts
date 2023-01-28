@@ -19,6 +19,8 @@ import { TargetService } from './services/target'
 import { PayloadService } from './services/payload'
 import { AppCacheService } from './services/app-cache'
 import { PlayerStats } from './models/stats'
+import { ShirtService } from './services/shirt'
+import { SleeveUpgrader } from './services/toy-purchase/sleeve-upgrader'
 
 let running = false
 let strategy: string | null = null
@@ -95,6 +97,9 @@ export async function main(ns: NS) {
 		targetService
 	)
 
+	const shirtService = new ShirtService(ns)
+	toyPurchaseService.register(new SleeveUpgrader(ns, shirtService))
+
 	while (running) {
 		if (company.corporation) {
 			// try to align to a specific point in company cycle
@@ -109,6 +114,8 @@ export async function main(ns: NS) {
 			await phaseManager.manage()
 		}
 
+		shirtService.manage()
+
 		mandatoryFun.manage()
 		officeManager.manage()
 		productManager.manage()
@@ -122,6 +129,7 @@ export async function main(ns: NS) {
 
 		await cctService.manage()
 
+		logger.log(shirtService.summarize())
 		purchaseService.summarize()
 		deploymentService.summarize(stats)
 		cctService.summarize()

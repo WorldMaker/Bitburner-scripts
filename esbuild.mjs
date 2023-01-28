@@ -67,6 +67,7 @@ buildSync({
 		able: './src/bootstrap-service.ts',
 		boot: './src/bootstrap-service-cct.ts',
 		corp: './src/corporate-service.ts',
+		shirt: './src/shirt.ts',
 	},
 	bundle,
 	target,

@@ -10,7 +10,7 @@ import { PurchaseService } from './services/purchase.js'
 import { ScannerService } from './services/scanner.js'
 import { ServerCacheService } from './services/server-cache.js'
 import { TargetService } from './services/target.js'
-import { ToyPurchaseService } from './services/toy-purchase.js'
+import { ToyPurchaseService } from './services/toy-purchase/index.js'
 
 let running = false
 let strategy = 'multiup'

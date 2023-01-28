@@ -1,7 +1,7 @@
 import { NsLogger } from '../logging/logger.js'
 import { LazyTarget } from '../models/target.js'
 import { ServerCacheService } from './server-cache.js'
-import { ToyPurchaseService } from './toy-purchase.js'
+import { ToyPurchaseService } from './toy-purchase/index.js'
 
 const PurchasedServerRamMultiplier = 0.015625
 const MaxStartingRam = 2 ** 10

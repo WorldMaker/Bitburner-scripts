@@ -122,9 +122,12 @@ function calculateTargetThreads(
 			if (formulasExist) {
 				const player = ns.getPlayer()
 				const server = ns.getServer(target.name)
-				return Math.min(
-					totalPossibleGrowThreads,
-					calculateGrowThreads(ns.formulas.hacking, server, player)
+				return Math.max(
+					1,
+					Math.min(
+						totalPossibleGrowThreads,
+						calculateGrowThreads(ns.formulas.hacking, server, player)
+					)
 				)
 			}
 			if (targetGrowPercent < 1) {
