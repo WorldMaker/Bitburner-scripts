@@ -1,5 +1,6 @@
 import { NsLogger } from '../logging/logger.js'
-import { LazyTarget } from '../models/target.js'
+import { TargetFactory } from '../models/targets'
+import { ServerTarget } from '../models/targets/server-target'
 import { ServerCacheService } from './server-cache.js'
 import { ToyPurchaseService } from './toy-purchase/index.js'
 
@@ -19,7 +20,8 @@ export class PurchaseService {
 	constructor(
 		private ns: NS,
 		private logger: NsLogger,
-		private servers: ServerCacheService,
+		private servers: ServerCacheService<ServerTarget>,
+		private targetFactory: TargetFactory<ServerTarget>,
 		private toyPurchaseService: ToyPurchaseService,
 		private hacknetNodesToBuy = 5
 	) {
@@ -73,7 +75,7 @@ export class PurchaseService {
 				'pserv-' + this.purchasedServerCount,
 				this.ram
 			)
-			const host = new LazyTarget(this.ns, hostname, true)
+			const host = this.targetFactory(this.ns, hostname, true)
 			this.servers.set(host)
 			this.purchasedServerCount++
 			this.nextServerPurchaseCost = this.ns.getPurchasedServerCost(this.ram)

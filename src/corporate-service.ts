@@ -7,7 +7,7 @@ import { ProductPriceService } from './services/corporation/product-price'
 import { ProductPurchaseService } from './services/corporation/product-purchase'
 import { MandatoryFunService } from './services/corporation/mandatory-fun'
 import { ServerCacheService } from './services/server-cache'
-import { deployTargetFactory } from './models/target'
+import { deployTargetFactory } from './models/targets/server-target'
 import { ScannerService } from './services/scanner'
 import { CctService } from './services/cct'
 import { PurchaseService } from './services/purchase'
@@ -76,6 +76,7 @@ export async function main(ns: NS) {
 		ns,
 		logger,
 		servers,
+		deployTargetFactory,
 		toyPurchaseService
 	)
 	const apps = new AppCacheService(ns)

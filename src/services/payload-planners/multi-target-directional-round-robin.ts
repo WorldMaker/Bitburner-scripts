@@ -7,7 +7,7 @@ import { repeat } from '@reactivex/ix-esnext-esm/iterable/operators/repeat'
 import { zipWith } from '@reactivex/ix-esnext-esm/iterable/operators/zipwith'
 import { NsLogger } from '../../logging/logger'
 import { PayloadPlan, PayloadPlanner } from '../../models/payload-plan'
-import { Target } from '../../models/target'
+import { ServerTarget } from '../../models/targets/server-target'
 import { AppCacheService } from '../app-cache'
 import { TargetService } from '../target'
 import { AppSelector } from './single-target-directional-payload'
@@ -31,7 +31,7 @@ export class MultiTargetDirectionalRoundRobinPlanner implements PayloadPlanner {
 		} targets (directional)`
 	}
 
-	*plan(rooted: Iterable<Target>): Iterable<PayloadPlan> {
+	*plan(rooted: Iterable<ServerTarget>): Iterable<PayloadPlan> {
 		const servertargets = from(rooted).pipe(
 			orderByDescending((server) => server.getMaxRam()),
 			thenBy((server) => server.name),

@@ -4,13 +4,13 @@ import {
 	orderByDescending,
 	thenByDescending,
 } from '@reactivex/ix-esnext-esm/iterable/operators/orderby'
-import { Target } from '../models/target.js'
-import { Stats } from '../models/stats.js'
+import { ServerTarget } from '../models/targets/server-target'
+import { PlayerStats } from '../models/stats'
 
 const { from } = IterableX
 
 export class TargetService {
-	private targets: Target[]
+	private targets: ServerTarget[]
 
 	constructor() {
 		this.targets = []
@@ -24,7 +24,7 @@ export class TargetService {
 		return this.targets
 	}
 
-	assessTargets(stats: Stats, rootedServers: Iterable<Target>) {
+	assessTargets(stats: PlayerStats, rootedServers: Iterable<ServerTarget>) {
 		this.targets = [
 			...from(rootedServers).pipe(
 				filter((server) => !server.purchased), // skip own servers
@@ -37,7 +37,7 @@ export class TargetService {
 		]
 	}
 
-	findTarget(stats: Stats, rootedServers: Iterable<Target>) {
+	findTarget(stats: PlayerStats, rootedServers: Iterable<ServerTarget>) {
 		const previousTarget = this.getTopTarget()
 		this.assessTargets(stats, rootedServers)
 		return previousTarget !== this.getTopTarget()

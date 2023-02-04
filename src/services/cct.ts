@@ -1,10 +1,11 @@
 import { Cooperative, evaluateCct } from '../cct'
 import { NsLogger } from '../logging/logger'
+import { Target } from '../models/targets'
 import { ServerCacheService } from './server-cache'
 
 const CooperativeThreadingTime = 1000 /* ms */
 
-export class CctService {
+export class CctService<T extends Target> {
 	private lastCooperative = Date.now()
 	private skiplist = new Set<string>()
 
@@ -15,7 +16,7 @@ export class CctService {
 
 	constructor(
 		private readonly ns: NS,
-		private readonly servers: ServerCacheService,
+		private readonly servers: ServerCacheService<T>,
 		private readonly logger: NsLogger
 	) {}
 

@@ -24,9 +24,10 @@ import {
 	PayloadPlan,
 	PayloadPlanner,
 } from '../../models/payload-plan'
-import { Target, TargetDirection } from '../../models/target'
+import { Target, TargetDirection } from '../../models/targets'
 import { AppCacheService } from '../app-cache'
 import { TargetService } from '../target'
+import { ServerTarget } from '../../models/targets/server-target'
 
 const { from } = IterableX
 
@@ -57,12 +58,12 @@ export class BatchAppSelector {
 }
 
 interface FreeRam {
-	server: Target
+	server: ServerTarget
 	available: number
 }
 
 interface NeedsBatches {
-	target: Target
+	target: ServerTarget
 	batch: BatchPlans
 	start: Date
 	satisifiesCount: boolean
@@ -70,7 +71,7 @@ interface NeedsBatches {
 
 function getBatchDeployments(
 	apps: BatchAppSelector,
-	target: Target,
+	target: ServerTarget,
 	plan: BatchPlans,
 	start: Date
 ) {
@@ -117,7 +118,7 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 		})} free of ${this.totalRam}`
 	}
 
-	*plan(rooted: Iterable<Target>): Iterable<PayloadPlan> {
+	*plan(rooted: Iterable<ServerTarget>): Iterable<PayloadPlan> {
 		this.totalRam = 0
 		this.freeRam = 0
 		this.satisfiedTargets = 0
@@ -135,7 +136,7 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 
 		const freelist: FreeRam[] = []
 		const allProcesses: RunningProcess[] = []
-		const serversToDeploy: Target[] = []
+		const serversToDeploy: ServerTarget[] = []
 
 		// *** Assess what is currently running ***
 

@@ -1,6 +1,6 @@
 import { NsLogger } from '../logging/logger.js'
-import { Target } from '../models/target.js'
-import { Stats } from '../models/stats.js'
+import { PlayerStats } from '../models/stats'
+import { ServerTarget } from '../models/targets/server-target'
 
 export class HackerService {
 	private bruteSshExists: boolean
@@ -17,7 +17,7 @@ export class HackerService {
 		this.sqlInjectExists = this.ns.fileExists('SQLInject.exe')
 	}
 
-	rootServer(server: Target, stats: Stats) {
+	rootServer(server: ServerTarget, stats: PlayerStats) {
 		if (server.checkRooted()) {
 			return true
 		}

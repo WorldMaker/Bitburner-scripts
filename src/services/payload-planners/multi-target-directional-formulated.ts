@@ -22,7 +22,8 @@ import {
 	PayloadPlan,
 	PayloadPlanner,
 } from '../../models/payload-plan'
-import { Target, TargetDirection } from '../../models/target'
+import { Target, TargetDirection } from '../../models/targets'
+import { ServerTarget } from '../../models/targets/server-target'
 import { AppCacheService } from '../app-cache'
 import { TargetService } from '../target'
 
@@ -182,18 +183,18 @@ function calculateTargetThreads(
 }
 
 interface FreeRam {
-	server: Target
+	server: ServerTarget
 	available: number
 	running: Set<string>
 }
 
 interface RunningProcess {
-	server: Target
+	server: ServerTarget
 	process: ProcessInfo
 }
 
 interface ThreadsNeeded {
-	target: Target
+	target: ServerTarget
 	app: App
 	threads: number
 }
@@ -223,7 +224,7 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 		})} free of ${this.totalRam}`
 	}
 
-	*plan(rooted: Iterable<Target>): Iterable<PayloadPlan> {
+	*plan(rooted: Iterable<ServerTarget>): Iterable<PayloadPlan> {
 		this.totalRam = 0
 		this.freeRam = 0
 		this.satisfiedTargets = 0
@@ -242,7 +243,7 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 
 		const freelist: FreeRam[] = []
 		const allProcesses: RunningProcess[] = []
-		const serversToDeploy: Target[] = []
+		const serversToDeploy: ServerTarget[] = []
 
 		// *** Assess what is currently running ***
 

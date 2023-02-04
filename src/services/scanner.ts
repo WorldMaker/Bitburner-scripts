@@ -1,15 +1,15 @@
-import { TargetFactory } from '../models/target.js'
+import { Target, TargetFactory } from '../models/targets'
 import { ServerCacheService } from './server-cache.js'
 
 const ignorelist = new Set(['home'])
 
-export class ScannerService {
+export class ScannerService<T extends Target> {
 	private maxDepth
 
 	constructor(
 		private ns: NS,
-		private servers: ServerCacheService,
-		private targetFactory: TargetFactory,
+		private servers: ServerCacheService<T>,
+		private targetFactory: TargetFactory<T>,
 		forceMaxDepth: number | null = null
 	) {
 		if (forceMaxDepth) {

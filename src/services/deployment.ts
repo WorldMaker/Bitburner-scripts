@@ -1,11 +1,11 @@
-import { Target } from '../models/target.js'
+import { NsLogger } from '../logging/logger.js'
+import { PayloadPlanner } from '../models/payload-plan.js'
+import { PlayerStats } from '../models/stats'
+import { ServerTarget } from '../models/targets/server-target'
 import { HackerService } from './hacker.js'
 import { PayloadService } from './payload.js'
 import { ScannerService } from './scanner.js'
-import { Stats } from '../models/stats.js'
 import { TargetService } from './target.js'
-import { NsLogger } from '../logging/logger.js'
-import { PayloadPlanner } from '../models/payload-plan.js'
 
 export class DeploymentService {
 	private lastServersCount = 0
@@ -23,11 +23,11 @@ export class DeploymentService {
 		private logger: NsLogger,
 		private payloadPlanner: PayloadPlanner,
 		private payloadService: PayloadService,
-		private scannerService: ScannerService,
+		private scannerService: ScannerService<ServerTarget>,
 		private targetService: TargetService
 	) {}
 
-	summarize(stats: Stats) {
+	summarize(stats: PlayerStats) {
 		this.logger.log(this.payloadPlanner.summarize())
 		if (this.plans) {
 			this.logger
@@ -53,7 +53,7 @@ export class DeploymentService {
 	}
 
 	deploy(
-		stats: Stats,
+		stats: PlayerStats,
 		strategy: string | null = null,
 		forceMaxDepth: number | null = null
 	) {
@@ -61,7 +61,7 @@ export class DeploymentService {
 		const servers = this.scannerService.scan(undefined, forceMaxDepth)
 
 		// hack the planet
-		const rooted = new Set<Target>()
+		const rooted = new Set<ServerTarget>()
 
 		for (const server of servers) {
 			if (this.hackerService.rootServer(server, stats)) {

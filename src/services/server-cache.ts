@@ -1,10 +1,10 @@
-import { Target, TargetFactory } from '../models/target.js'
+import { Target, TargetFactory } from '../models/targets'
 
-export class ServerCacheService {
-	private homeServer: Target
-	private servers = new Map<string, Target>()
+export class ServerCacheService<T extends Target> {
+	private homeServer: T
+	private servers = new Map<string, T>()
 
-	constructor(private ns: NS, private targetFactory: TargetFactory) {
+	constructor(private ns: NS, private targetFactory: TargetFactory<T>) {
 		this.homeServer = this.targetFactory(ns, 'home', true)
 		const purchasedServers = this.ns.getPurchasedServers()
 		for (const server of purchasedServers) {
@@ -24,7 +24,7 @@ export class ServerCacheService {
 		return this.homeServer
 	}
 
-	set(server: Target) {
+	set(server: T) {
 		return this.servers.set(server.name, server)
 	}
 

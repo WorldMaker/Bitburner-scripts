@@ -1,17 +1,9 @@
 import { DesiredHackingSkim } from './hackmath'
-import { Target } from './target'
+import { ServerTarget } from './targets/server-target'
 
 const targetHackingLevelMultiplier = 1 / 2
 
-export interface Stats {
-	readonly hackingLevel: number
-	readonly formulasExist: boolean
-	getTargetHackingLevel(): number
-	getTargetEfficiency(target: Target): number
-	isTargetHackable(target: Target): boolean
-}
-
-export class PlayerStats implements Stats {
+export class PlayerStats {
 	protected player: Player
 	public readonly hackingLevel: number
 	public readonly formulasExist: boolean
@@ -30,7 +22,7 @@ export class PlayerStats implements Stats {
 		return Math.max(1, this.hackingLevel * targetHackingLevelMultiplier)
 	}
 
-	isTargetHackable(target: Target): boolean {
+	isTargetHackable(target: ServerTarget): boolean {
 		if (this.formulasExist) {
 			const server = target.getServer()
 			if (
@@ -48,7 +40,7 @@ export class PlayerStats implements Stats {
 		)
 	}
 
-	getTargetEfficiency(target: Target): number {
+	getTargetEfficiency(target: ServerTarget): number {
 		if (this.formulasExist) {
 			const server = target.getServer()
 			return (

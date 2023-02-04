@@ -1,4 +1,4 @@
-import { Target, TargetDirection } from './target'
+import { Target, TargetDirection } from './targets'
 
 export const BatchPayloadG = 'payload-bg.js'
 export const BatchPayloadH = 'payload-bh.js'

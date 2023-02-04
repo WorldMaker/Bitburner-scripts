@@ -1,9 +1,9 @@
 import { App } from './app'
 import { BatchPlans } from './batch'
-import { Target } from './target'
+import { ServerTarget } from './targets/server-target'
 
 export interface DeployPlan {
-	target: Target
+	target: ServerTarget
 	app: App
 	threads: number
 	batch?: BatchPlans
@@ -18,12 +18,12 @@ export interface KillPlan {
 
 export interface ExistingPayloadPlan {
 	type: 'existing'
-	server: Target
+	server: ServerTarget
 }
 
 export interface ChangePayloadPlan {
 	type: 'change'
-	server: Target
+	server: ServerTarget
 	killall: boolean
 	kills?: KillPlan[]
 	deployments: DeployPlan[]
@@ -33,7 +33,7 @@ export type PayloadPlan = ExistingPayloadPlan | ChangePayloadPlan
 
 export interface PayloadPlanner {
 	plan(
-		rooted: Iterable<Target>,
+		rooted: Iterable<ServerTarget>,
 		strategy?: string | null
 	): Iterable<PayloadPlan>
 	summarize(): string
