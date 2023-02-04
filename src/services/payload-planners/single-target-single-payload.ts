@@ -1,7 +1,7 @@
 import { App } from '../../models/app'
 import { NsLogger } from '../../logging/logger'
 import { PayloadPlan, PayloadPlanner } from '../../models/payload-plan'
-import { Target } from '../../models/target'
+import { ServerTarget } from '../../models/targets/server-target'
 import { TargetService } from '../target'
 
 export class SingleTargetSinglePayloadPlanner implements PayloadPlanner {
@@ -15,7 +15,7 @@ export class SingleTargetSinglePayloadPlanner implements PayloadPlanner {
 		return `INFO attacking ${this.targetService.getTopTarget().name}`
 	}
 
-	*plan(rooted: Iterable<Target>): Iterable<PayloadPlan> {
+	*plan(rooted: Iterable<ServerTarget>): Iterable<PayloadPlan> {
 		for (const server of rooted) {
 			if (server.getMaxRam() < this.app.ramCost) {
 				this.logger.warn`${server.name} only has ${server.getMaxRam()} memory`

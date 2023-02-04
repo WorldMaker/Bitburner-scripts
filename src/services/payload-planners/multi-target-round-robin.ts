@@ -8,7 +8,7 @@ import { zipWith } from '@reactivex/ix-esnext-esm/iterable/operators/zipwith'
 import { App } from '../../models/app'
 import { NsLogger } from '../../logging/logger'
 import { PayloadPlan, PayloadPlanner } from '../../models/payload-plan'
-import { Target } from '../../models/target'
+import { ServerTarget } from '../../models/targets/server-target'
 import { TargetService } from '../target'
 
 const { from } = IterableX
@@ -26,7 +26,7 @@ export class MultiTargetRoundRobinPlanner implements PayloadPlanner {
 		} targets`
 	}
 
-	*plan(rooted: Iterable<Target>): Iterable<PayloadPlan> {
+	*plan(rooted: Iterable<ServerTarget>): Iterable<PayloadPlan> {
 		const servertargets = from(rooted).pipe(
 			orderByDescending((server) => server.getMaxRam()),
 			thenBy((server) => server.name),

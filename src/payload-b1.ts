@@ -2,7 +2,8 @@
 
 import { createBatch, getBatchArgs, getNextBatchType } from './models/batch'
 import { NsLogger } from './logging/logger'
-import { Target, TargetDirection } from './models/target'
+import { TargetDirection } from './models/targets'
+import { SimpleTarget } from './models/targets/simple-target'
 
 function getPayloadName(direction: TargetDirection) {
 	switch (direction) {
@@ -21,7 +22,7 @@ export async function main(ns: NS) {
 		throw new Error(`Unknown command for payload '${command}'`)
 	}
 	const targetName = ns.args[1].toString()
-	const target = new Target(ns, targetName)
+	const target = new SimpleTarget(ns, targetName)
 	const player = ns.getPlayer()
 	const server = ns.getServer(targetName)
 	const logger = new NsLogger(ns)

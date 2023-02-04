@@ -1,9 +1,10 @@
 import { App, PayloadAll, PayloadG, PayloadH, PayloadW } from '../../models/app'
 import { NsLogger } from '../../logging/logger'
 import { PayloadPlan, PayloadPlanner } from '../../models/payload-plan'
-import { Target, TargetDirection } from '../../models/target'
+import { Target, TargetDirection } from '../../models/targets'
 import { AppCacheService } from '../app-cache'
 import { TargetService } from '../target'
+import { ServerTarget } from '../../models/targets/server-target'
 
 const PurchasedServerPayloads: Array<TargetDirection | null> = [
 	null, // follower
@@ -75,7 +76,7 @@ export class SingleTargetDirectionalPayloadPlanner implements PayloadPlanner {
 		}`
 	}
 
-	*plan(rooted: Iterable<Target>): Iterable<PayloadPlan> {
+	*plan(rooted: Iterable<ServerTarget>): Iterable<PayloadPlan> {
 		for (const server of rooted) {
 			const target = this.targetService.getTopTarget()
 			const app = this.appSelector.selectSingleApp(server, target)

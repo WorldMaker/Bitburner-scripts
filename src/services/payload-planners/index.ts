@@ -1,6 +1,6 @@
 import { NsLogger } from '../../logging/logger'
 import { PayloadPlanner } from '../../models/payload-plan'
-import { Target } from '../../models/target'
+import { ServerTarget } from '../../models/targets/server-target'
 import { AppCacheService } from '../app-cache'
 import { TargetService } from '../target'
 import { MultiTargetBatchPlanner } from './multi-target-batch'
@@ -50,7 +50,7 @@ export class PayloadPlanningService implements PayloadPlanner {
 		}
 	}
 
-	plan(rooted: Iterable<Target>, strategy: string | null = null) {
+	plan(rooted: Iterable<ServerTarget>, strategy: string | null = null) {
 		if (strategy && strategy !== this.strategy) {
 			this.strategy = strategy
 			this.payloadPlanner = this.select()

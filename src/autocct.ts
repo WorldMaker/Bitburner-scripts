@@ -1,5 +1,5 @@
 import { NsLogger } from './logging/logger'
-import { simpleTargetFactory } from './models/target'
+import { simpleTargetFactory } from './models/targets/simple-target'
 import { CctService } from './services/cct'
 import { ScannerService } from './services/scanner'
 import { ServerCacheService } from './services/server-cache'

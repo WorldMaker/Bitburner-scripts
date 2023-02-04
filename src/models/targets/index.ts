@@ -3,14 +3,18 @@ export type TargetDirection = 'weaken' | 'grow' | 'hack'
 const moneyThresholdMultiplier = 0.75
 const securityThresholdOverage = 5
 
+export type TargetFactory<T extends Target> = (
+	ns: NS,
+	name: string,
+	purchased?: boolean
+) => T
+
 /**
  * The base Target is the minimal server API for use in payload-all
  */
-export class Target {
-	private worth: number | null = null
+export abstract class Target {
 	private moneyThreshold: number | null = null
 	private securityThreshold: number | null = null
-	private minSecurityLevel: number | null = null
 	private targetDirection: TargetDirection = 'weaken'
 	private readonly parents = new Set<string>()
 	public readonly purchasedNumber: number | null
@@ -18,32 +22,21 @@ export class Target {
 	constructor(
 		protected ns: NS,
 		public readonly name: string,
-		public readonly hackingLevel: number = Infinity,
 		public readonly purchased: boolean = false
 	) {
 		this.purchasedNumber = purchased ? Number(name.split('-')[1]) : null
 	}
 
-	getWorth() {
-		if (this.worth === null) {
-			this.worth = this.ns.getServerMaxMoney(this.name)
-		}
-		return this.worth
-	}
+	abstract getWorth(): number
 
-	getMoneyThreshold() {
+	getMoneyThreshold(): number {
 		if (this.moneyThreshold === null) {
 			this.moneyThreshold = this.getWorth() * moneyThresholdMultiplier
 		}
 		return this.moneyThreshold
 	}
 
-	getMinSecurityLevel() {
-		if (this.minSecurityLevel === null) {
-			this.minSecurityLevel = this.ns.getServerMinSecurityLevel(this.name)
-		}
-		return this.minSecurityLevel
-	}
+	abstract getMinSecurityLevel(): number
 
 	getSecurityThreshold() {
 		if (this.securityThreshold === null) {
@@ -53,13 +46,8 @@ export class Target {
 		return this.securityThreshold
 	}
 
-	checkSecurityLevel() {
-		return this.ns.getServerSecurityLevel(this.name)
-	}
-
-	checkMoneyAvailable() {
-		return this.ns.getServerMoneyAvailable(this.name)
-	}
+	abstract checkSecurityLevel(): number
+	abstract checkMoneyAvailable(): number
 
 	addParent(name: string): void {
 		this.parents.add(name)
@@ -123,61 +111,5 @@ export class Target {
 				break
 		}
 		return false
-	}
-
-	// *** Not Implemented ***
-
-	getServer(): Server {
-		throw new Error('Not implemented in base Target')
-	}
-
-	getHackingPorts(): number {
-		throw new Error('Not implemented in base Target')
-	}
-
-	getMaxRam(_recheck = false): number {
-		throw new Error('Not implemented in base Target')
-	}
-
-	getRooted(): boolean {
-		throw new Error('Not implemented in base Target')
-	}
-
-	checkRooted(): boolean {
-		throw new Error('Not implemented in base Target')
-	}
-
-	checkUsedRam(): number {
-		throw new Error('Not implemented in base Target')
-	}
-
-	checkRunning(
-		_script: FilenameOrPID,
-		..._args: (string | number | boolean)[]
-	): boolean {
-		throw new Error('Not implemented in base Target')
-	}
-
-	copyFiles(_files: string | string[], _source?: string): boolean {
-		throw new Error('Not implemented in base Target')
-	}
-
-	clearProcesses(_safetyGuard?: boolean): boolean {
-		throw new Error('Not implemented in base Target')
-	}
-
-	clearProcess(
-		_script: string,
-		..._args: (string | number | boolean)[]
-	): boolean {
-		throw new Error('Not implemented in base Target')
-	}
-
-	startProcess(
-		_script: string,
-		_threads = 1,
-		..._args: (string | number | boolean)[]
-	): number {
-		throw new Error('Not implemented in base Target')
 	}
 }

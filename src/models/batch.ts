@@ -10,7 +10,7 @@ import { HwgwBatch } from './batches/hwgw'
 import { WBatch } from './batches/w'
 import { WgwBatch } from './batches/wgw'
 import { RunningProcess } from './memory'
-import { Target, TargetDirection } from './target'
+import { Target, TargetDirection } from './targets'
 
 export const StartDelay = 200 /* ms */
 export const BatchTick = 1 /* s */ * 1000 /* ms */

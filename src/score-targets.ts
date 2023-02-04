@@ -1,6 +1,9 @@
 import { NsLogger } from './logging/logger'
 import { PlayerStats } from './models/stats'
-import { simpleTargetFactory, Target } from './models/target'
+import {
+	deployTargetFactory,
+	ServerTarget,
+} from './models/targets/server-target'
 import { ScannerService } from './services/scanner'
 import { ServerCacheService } from './services/server-cache'
 import { TargetService } from './services/target'
@@ -8,11 +11,11 @@ import { TargetService } from './services/target'
 export async function main(ns: NS) {
 	const [command] = ns.args
 
-	const serverCache = new ServerCacheService(ns, simpleTargetFactory)
+	const serverCache = new ServerCacheService(ns, deployTargetFactory)
 	const scannerService = new ScannerService(
 		ns,
 		serverCache,
-		simpleTargetFactory
+		deployTargetFactory
 	)
 	const stats = new PlayerStats(ns)
 	const logger = new NsLogger(ns)
@@ -27,7 +30,7 @@ export async function main(ns: NS) {
 			break
 		case 'targets':
 		default:
-			const rooted = new Set<Target>()
+			const rooted = new Set<ServerTarget>()
 
 			for (const server of servers) {
 				if (ns.hasRootAccess(server.name)) {

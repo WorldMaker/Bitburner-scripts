@@ -1,6 +1,7 @@
 import { IterableX } from '@reactivex/ix-esnext-esm/iterable/iterablex'
 import { filter } from '@reactivex/ix-esnext-esm/iterable/operators/filter'
 import { orderBy } from '@reactivex/ix-esnext-esm/iterable/operators/orderby'
+import { ServerTarget } from '../../models/targets/server-target'
 import { ToyPurchaser } from '../../models/toys'
 import { ServerCacheService } from '../server-cache'
 
@@ -9,7 +10,10 @@ const { from } = IterableX
 const MaxRam = 2 ** 20
 
 export class ServerUpgrader implements ToyPurchaser {
-	constructor(private ns: NS, private servers: ServerCacheService) {}
+	constructor(
+		private ns: NS,
+		private servers: ServerCacheService<ServerTarget>
+	) {}
 
 	purchase(budget: number): number {
 		// *** Attempt to double purchased server RAM ***

@@ -1,4 +1,5 @@
 import { NsLogger } from '../../logging/logger'
+import { ServerTarget } from '../../models/targets/server-target'
 import {
 	BudgetTicks,
 	isBudgetProvider,
@@ -18,7 +19,7 @@ export class ToyPurchaseService {
 	constructor(
 		private ns: NS,
 		private logger: NsLogger,
-		private servers: ServerCacheService,
+		private servers: ServerCacheService<ServerTarget>,
 		startingBudget: number | null
 	) {
 		this.budget = startingBudget

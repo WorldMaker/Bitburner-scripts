@@ -1,6 +1,6 @@
 import { NsLogger } from './logging/logger.js'
 import { PlayerStats } from './models/stats.js'
-import { deployTargetFactory } from './models/target.js'
+import { deployTargetFactory } from './models/targets/server-target'
 import { AppCacheService } from './services/app-cache.js'
 import { DeploymentService } from './services/deployment.js'
 import { HackerService } from './services/hacker.js'
@@ -64,6 +64,7 @@ export async function main(ns: NS) {
 		ns,
 		logger,
 		servers,
+		targetFactory,
 		toyPurchaseService
 	)
 	const payloadPlanner = new PayloadPlanningService(
