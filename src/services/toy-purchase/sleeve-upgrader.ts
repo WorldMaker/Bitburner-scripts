@@ -1,8 +1,23 @@
-import { ToyPurchaser } from '../../models/toys'
+import { BudgetTicks, ToyBudgetProvider, ToyPurchaser } from '../../models/toys'
 import { ShirtService } from '../shirt'
 
-export class SleeveUpgrader implements ToyPurchaser {
+const SleeveBudgetThreshold = 10_000_000
+const SleeveBudgetMultiplier = 1 / 4 /* per minute */ / BudgetTicks
+
+export class SleeveUpgrader implements ToyBudgetProvider, ToyPurchaser {
 	constructor(private ns: NS, private shirt: ShirtService) {}
+
+	budget(funds: number): number {
+		if (funds > SleeveBudgetThreshold) {
+			return (
+				(this.ns.getMoneySources().sinceInstall.sleeves /
+					this.ns.getPlayer().playtimeSinceLastAug) *
+				60 /* s */ *
+				SleeveBudgetMultiplier
+			)
+		}
+		return 0
+	}
 
 	purchase(budget: number): number {
 		for (const sleeve of this.shirt.getSleeves()) {
