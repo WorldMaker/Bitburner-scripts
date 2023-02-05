@@ -45,7 +45,13 @@ export class PlayerStats {
 			const server = target.getServer()
 			return (
 				(target.getWorth() * DesiredHackingSkim) /
-				this.ns.formulas.hacking.hackTime(server, this.player)
+				this.ns.formulas.hacking.hackTime(
+					{
+						...server,
+						hackDifficulty: server.minDifficulty,
+					},
+					this.player
+				)
 			)
 		}
 		return (
