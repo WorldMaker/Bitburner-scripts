@@ -192,6 +192,9 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 					start: nextBatchTick,
 					satisifiesCount: false,
 				})
+				this.logger.trace`${
+					target.name
+				}\t❌ ${0}/${TotalBatchesPerTargetToPlan}`
 			} else {
 				const batches = targetProcesses.pipe(
 					// ['batch', target, start, end, type, batchId]
@@ -248,6 +251,8 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 						.trace`${target.name}\t✔ ${safeBatchCount}/${TotalBatchesPerTargetToPlan}; ${lastBatchEnd}`
 					satisfied.add(target.name)
 				} else {
+					this.logger
+						.trace`${target.name}\t❌ ${safeBatchCount}/${TotalBatchesPerTargetToPlan}; ${lastBatchEnd}`
 					const server = target.getServer()
 					if (lastBatch?.isStableHack()) {
 						const plan = createBatch(
