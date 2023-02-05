@@ -247,12 +247,18 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 					safeBatchCount >= TotalBatchesPerTargetToPlan ||
 					lastBatchEnd >= now + TotalTimeWindowToPlan
 				) {
-					this.logger
-						.trace`${target.name}\t✔ ${safeBatchCount}/${TotalBatchesPerTargetToPlan}; ${lastBatchEnd}`
+					this.logger.trace`${
+						target.name
+					}\t✔ ${safeBatchCount}/${TotalBatchesPerTargetToPlan}; ${new Date(
+						lastBatchEnd
+					).toLocaleTimeString()}`
 					satisfied.add(target.name)
 				} else {
-					this.logger
-						.trace`${target.name}\t❌ ${safeBatchCount}/${TotalBatchesPerTargetToPlan}; ${lastBatchEnd}`
+					this.logger.trace`${
+						target.name
+					}\t❌ ${safeBatchCount}/${TotalBatchesPerTargetToPlan}; ${new Date(
+						lastBatchEnd
+					).toLocaleTimeString()}`
 					const server = target.getServer()
 					if (lastBatch?.isStableHack()) {
 						const plan = createBatch(
