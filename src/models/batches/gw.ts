@@ -132,9 +132,9 @@ export class GwBatch implements Batch<'gw'> {
 			this.growProcess.threads * GrowthSecurityRaisePerThread
 		const wThreadsNeeded = growSecurityGrowth / WeakenSecurityLowerPerThread
 		// weaken should be enough to recoup grow security raise
-		if (wThreadsNeeded < this.wProcess.threads) {
+		if (wThreadsNeeded > this.wProcess.threads) {
 			this.logger
-				.trace`${this.server.hostname}\t❌ gw threads needed: ${wThreadsNeeded} < ${this.wProcess.threads}`
+				.trace`${this.server.hostname}\t❌ gw threads needed: ${wThreadsNeeded} > ${this.wProcess.threads}`
 			return false
 		}
 		return true

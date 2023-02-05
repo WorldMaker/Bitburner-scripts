@@ -164,7 +164,7 @@ export class HwgwBatch implements Batch<'hwgw'> {
 			this.hackProcess.threads * HackSecurityRaisePerThread
 		const w1ThreadsNeeded = hackSecurityGrowth / WeakenSecurityLowerPerThread
 		// w1 should be enough to recoup hack security raise
-		if (w1ThreadsNeeded < this.w1Process.threads) {
+		if (w1ThreadsNeeded > this.w1Process.threads) {
 			return false
 		}
 		const growStart = this.getGrowStart()!
@@ -184,7 +184,7 @@ export class HwgwBatch implements Batch<'hwgw'> {
 			this.growProcess.threads * GrowthSecurityRaisePerThread
 		const w2ThreadsNeeded = growSecurityGrowth / WeakenSecurityLowerPerThread
 		// w2 should be enough to recoup grow security raise
-		if (w2ThreadsNeeded < this.w2Process.threads) {
+		if (w2ThreadsNeeded > this.w2Process.threads) {
 			return false
 		}
 		return true

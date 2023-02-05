@@ -145,7 +145,7 @@ export class WgwBatch implements Batch<'wgw'> {
 			this.growProcess.threads * GrowthSecurityRaisePerThread
 		const w2ThreadsNeeded = growSecurityGrowth / WeakenSecurityLowerPerThread
 		// w2 should be enough to recoup grow security raise
-		if (w2ThreadsNeeded < this.w2Process.threads) {
+		if (w2ThreadsNeeded > this.w2Process.threads) {
 			return false
 		}
 		return true
