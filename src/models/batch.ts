@@ -36,8 +36,8 @@ export function batchPlanReducer(acc: BatchPlan, cur: RunningProcess) {
 export function batchPlanSeed(direction: TargetDirection) {
 	return {
 		direction,
-		start: -Infinity,
-		end: Infinity,
+		start: Infinity,
+		end: -Infinity,
 		threads: 0,
 	}
 }
