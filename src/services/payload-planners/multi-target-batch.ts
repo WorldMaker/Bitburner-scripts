@@ -185,6 +185,7 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 							server.moneyAvailable,
 							server.hackDifficulty
 						),
+						this.logger,
 						player,
 						server
 					).plan(server.moneyAvailable, server.hackDifficulty),
@@ -206,6 +207,7 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 						return createBatch(
 							this.ns,
 							batchType ?? 'bad',
+							this.logger,
 							player,
 							target.getServer(),
 							processes
@@ -256,6 +258,7 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 								server.minDifficulty,
 								lastBatch
 							),
+							this.logger,
 							player,
 							server
 						).plan(server.moneyMax, server.minDifficulty)
@@ -288,6 +291,7 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 									server.moneyAvailable * expectedGrowth,
 									server.minDifficulty
 								),
+								this.logger,
 								player,
 								server
 							).plan(

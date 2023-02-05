@@ -1,6 +1,7 @@
 import { IterableX } from '@reactivex/ix-esnext-esm/iterable/iterablex'
 import { groupBy } from '@reactivex/ix-esnext-esm/iterable/operators/groupby'
 import { ulid } from 'ulid'
+import { NsLogger } from '../../logging/logger'
 import { getBatchPayloadDirection } from '../app'
 import {
 	Batch,
@@ -25,6 +26,7 @@ export class GwBatch implements Batch<'gw'> {
 
 	constructor(
 		private readonly ns: NS,
+		private readonly logger: NsLogger,
 		public readonly player: Player,
 		public readonly server: Server,
 		private processes?: RunningProcess[]
@@ -122,6 +124,8 @@ export class GwBatch implements Batch<'gw'> {
 		const wFinish = this.getWFinish()!
 		// grow should finish before w2 start
 		if (growFinish > wFinish) {
+			this.logger
+				.trace`${this.server.hostname}\t❌ gw finish time: ${growFinish} > ${wFinish}`
 			return false
 		}
 		const growSecurityGrowth =
@@ -129,6 +133,8 @@ export class GwBatch implements Batch<'gw'> {
 		const wThreadsNeeded = growSecurityGrowth / WeakenSecurityLowerPerThread
 		// weaken should be enough to recoup grow security raise
 		if (wThreadsNeeded < this.wProcess.threads) {
+			this.logger
+				.trace`${this.server.hostname}\t❌ gw threads needed: ${wThreadsNeeded} < ${this.wProcess.threads}`
 			return false
 		}
 		return true

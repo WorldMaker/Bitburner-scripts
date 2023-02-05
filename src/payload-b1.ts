@@ -32,7 +32,7 @@ export async function main(ns: NS) {
 		server.moneyAvailable,
 		server.hackDifficulty
 	)
-	const batch = createBatch(ns, nextBatch, player, server)
+	const batch = createBatch(ns, nextBatch, logger, player, server)
 	const plan = batch.plan(server.moneyAvailable, server.hackDifficulty)
 
 	const planOverview = plan.plans
