@@ -19,7 +19,7 @@ export class ToyPurchaseService {
 	constructor(
 		private ns: NS,
 		private logger: NsLogger,
-		private servers: ServerCacheService<ServerTarget>,
+		servers: ServerCacheService<ServerTarget>,
 		startingBudget: number | null
 	) {
 		this.budget = startingBudget
@@ -46,8 +46,9 @@ export class ToyPurchaseService {
 			return
 		}
 
-		const moneyAvailable = this.servers.getHome().checkMoneyAvailable()
+		const moneyAvailable = this.ns.getPlayer().money
 		let funds = moneyAvailable
+		this.logger.trace`💵 funds\t${this.ns.nFormat(funds, '0.00a')}`
 
 		this.budgetPerMinute = 0
 
@@ -57,6 +58,10 @@ export class ToyPurchaseService {
 				this.budget += budget
 				this.budgetPerMinute += budget * BudgetTicks
 				funds -= budget
+				this.logger.trace`💵 ${service.name}\t${this.ns.nFormat(
+					budget,
+					'0.00a'
+				)}`
 			}
 		}
 
