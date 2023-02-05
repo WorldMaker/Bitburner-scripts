@@ -19,7 +19,7 @@ export class NsLogger extends TemplateLogger {
 
 	display(...args: any[]) {
 		this.ns.tprint(...args)
-		this.log(...args)
+		this.ns.print(...args)
 	}
 
 	log(...args: any[]) {
@@ -34,7 +34,30 @@ export class NsLogger extends TemplateLogger {
 	}
 
 	hooray(strings: TemplateStringsArray, ...values: unknown[]) {
-		this.display('SUCCESS ', ...interleaveArgs(strings, ...values))
+		if (!this.displayLogger) {
+			this.ns.tprint('SUCCESS ', ...interleaveArgs(strings, ...values))
+		}
 		return this.logger.log(69, 'SUCCESS', ...interleaveArgs(strings, ...values))
+	}
+
+	useful(strings: TemplateStringsArray, ...values: unknown[]) {
+		if (!this.displayLogger) {
+			this.ns.tprint('INFO ', ...interleaveArgs(strings, ...values))
+		}
+		return this.info(strings, ...values)
+	}
+
+	bigwarn(strings: TemplateStringsArray, ...values: unknown[]) {
+		if (!this.displayLogger) {
+			this.ns.tprint('WARN ', ...interleaveArgs(strings, ...values))
+		}
+		return this.warn(strings, ...values)
+	}
+
+	ohno(strings: TemplateStringsArray, ...values: unknown[]) {
+		if (!this.displayLogger) {
+			this.ns.tprint('ERROR ', ...interleaveArgs(strings, ...values))
+		}
+		return this.error(strings, ...values)
 	}
 }

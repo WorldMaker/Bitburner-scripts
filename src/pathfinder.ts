@@ -8,6 +8,7 @@ export async function main(ns: NS) {
 	const targetName = ns.args[0].toString()
 	const depth = Number(ns.args[1]) ?? 10
 
+	const logger = new NsLogger(ns)
 	const servers = new ServerCacheService(ns, simpleTargetFactory)
 	const scannerService = new ScannerService(
 		ns,
@@ -20,20 +21,23 @@ export async function main(ns: NS) {
 
 	const target = servers.get(targetName)
 	if (!target) {
-		ns.tprint(`ERROR Unable to find '${targetName}' below depth ${depth}`)
+		logger.ohno`Unable to find '${targetName}' below depth ${depth}`
 		return
 	}
 
-	ns.tprint(
-		`INFO ${
-			target.name
-		} valued at ${target.getWorth()}; rooted ${ns.hasRootAccess(target.name)}`
-	)
+	const rooted = ns.hasRootAccess(target.name)
 
-	const logger = new NsLogger(ns)
+	logger.useful`${target.name} valued at ${target.getWorth()}; rooted ${rooted}`
+
+	if (!rooted) {
+		const ports = ns.getServerNumPortsRequired(target.name)
+		const hackingLevel = ns.getServerRequiredHackingLevel(target.name)
+		logger.useful`hack at ${hackingLevel} with ${ports} ports`
+	}
+
 	const pathfinder = new PathfinderService(logger, servers)
 
 	for (const path of pathfinder.followPaths(target)) {
-		ns.tprint(`SUCCESS ${path.join(' -> ')}`)
+		logger.hooray`${path.join(' -> ')}`
 	}
 }
