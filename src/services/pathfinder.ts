@@ -25,7 +25,7 @@ export class PathfinderService<T extends Target> {
 			const parentTarget = this.servers.get(parent)
 			if (!parentTarget) {
 				// Should be interesting if such a case exists: where did we get this information?
-				this.logger.display(`WARN unknown parent server "${parent}"`)
+				this.logger.bigwarn`unknown parent server "${parent}"`
 				continue
 			}
 			for (const path of this.followPaths(

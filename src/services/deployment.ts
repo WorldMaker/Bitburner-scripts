@@ -71,21 +71,21 @@ export class DeploymentService {
 
 		// pick a target
 		if (this.targetService.findTarget(stats, rooted)) {
-			this.logger.display(
-				`INFO Target changed to ${this.targetService.getTopTarget()?.name}`
-			)
+			this.logger.useful`Target changed to ${
+				this.targetService.getTopTarget()?.name
+			}`
 		}
 
 		// pick a direction
 		const target = this.targetService.getTopTarget()
 
 		if (!target) {
-			this.logger.display(`WARN no targets`)
+			this.logger.bigwarn`no targets`
 			return
 		}
 
 		if (target.updateTargetDirection()) {
-			this.logger.info`INFO Direction changed to ${target.getTargetDirection()}`
+			this.logger.info`Direction changed to ${target.getTargetDirection()}`
 		}
 
 		// plan the payloads
