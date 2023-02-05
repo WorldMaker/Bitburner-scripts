@@ -1,6 +1,7 @@
 export const BudgetTicks = 6 /* 10s */
 
 export interface ToyBudgetProvider {
+	readonly name: string
 	budget(funds: number): number
 }
 

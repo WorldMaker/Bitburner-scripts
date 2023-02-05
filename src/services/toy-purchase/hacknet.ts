@@ -4,6 +4,8 @@ const HacknetBudgetThreshold = 10_000_000
 const HacknetBudgetMultiplier = 1 / 3 /* per minute */ / BudgetTicks
 
 export class HacknetToyService implements ToyBudgetProvider, ToyPurchaser {
+	readonly name = 'hacknet'
+
 	constructor(private ns: NS) {}
 
 	budget(funds: number): number {

@@ -5,6 +5,8 @@ const SleeveBudgetThreshold = 10_000_000
 const SleeveBudgetMultiplier = 1 / 4 /* per minute */ / BudgetTicks
 
 export class SleeveUpgrader implements ToyBudgetProvider, ToyPurchaser {
+	readonly name = 'sleeves'
+
 	constructor(private ns: NS, private shirt: ShirtService) {}
 
 	budget(funds: number): number {
