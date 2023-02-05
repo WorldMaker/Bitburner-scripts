@@ -5,6 +5,7 @@ import { ServerTarget } from '../models/targets/server-target'
 import { HackerService } from './hacker.js'
 import { PayloadService } from './payload.js'
 import { ScannerService } from './scanner.js'
+import { ServerCacheService } from './server-cache.js'
 import { TargetService } from './target.js'
 
 export class DeploymentService {
@@ -23,6 +24,7 @@ export class DeploymentService {
 		private logger: NsLogger,
 		private payloadPlanner: PayloadPlanner,
 		private payloadService: PayloadService,
+		private serverCache: ServerCacheService<ServerTarget>,
 		private scannerService: ScannerService<ServerTarget>,
 		private targetService: TargetService
 	) {}
@@ -62,6 +64,7 @@ export class DeploymentService {
 
 		// hack the planet
 		const rooted = new Set<ServerTarget>()
+		rooted.add(this.serverCache.getHome())
 
 		for (const server of servers) {
 			if (this.hackerService.rootServer(server, stats)) {

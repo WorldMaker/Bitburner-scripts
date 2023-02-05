@@ -17,11 +17,13 @@ export class PayloadService {
 			return true
 		}
 
-		if (plan.killall) {
-			plan.server.clearProcesses()
-		} else if (plan.kills) {
-			for (const kill of plan.kills) {
-				plan.server.clearProcess(kill.filename, ...kill.args)
+		if (plan.server.name !== 'home') {
+			if (plan.killall) {
+				plan.server.clearProcesses()
+			} else if (plan.kills) {
+				for (const kill of plan.kills) {
+					plan.server.clearProcess(kill.filename, ...kill.args)
+				}
 			}
 		}
 

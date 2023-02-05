@@ -87,6 +87,7 @@ export async function main(ns: NS) {
 		logger,
 		payloadPlanner,
 		payloadService,
+		servers,
 		scannerService,
 		targetService
 	)
