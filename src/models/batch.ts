@@ -4,6 +4,7 @@ import {
 } from '@reactivex/ix-esnext-esm/iterable/operators/groupby'
 import { orderBy } from '@reactivex/ix-esnext-esm/iterable/operators/orderby'
 import { reduce } from '@reactivex/ix-esnext-esm/iterable/reduce'
+import { NsLogger } from '../logging/logger'
 import { BadBatch } from './batches/bad'
 import { GwBatch } from './batches/gw'
 import { HwgwBatch } from './batches/hwgw'
@@ -36,8 +37,8 @@ export function batchPlanReducer(acc: BatchPlan, cur: RunningProcess) {
 export function batchPlanSeed(direction: TargetDirection) {
 	return {
 		direction,
-		start: -Infinity,
-		end: Infinity,
+		start: Infinity,
+		end: -Infinity,
 		threads: 0,
 	}
 }
@@ -151,6 +152,7 @@ export function getNextBatchType<T extends BatchType>(
 export function createBatch(
 	ns: NS,
 	type: BatchType,
+	logger: NsLogger,
 	player: Player,
 	server: Server,
 	processes?: RunningProcess[]
@@ -159,7 +161,7 @@ export function createBatch(
 		case 'w':
 			return new WBatch(ns, player, server, processes)
 		case 'gw':
-			return new GwBatch(ns, player, server, processes)
+			return new GwBatch(ns, logger, player, server, processes)
 		case 'wgw':
 			return new WgwBatch(ns, player, server, processes)
 		case 'hwgw':

@@ -185,12 +185,16 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 							server.moneyAvailable,
 							server.hackDifficulty
 						),
+						this.logger,
 						player,
 						server
 					).plan(server.moneyAvailable, server.hackDifficulty),
 					start: nextBatchTick,
 					satisifiesCount: false,
 				})
+				this.logger.trace`${
+					target.name
+				}\t❌ ${0}/${TotalBatchesPerTargetToPlan}`
 			} else {
 				const batches = targetProcesses.pipe(
 					// ['batch', target, start, end, type, batchId]
@@ -206,6 +210,7 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 						return createBatch(
 							this.ns,
 							batchType ?? 'bad',
+							this.logger,
 							player,
 							target.getServer(),
 							processes
@@ -242,10 +247,18 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 					safeBatchCount >= TotalBatchesPerTargetToPlan ||
 					lastBatchEnd >= now + TotalTimeWindowToPlan
 				) {
-					this.logger
-						.trace`${target.name}\t✔ ${safeBatchCount}/${TotalBatchesPerTargetToPlan}; ${lastBatchEnd}`
+					this.logger.trace`${
+						target.name
+					}\t✔ ${safeBatchCount}/${TotalBatchesPerTargetToPlan}; ${new Date(
+						lastBatchEnd
+					).toLocaleTimeString()}`
 					satisfied.add(target.name)
 				} else {
+					this.logger.trace`${
+						target.name
+					}\t❌ ${safeBatchCount}/${TotalBatchesPerTargetToPlan}; ${new Date(
+						lastBatchEnd
+					).toLocaleTimeString()}`
 					const server = target.getServer()
 					if (lastBatch?.isStableHack()) {
 						const plan = createBatch(
@@ -256,6 +269,7 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 								server.minDifficulty,
 								lastBatch
 							),
+							this.logger,
 							player,
 							server
 						).plan(server.moneyMax, server.minDifficulty)
@@ -288,6 +302,7 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 									server.moneyAvailable * expectedGrowth,
 									server.minDifficulty
 								),
+								this.logger,
 								player,
 								server
 							).plan(
