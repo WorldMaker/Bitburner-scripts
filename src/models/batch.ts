@@ -6,6 +6,7 @@ import { orderBy } from '@reactivex/ix-esnext-esm/iterable/operators/orderby'
 import { reduce } from '@reactivex/ix-esnext-esm/iterable/reduce'
 import { NsLogger } from '../logging/logger'
 import { BadBatch } from './batches/bad'
+import { DirBatch } from './batches/dir'
 import { GwBatch } from './batches/gw'
 import { HwgwBatch } from './batches/hwgw'
 import { WBatch } from './batches/w'
@@ -16,7 +17,25 @@ import { Target, TargetDirection } from './targets'
 export const StartDelay = 200 /* ms */
 export const BatchTick = 1 /* s */ * 1000 /* ms */
 
-export type BatchType = 'w' | 'gw' | 'wgw' | 'hwgw' | 'bad'
+export type BatchType = 'w' | 'gw' | 'wgw' | 'hwgw' | 'bad' | 'dir'
+
+export function getBatchTypeEmoji(type: BatchType): string {
+	switch (type) {
+		case 'dir':
+			return '🏹'
+		case 'hwgw':
+			return '🐱‍💻'
+		case 'gw':
+			return '📈'
+		case 'wgw':
+			return '💗'
+		case 'w':
+			return '🧓'
+		case 'bad':
+		default:
+			return '❌'
+	}
+}
 
 export interface BatchPlan {
 	direction: TargetDirection
@@ -166,6 +185,15 @@ export function createBatch(
 			return new WgwBatch(ns, player, server, processes)
 		case 'hwgw':
 			return new HwgwBatch(ns, player, server, processes)
+		case 'dir':
+			return new DirBatch(
+				ns,
+				undefined,
+				undefined,
+				undefined,
+				server,
+				processes
+			)
 		case 'bad':
 		default:
 			ns.print(

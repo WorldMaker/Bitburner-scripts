@@ -84,7 +84,7 @@ export class DeploymentService {
 
 		if (!target) {
 			this.logger.bigwarn`no targets`
-			return
+			return rooted
 		}
 
 		if (target.updateTargetDirection()) {
@@ -113,5 +113,7 @@ export class DeploymentService {
 			}
 		}
 		this.payloads = payloads
+
+		return rooted
 	}
 }

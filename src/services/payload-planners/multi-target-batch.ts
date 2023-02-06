@@ -15,6 +15,7 @@ import {
 	BatchTick,
 	BatchType,
 	createBatch,
+	getBatchTypeEmoji,
 	getNextBatchType,
 } from '../../models/batch'
 import { NsLogger } from '../../logging/logger'
@@ -28,6 +29,7 @@ import { Target, TargetDirection } from '../../models/targets'
 import { AppCacheService } from '../app-cache'
 import { TargetService } from '../target'
 import { ServerTarget } from '../../models/targets/server-target'
+import { DirBatch } from '../../models/batches/dir'
 
 const { from } = IterableX
 
@@ -140,12 +142,15 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 
 		// *** Assess what is currently running ***
 
+		let maxContiguousRam = 0
+
 		for (const free of servers) {
 			const { server } = free
 			this.totalRam += server.getMaxRam()
 			if (server.getMaxRam() === 0) {
 				continue
 			}
+			maxContiguousRam = Math.max(maxContiguousRam, server.getMaxRam())
 			serversToDeploy.push(server)
 			if (free.available > 0) {
 				freelist.push(free)
@@ -176,22 +181,48 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 			const targetProcesses = processesByTarget.get(target.name)
 			if (!targetProcesses) {
 				const server = target.getServer()
-				needsBatches.push({
+				const batchPlan = createBatch(
+					this.ns,
+					getNextBatchType(
+						target,
+						server.moneyAvailable,
+						server.hackDifficulty
+					),
+					this.logger,
+					player,
+					server
+				).plan(server.moneyAvailable, server.hackDifficulty)
+				const deployments = getBatchDeployments(
+					this.appSelector,
 					target,
-					batch: createBatch(
-						this.ns,
-						getNextBatchType(
+					batchPlan,
+					nextBatchTick
+				)
+				if (
+					deployments.totalRam > this.totalRam ||
+					deployments.deploys.some(
+						(deploy) => deploy.threads * deploy.app.ramCost >= maxContiguousRam
+					)
+				) {
+					needsBatches.push({
+						target,
+						batch: new DirBatch(
+							this.ns,
 							target,
-							server.moneyAvailable,
-							server.hackDifficulty
-						),
-						this.logger,
-						player,
-						server
-					).plan(server.moneyAvailable, server.hackDifficulty),
-					start: nextBatchTick,
-					satisifiesCount: false,
-				})
+							this.totalRam,
+							this.appSelector.selectApp(target.getTargetDirection())
+						).plan(server.moneyAvailable, server.hackDifficulty),
+						start: nextBatchTick,
+						satisifiesCount: false,
+					})
+				} else {
+					needsBatches.push({
+						target,
+						batch: batchPlan,
+						start: nextBatchTick,
+						satisifiesCount: false,
+					})
+				}
 				this.logger.trace`${
 					target.name
 				}\t❌ ${0}/${TotalBatchesPerTargetToPlan}`
@@ -221,6 +252,7 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 				let safeBatchCount = 0
 				let lastBatchEnd = 0
 				let lastBatch: Batch<BatchType> | null = null
+				let batchEmoji = ''
 				for (const batch of batches) {
 					if (!batch.isSafe()) {
 						this.logger.warn`desync ${target.name} ${batch.type}`
@@ -231,6 +263,7 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 						}
 					} else {
 						safeBatchCount++
+						batchEmoji += getBatchTypeEmoji(batch.type)
 						const batchEnd = batch.getEndTime()
 						if (batchEnd && batchEnd > lastBatchEnd) {
 							lastBatchEnd = batchEnd
@@ -249,14 +282,14 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 				) {
 					this.logger.trace`${
 						target.name
-					}\t✔ ${safeBatchCount}/${TotalBatchesPerTargetToPlan}; ${new Date(
+					}\t✔ ${safeBatchCount}/${TotalBatchesPerTargetToPlan} ${batchEmoji}; ${new Date(
 						lastBatchEnd
 					).toLocaleTimeString()}`
 					satisfied.add(target.name)
 				} else {
 					this.logger.trace`${
 						target.name
-					}\t❌ ${safeBatchCount}/${TotalBatchesPerTargetToPlan}; ${new Date(
+					}\t❌ ${safeBatchCount}/${TotalBatchesPerTargetToPlan} ${batchEmoji}; ${new Date(
 						lastBatchEnd
 					).toLocaleTimeString()}`
 					const server = target.getServer()
@@ -285,7 +318,7 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 							start,
 							satisifiesCount: safeBatchCount === 9,
 						})
-					} else {
+					} else if (lastBatch?.type !== 'dir') {
 						const start = new Date(
 							Math.max(
 								nextBatchTick.getTime(),
@@ -342,7 +375,7 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 				(acc, cur) => acc + cur.available,
 				0
 			)
-			if (batchDeployments.totalRam > totalFree) {
+			if (batch.type !== 'dir' && batchDeployments.totalRam > totalFree) {
 				this.logger
 					.debug`${target.name}\t❌ not enough RAM available for ${batch.type}`
 				continue
@@ -376,25 +409,31 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 						})
 					}
 				}
-				if (threadsNeeded > 0) {
+				if (batch.type !== 'dir' && threadsNeeded > 0) {
 					// not enough contiguous RAM even spread across all available free room
 					break
 				}
-				this.logger
-					.debug`${target.name}\t⚒ batching ${batch.type} from ${batch.start} to ${batch.end}`
 				deployServers.push(curDeployServers)
 				curfreelist = [
 					...from(nextfreelist).pipe(orderByDescending((f) => f.available)),
 				]
 				lastfreelist = [...curfreelist]
 			}
-			if (deployServers.length === batchDeployments.deploys.length) {
+			if (
+				batch.type === 'dir' ||
+				deployServers.length === batchDeployments.deploys.length
+			) {
 				attackedTargets.add(target.name)
 				if (
 					satisifiesCount ||
 					start.getTime() + batch.end >= now + TotalTimeWindowToPlan
 				) {
+					this.logger
+						.debug`${target.name}\t✔ batching ${batch.type} from ${batch.start} to ${batch.end}`
 					satisfied.add(target.name)
+				} else {
+					this.logger
+						.debug`${target.name}\t⚒ batching ${batch.type} from ${batch.start} to ${batch.end}`
 				}
 				for (const deployServer of deployServers.flat()) {
 					const deploylist = deployments.get(deployServer.server.name) ?? []
