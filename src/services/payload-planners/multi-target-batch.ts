@@ -15,6 +15,7 @@ import {
 	BatchTick,
 	BatchType,
 	createBatch,
+	getBatchTypeEmoji,
 	getNextBatchType,
 } from '../../models/batch'
 import { NsLogger } from '../../logging/logger'
@@ -251,6 +252,7 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 				let safeBatchCount = 0
 				let lastBatchEnd = 0
 				let lastBatch: Batch<BatchType> | null = null
+				let batchEmoji = ''
 				for (const batch of batches) {
 					if (!batch.isSafe()) {
 						this.logger.warn`desync ${target.name} ${batch.type}`
@@ -261,6 +263,7 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 						}
 					} else {
 						safeBatchCount++
+						batchEmoji += getBatchTypeEmoji(batch.type)
 						const batchEnd = batch.getEndTime()
 						if (batchEnd && batchEnd > lastBatchEnd) {
 							lastBatchEnd = batchEnd
@@ -279,14 +282,14 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 				) {
 					this.logger.trace`${
 						target.name
-					}\t✔ ${safeBatchCount}/${TotalBatchesPerTargetToPlan}; ${new Date(
+					}\t✔ ${safeBatchCount}/${TotalBatchesPerTargetToPlan} ${batchEmoji}; ${new Date(
 						lastBatchEnd
 					).toLocaleTimeString()}`
 					satisfied.add(target.name)
 				} else {
 					this.logger.trace`${
 						target.name
-					}\t❌ ${safeBatchCount}/${TotalBatchesPerTargetToPlan}; ${new Date(
+					}\t❌ ${safeBatchCount}/${TotalBatchesPerTargetToPlan} ${batchEmoji}; ${new Date(
 						lastBatchEnd
 					).toLocaleTimeString()}`
 					const server = target.getServer()

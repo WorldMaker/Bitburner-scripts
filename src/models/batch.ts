@@ -19,6 +19,24 @@ export const BatchTick = 1 /* s */ * 1000 /* ms */
 
 export type BatchType = 'w' | 'gw' | 'wgw' | 'hwgw' | 'bad' | 'dir'
 
+export function getBatchTypeEmoji(type: BatchType): string {
+	switch (type) {
+		case 'dir':
+			return '🏹'
+		case 'hwgw':
+			return '🐱‍💻'
+		case 'gw':
+			return '📈'
+		case 'wgw':
+			return '💗'
+		case 'w':
+			return '🧓'
+		case 'bad':
+		default:
+			return '❌'
+	}
+}
+
 export interface BatchPlan {
 	direction: TargetDirection
 	threads: number
