@@ -22,6 +22,8 @@ import { PlayerStats } from './models/stats'
 import { ShirtService } from './services/shirt'
 import { SleeveUpgrader } from './services/toy-purchase/sleeve-upgrader'
 import { CorpToyBudget } from './services/toy-purchase/corp'
+import { BackdoorService } from './services/singularity/backdoor'
+import { PathfinderService } from './services/pathfinder'
 
 let running = false
 let strategy: string | null = null
@@ -104,6 +106,12 @@ export async function main(ns: NS) {
 	toyPurchaseService.register(new SleeveUpgrader(ns, shirtService))
 	toyPurchaseService.register(new CorpToyBudget(ns))
 
+	const backdoorService = new BackdoorService(
+		ns,
+		logger,
+		new PathfinderService(logger, servers)
+	)
+
 	while (running) {
 		if (company.corporation) {
 			// try to align to a specific point in company cycle
@@ -127,12 +135,15 @@ export async function main(ns: NS) {
 		productPurchaseService.purchase()
 
 		const stats = new PlayerStats(ns)
-		deploymentService.deploy(stats, strategy)
+		const rooted = deploymentService.deploy(stats, strategy)
+
+		await backdoorService.manage(rooted)
 
 		purchaseService.purchase()
 
 		await cctService.manage()
 
+		backdoorService.summarize()
 		logger.log(shirtService.summarize())
 		purchaseService.summarize()
 		deploymentService.summarize(stats)
