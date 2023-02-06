@@ -6,6 +6,8 @@ export const deployTargetFactory: TargetFactory<ServerTarget> = (
 	purchased?: boolean
 ) => new ServerTarget(ns, name, purchased ?? false)
 
+const HomeRamUtilizationFloor = 2048
+
 /**
  * Server Target uses get server to bulk load server information
  */
@@ -53,6 +55,9 @@ export class ServerTarget extends Target {
 
 	checkUsedRam() {
 		this.server = this.ns.getServer(this.name)
+		if (this.name === 'home') {
+			return Math.max(HomeRamUtilizationFloor, this.server.ramUsed)
+		}
 		return this.server.ramUsed
 	}
 
