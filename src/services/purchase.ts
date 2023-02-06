@@ -65,7 +65,7 @@ export class PurchaseService {
 	}
 
 	private ownPurchase() {
-		const money = this.servers.getHome().checkMoneyAvailable()
+		const { money } = this.ns.getPlayer()
 		// Focus on active income over passive (purchased servers over hacknet nodes)
 		if (
 			this.purchasedServerCount < this.ns.getPurchasedServerLimit() &&
