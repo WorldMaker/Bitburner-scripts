@@ -364,7 +364,7 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 				(acc, cur) => acc + cur.available,
 				0
 			)
-			if (batchDeployments.totalRam > totalFree) {
+			if (batch.type !== 'dir' && batchDeployments.totalRam > totalFree) {
 				this.logger
 					.debug`${target.name}\t❌ not enough RAM available for ${batch.type}`
 				continue
@@ -398,7 +398,7 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 						})
 					}
 				}
-				if (threadsNeeded > 0) {
+				if (batch.type !== 'dir' && threadsNeeded > 0) {
 					// not enough contiguous RAM even spread across all available free room
 					break
 				}
@@ -408,7 +408,10 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 				]
 				lastfreelist = [...curfreelist]
 			}
-			if (deployServers.length === batchDeployments.deploys.length) {
+			if (
+				batch.type === 'dir' ||
+				deployServers.length === batchDeployments.deploys.length
+			) {
 				attackedTargets.add(target.name)
 				if (
 					satisifiesCount ||
