@@ -380,8 +380,6 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 					// not enough contiguous RAM even spread across all available free room
 					break
 				}
-				this.logger
-					.debug`${target.name}\t⚒ batching ${batch.type} from ${batch.start} to ${batch.end}`
 				deployServers.push(curDeployServers)
 				curfreelist = [
 					...from(nextfreelist).pipe(orderByDescending((f) => f.available)),
@@ -394,7 +392,12 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 					satisifiesCount ||
 					start.getTime() + batch.end >= now + TotalTimeWindowToPlan
 				) {
+					this.logger
+						.debug`${target.name}\t✔ batching ${batch.type} from ${batch.start} to ${batch.end}`
 					satisfied.add(target.name)
+				} else {
+					this.logger
+						.debug`${target.name}\t⚒ batching ${batch.type} from ${batch.start} to ${batch.end}`
 				}
 				for (const deployServer of deployServers.flat()) {
 					const deploylist = deployments.get(deployServer.server.name) ?? []
