@@ -8,7 +8,7 @@ import { MultiTargetDirectionalFormulatedPlanner } from './multi-target-directio
 import { MultiTargetDirectionalRoundRobinPlanner } from './multi-target-directional-round-robin'
 
 export class PayloadPlanningService implements PayloadPlanner {
-	private strategy = 'formulated'
+	private strategy = 'batch'
 	private payloadPlanner: PayloadPlanner
 
 	constructor(
