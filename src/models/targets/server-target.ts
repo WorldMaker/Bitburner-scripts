@@ -38,6 +38,9 @@ export class ServerTarget extends Target {
 		if (recheck) {
 			this.server = this.ns.getServer(this.name)
 		}
+		if (this.name === 'home') {
+			return Math.max(0, this.server.maxRam - HomeRamUtilizationFloor)
+		}
 		return this.server.maxRam
 	}
 
@@ -55,9 +58,6 @@ export class ServerTarget extends Target {
 
 	checkUsedRam() {
 		this.server = this.ns.getServer(this.name)
-		if (this.name === 'home') {
-			return Math.max(HomeRamUtilizationFloor, this.server.ramUsed)
-		}
 		return this.server.ramUsed
 	}
 
