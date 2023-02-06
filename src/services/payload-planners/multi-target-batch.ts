@@ -28,6 +28,7 @@ import { Target, TargetDirection } from '../../models/targets'
 import { AppCacheService } from '../app-cache'
 import { TargetService } from '../target'
 import { ServerTarget } from '../../models/targets/server-target'
+import { DirBatch } from '../../models/batches/dir'
 
 const { from } = IterableX
 
@@ -176,22 +177,43 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 			const targetProcesses = processesByTarget.get(target.name)
 			if (!targetProcesses) {
 				const server = target.getServer()
-				needsBatches.push({
+				const batchPlan = createBatch(
+					this.ns,
+					getNextBatchType(
+						target,
+						server.moneyAvailable,
+						server.hackDifficulty
+					),
+					this.logger,
+					player,
+					server
+				).plan(server.moneyAvailable, server.hackDifficulty)
+				const deployments = getBatchDeployments(
+					this.appSelector,
 					target,
-					batch: createBatch(
-						this.ns,
-						getNextBatchType(
+					batchPlan,
+					nextBatchTick
+				)
+				if (deployments.totalRam > this.totalRam) {
+					needsBatches.push({
+						target,
+						batch: new DirBatch(
+							this.ns,
 							target,
-							server.moneyAvailable,
-							server.hackDifficulty
-						),
-						this.logger,
-						player,
-						server
-					).plan(server.moneyAvailable, server.hackDifficulty),
-					start: nextBatchTick,
-					satisifiesCount: false,
-				})
+							this.totalRam,
+							this.appSelector.selectApp(target.getTargetDirection())
+						).plan(server.moneyAvailable, server.hackDifficulty),
+						start: nextBatchTick,
+						satisifiesCount: false,
+					})
+				} else {
+					needsBatches.push({
+						target,
+						batch: batchPlan,
+						start: nextBatchTick,
+						satisifiesCount: false,
+					})
+				}
 				this.logger.trace`${
 					target.name
 				}\t❌ ${0}/${TotalBatchesPerTargetToPlan}`
@@ -285,7 +307,7 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 							start,
 							satisifiesCount: safeBatchCount === 9,
 						})
-					} else {
+					} else if (lastBatch?.type !== 'dir') {
 						const start = new Date(
 							Math.max(
 								nextBatchTick.getTime(),

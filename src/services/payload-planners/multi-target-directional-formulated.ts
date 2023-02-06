@@ -11,10 +11,9 @@ import {
 	SalvoPayloadH,
 	SalvoPayloadW,
 } from '../../models/app'
+import { DirBatch } from '../../models/batches/dir'
 import {
-	calculateGrowThreads,
 	DesiredHackingSkim,
-	GrowthSecurityRaisePerThread,
 	WeakenSecurityLowerPerThread,
 } from '../../models/hackmath'
 import {
@@ -97,88 +96,6 @@ function areThreadsSufficient(ns: NS, target: Target, threads: number) {
 			return false
 		default:
 			return false
-	}
-}
-
-function calculateTargetThreads(
-	ns: NS,
-	target: Target,
-	app: App,
-	ramBudget: number
-) {
-	const formulasExist = ns.fileExists('Formulas.exe')
-	switch (target.getTargetDirection()) {
-		case 'grow': {
-			const moneyAvailable = target.checkMoneyAvailable()
-			const targetGrowPercent =
-				moneyAvailable / (target.getWorth() - moneyAvailable)
-			const securityAvailable =
-				target.getSecurityThreshold() - target.checkSecurityLevel()
-			const totalPossibleGrowThreads = Math.floor(
-				Math.min(
-					ramBudget / app.ramCost,
-					securityAvailable / GrowthSecurityRaisePerThread
-				)
-			)
-			if (formulasExist) {
-				const player = ns.getPlayer()
-				const server = ns.getServer(target.name)
-				return Math.max(
-					1,
-					Math.min(
-						totalPossibleGrowThreads,
-						calculateGrowThreads(ns.formulas.hacking, server, player)
-					)
-				)
-			}
-			if (targetGrowPercent < 1) {
-				const growthThreads = ns.growthAnalyze(
-					target.name,
-					1 + targetGrowPercent
-				)
-				return Math.max(
-					1,
-					Math.min(totalPossibleGrowThreads, Math.ceil(growthThreads))
-				)
-			}
-			return Math.max(
-				1,
-				Math.min(
-					totalPossibleGrowThreads,
-					Math.ceil(ns.growthAnalyze(target.name, targetGrowPercent))
-				)
-			)
-		}
-		case 'weaken': {
-			const securityDesired =
-				target.checkSecurityLevel() - target.getMinSecurityLevel()
-			const totalPossibleWeakenThreads = Math.floor(ramBudget / app.ramCost)
-			return Math.max(
-				1,
-				Math.min(
-					Math.ceil(securityDesired / WeakenSecurityLowerPerThread),
-					totalPossibleWeakenThreads
-				)
-			)
-		}
-		case 'hack': {
-			const hackPercent = ns.hackAnalyze(target.name)
-			const totalPossibleHackThreads = Math.floor(ramBudget / app.ramCost)
-			const desiredMoney =
-				target.checkMoneyAvailable() - target.getMoneyThreshold()
-			const desiredHackPercent = desiredMoney / target.getWorth()
-			return Math.max(
-				1,
-				Math.min(
-					Math.ceil(
-						Math.min(DesiredHackingSkim, desiredHackPercent) / hackPercent
-					),
-					totalPossibleHackThreads
-				)
-			)
-		}
-		default:
-			return 0
 	}
 }
 
@@ -283,12 +200,13 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 			const app = this.appSelector.selectApp(target.getTargetDirection())
 			const targetProcesses = processesByTarget.get(target.name)
 			// ideal number of threads up to 100% of total RAM
-			const targetThreads = calculateTargetThreads(
+			const targetThreads = new DirBatch(
 				this.ns,
 				target,
-				app,
-				this.totalRam
-			)
+				this.totalRam,
+				app
+			).plan(target.checkMoneyAvailable(), target.checkSecurityLevel()).plans[0]
+				.threads
 
 			if (!targetProcesses) {
 				if (targetThreads >= 1) {
