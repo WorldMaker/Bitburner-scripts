@@ -141,12 +141,15 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 
 		// *** Assess what is currently running ***
 
+		let maxContiguousRam = 0
+
 		for (const free of servers) {
 			const { server } = free
 			this.totalRam += server.getMaxRam()
 			if (server.getMaxRam() === 0) {
 				continue
 			}
+			maxContiguousRam = Math.max(maxContiguousRam, server.getMaxRam())
 			serversToDeploy.push(server)
 			if (free.available > 0) {
 				freelist.push(free)
@@ -194,7 +197,12 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 					batchPlan,
 					nextBatchTick
 				)
-				if (deployments.totalRam > this.totalRam) {
+				if (
+					deployments.totalRam > this.totalRam ||
+					deployments.deploys.some(
+						(deploy) => deploy.threads * deploy.app.ramCost >= maxContiguousRam
+					)
+				) {
 					needsBatches.push({
 						target,
 						batch: new DirBatch(
