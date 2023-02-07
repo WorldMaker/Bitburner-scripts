@@ -24,6 +24,8 @@ import { SleeveUpgrader } from './services/toy-purchase/sleeve-upgrader'
 import { CorpToyBudget } from './services/toy-purchase/corp'
 import { BackdoorService } from './services/singularity/backdoor'
 import { PathfinderService } from './services/pathfinder'
+import { AugmentPrioritizer } from './services/singularity/augments'
+import { AugmentToyPurchaser } from './services/singularity/toy-augments'
 
 let running = false
 let strategy: string | null = null
@@ -106,11 +108,15 @@ export async function main(ns: NS) {
 	toyPurchaseService.register(new SleeveUpgrader(ns, shirtService))
 	toyPurchaseService.register(new CorpToyBudget(ns))
 
+	// *** Singularity ***
+
 	const backdoorService = new BackdoorService(
 		ns,
 		logger,
 		new PathfinderService(logger, servers)
 	)
+	const augmentPrioritizer = new AugmentPrioritizer(ns)
+	toyPurchaseService.register(new AugmentToyPurchaser(ns, augmentPrioritizer))
 
 	while (running) {
 		if (company.corporation) {
@@ -138,6 +144,7 @@ export async function main(ns: NS) {
 		const rooted = deploymentService.deploy(stats, strategy)
 
 		await backdoorService.manage(rooted)
+		augmentPrioritizer.prioritize()
 
 		purchaseService.purchase()
 
