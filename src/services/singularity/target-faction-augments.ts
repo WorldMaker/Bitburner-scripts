@@ -6,17 +6,34 @@ import { AugmentPrioritizer } from './augments'
 
 const { from } = IterableX
 
+type AcquisitionState = '🎯' | '🎊' | '💻'
+
+const BonusTicks = 6 /* ~1 min */
+
 export class TargetFactionAugmentsService {
+	private state: AcquisitionState
+	private ticks = 0
+
 	constructor(
 		private readonly ns: NS,
 		private readonly config: Config,
 		private readonly logger: NsLogger,
 		private readonly priorities: AugmentPrioritizer
-	) {}
+	) {
+		this.state = '🎯'
+	}
 
 	summarize() {
 		if (this.config.targetAugmentFaction) {
-			this.logger.info`acquiring ${this.config.targetAugmentFaction} augments`
+			switch (this.state) {
+				case '🎯':
+					return this.logger
+						.info`acquiring ${this.state} ${this.config.targetAugmentFaction} augments`
+				case '🎊':
+					return this.logger.info`acquiring ${this.state} bonus augments`
+				case '💻':
+					return this.logger.info`acquiring ${this.state} home improvements`
+			}
 		}
 	}
 
@@ -24,10 +41,27 @@ export class TargetFactionAugmentsService {
 		const faction = this.config.targetAugmentFaction
 
 		if (!faction) {
+			this.state = '🎯'
+			this.ticks = 0
 			return
 		}
 
-		// *** Buy all of a single faction's augments ***
+		switch (this.state) {
+			case '🎯':
+				await this.acquireTargetAugments(faction)
+				break
+			case '🎊':
+				await this.acquireBonusAugments()
+				break
+			case '💻':
+				await this.purchaseHomeImprovements()
+				break
+		}
+
+		this.ticks++
+	}
+
+	private async acquireTargetAugments(faction: string) {
 		const factionAugments = from(this.priorities.getPriorities()).pipe(
 			filter((augment) => augment.faction === faction)
 		)
@@ -52,65 +86,72 @@ export class TargetFactionAugmentsService {
 				this.logger.warn`Unable to purchase ${augment.name}`
 				return
 			}
-			await this.ns.sleep(1 /* s */ * 1000 /* ms */)
 		}
 
-		// *** Bonus augments ***
-		let purchased = true
-		while (purchased) {
-			purchased = false
-			this.priorities.prioritize()
+		this.state = '🎊'
+		this.ticks = 0
+	}
 
-			for (const augment of this.priorities.getPriorities()) {
-				const { money } = this.ns.getPlayer()
-				const factionRep = this.ns.singularity.getFactionRep(augment.faction)
-				if (augment.cost < money && augment.rep < factionRep) {
-					this.logger.trace`buying ${augment.name}`
-					if (
-						this.ns.singularity.purchaseAugmentation(
-							augment.faction,
-							augment.name
-						)
-					) {
-						purchased = true
-					}
-				}
-			}
+	private async acquireBonusAugments() {
+		let purchased = false
 
-			await this.ns.sleep(1 /* s */ * 1000 /* ms */)
-		}
+		this.priorities.prioritize()
 
-		// *** Home upgrades ***
-		purchased = true
-		while (purchased) {
-			purchased = false
+		for (const augment of this.priorities.getPriorities()) {
 			const { money } = this.ns.getPlayer()
-			const ramUpgradeCost = this.ns.singularity.getUpgradeHomeRamCost()
-			if (ramUpgradeCost < money) {
-				this.logger.trace`buying home RAM upgrade`
-				if (this.ns.singularity.upgradeHomeRam()) {
+			const factionRep = this.ns.singularity.getFactionRep(augment.faction)
+			if (augment.cost < money && augment.rep < factionRep) {
+				this.logger.trace`buying ${augment.name}`
+				if (
+					this.ns.singularity.purchaseAugmentation(
+						augment.faction,
+						augment.name
+					)
+				) {
 					purchased = true
-					await this.ns.sleep(1 /* s */ * 1000 /* ms */)
-					continue
-				}
-			}
-
-			const coresUpgradeCost = this.ns.singularity.getUpgradeHomeCoresCost()
-			if (coresUpgradeCost < money) {
-				this.logger.trace`buying home cores upgrade`
-				if (this.ns.singularity.upgradeHomeCores()) {
-					purchased = true
-					await this.ns.sleep(1 /* s */ * 1000 /* ms */)
-					continue
+					this.ticks = 0
+					return
 				}
 			}
 		}
 
-		// clear target
-		this.config.targetAugmentFaction = null
-		this.config.save()
+		if (!purchased && this.ticks > BonusTicks) {
+			this.state = '💻'
+			this.ticks = 0
+		}
+	}
 
-		this.logger.trace`installing`
-		this.ns.singularity.installAugmentations(this.ns.getScriptName())
+	private async purchaseHomeImprovements() {
+		let purchased = false
+
+		const { money } = this.ns.getPlayer()
+		const ramUpgradeCost = this.ns.singularity.getUpgradeHomeRamCost()
+		if (ramUpgradeCost < money) {
+			this.logger.trace`buying home RAM upgrade`
+			if (this.ns.singularity.upgradeHomeRam()) {
+				purchased = true
+				this.ticks = 0
+				return
+			}
+		}
+
+		const coresUpgradeCost = this.ns.singularity.getUpgradeHomeCoresCost()
+		if (coresUpgradeCost < money) {
+			this.logger.trace`buying home cores upgrade`
+			if (this.ns.singularity.upgradeHomeCores()) {
+				purchased = true
+				this.ticks = 0
+				return
+			}
+		}
+
+		if (!purchased && this.ticks > BonusTicks) {
+			// clear target
+			this.config.targetAugmentFaction = null
+			this.config.save()
+
+			this.logger.trace`installing`
+			this.ns.singularity.installAugmentations(this.ns.getScriptName())
+		}
 	}
 }
