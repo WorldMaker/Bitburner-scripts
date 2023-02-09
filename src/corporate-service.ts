@@ -26,41 +26,17 @@ import { BackdoorService } from './services/singularity/backdoor'
 import { PathfinderService } from './services/pathfinder'
 import { AugmentPrioritizer } from './services/singularity/augments'
 import { AugmentToyPurchaser } from './services/singularity/toy-augments'
-
-let running = false
-let strategy: string | null = null
+import { Config } from './models/config'
 
 export async function main(ns: NS) {
 	ns.disableLog('ALL')
 
-	const command = ns.args[0]?.toString()
+	const config = new Config(ns)
+	config.load()
 
-	if (command) {
-		switch (command) {
-			case 'stop':
-				running = false
-				return
-
-			case 'start':
-				running = false
-				ns.tail()
-				break
-
-			case 'strategy':
-				strategy = ns.args[1]?.toString()
-				break
-
-			default:
-				ns.tprint(`WARN Unknown command ${command}`)
-				break
-		}
+	if (config.tail) {
+		ns.tail()
 	}
-
-	if (running) {
-		return
-	}
-
-	running = true
 
 	const logger = new NsLogger(ns)
 	const company = new Company(ns)
@@ -72,13 +48,19 @@ export async function main(ns: NS) {
 
 	// *** Auto-CCT ***
 	const servers = new ServerCacheService(ns, deployTargetFactory)
-	const scannerService = new ScannerService(ns, servers, deployTargetFactory)
+	const scannerService = new ScannerService(
+		ns,
+		config,
+		servers,
+		deployTargetFactory
+	)
 	const cctService = new CctService(ns, servers, logger)
 
 	// *** Hack Deployment & Purchasing ***
 	const toyPurchaseService = new ToyPurchaseService(ns, logger, servers, 0)
 	const purchaseService = new PurchaseService(
 		ns,
+		config,
 		logger,
 		servers,
 		deployTargetFactory,
@@ -89,6 +71,7 @@ export async function main(ns: NS) {
 	const payloadService = new PayloadService()
 	const payloadPlanner = new PayloadPlanningService(
 		ns,
+		config,
 		targetService,
 		apps,
 		logger
@@ -118,7 +101,10 @@ export async function main(ns: NS) {
 	const augmentPrioritizer = new AugmentPrioritizer(ns)
 	toyPurchaseService.register(new AugmentToyPurchaser(ns, augmentPrioritizer))
 
+	const running = true
 	while (running) {
+		config.load()
+
 		if (company.corporation) {
 			// try to align to a specific point in company cycle
 			while (company.corporation.state !== 'START') {
@@ -141,7 +127,7 @@ export async function main(ns: NS) {
 		productPurchaseService.purchase()
 
 		const stats = new PlayerStats(ns)
-		const rooted = deploymentService.deploy(stats, strategy)
+		const rooted = deploymentService.deploy(stats)
 
 		await backdoorService.manage(rooted)
 		augmentPrioritizer.prioritize()
@@ -168,6 +154,7 @@ export async function main(ns: NS) {
 			logger.log(phaseManager.summarize())
 		}
 
+		config.save()
 		await ns.sleep(10 /* s */ * 1000 /* ms */)
 	}
 }

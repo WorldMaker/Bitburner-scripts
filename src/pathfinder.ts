@@ -1,4 +1,5 @@
 import { NsLogger } from './logging/logger'
+import { Config } from './models/config'
 import { simpleTargetFactory } from './models/targets/simple-target'
 import { PathfinderService } from './services/pathfinder'
 import { ScannerService } from './services/scanner'
@@ -8,13 +9,16 @@ export async function main(ns: NS) {
 	const targetName = ns.args[0].toString()
 	const depth = Number(ns.args[1]) ?? 10
 
+	const config = new Config(ns)
+	config.load()
+
 	const logger = new NsLogger(ns)
 	const servers = new ServerCacheService(ns, simpleTargetFactory)
 	const scannerService = new ScannerService(
 		ns,
+		config,
 		servers,
-		simpleTargetFactory,
-		depth
+		simpleTargetFactory
 	)
 
 	scannerService.scan()

@@ -1,4 +1,5 @@
 import { NsLogger } from '../../logging/logger'
+import { Config } from '../../models/config'
 import { PayloadPlanner } from '../../models/payload-plan'
 import { ServerTarget } from '../../models/targets/server-target'
 import { AppCacheService } from '../app-cache'
@@ -16,6 +17,7 @@ export class PayloadPlanningService implements PayloadPlanner {
 
 	constructor(
 		private ns: NS,
+		private config: Config,
 		private targetService: TargetService,
 		private apps: AppCacheService,
 		private logger: NsLogger
@@ -60,9 +62,9 @@ export class PayloadPlanningService implements PayloadPlanner {
 		}
 	}
 
-	plan(rooted: Iterable<ServerTarget>, strategy: string | null = null) {
-		if (strategy && strategy !== this.strategy) {
-			this.strategy = strategy
+	plan(rooted: Iterable<ServerTarget>) {
+		if (this.config.hackStrategy !== this.strategy) {
+			this.strategy = this.config.hackStrategy
 			this.payloadPlanner = this.select()
 		}
 
@@ -70,7 +72,6 @@ export class PayloadPlanningService implements PayloadPlanner {
 
 		// *** Auto-switch from "formulated" to "batch" once RAM is high enough and utilization of it low enough ***
 		if (
-			!strategy &&
 			this.strategy === 'formulated' &&
 			this.getTotalRam() > BatchTotalRamThreshold &&
 			this.getFreeRam() / this.getTotalRam() > BatchUtilizationThreshold
@@ -78,6 +79,8 @@ export class PayloadPlanningService implements PayloadPlanner {
 			this.strategy = 'batch'
 			this.payloadPlanner = this.select()
 		}
+
+		this.config.hackStrategy = this.strategy
 
 		return plan
 	}

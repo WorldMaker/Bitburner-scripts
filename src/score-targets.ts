@@ -1,4 +1,5 @@
 import { NsLogger } from './logging/logger'
+import { Config } from './models/config'
 import { PlayerStats } from './models/stats'
 import {
 	deployTargetFactory,
@@ -11,9 +12,13 @@ import { TargetService } from './services/target'
 export async function main(ns: NS) {
 	const [command] = ns.args
 
+	const config = new Config(ns)
+	config.load()
+
 	const serverCache = new ServerCacheService(ns, deployTargetFactory)
 	const scannerService = new ScannerService(
 		ns,
+		config,
 		serverCache,
 		deployTargetFactory
 	)

@@ -1,4 +1,5 @@
 import { NsLogger } from '../logging/logger.js'
+import { Config } from '../models/config.js'
 import { TargetFactory } from '../models/targets'
 import { ServerTarget } from '../models/targets/server-target'
 import { ServerCacheService } from './server-cache.js'
@@ -16,18 +17,20 @@ export class PurchaseService {
 	private ram: number
 	private finishedMajorPurchases = false
 	private announcedFinish = false
+	private hacknetNodesToBuy = 5
 
 	constructor(
 		private ns: NS,
+		private config: Config,
 		private logger: NsLogger,
 		private servers: ServerCacheService<ServerTarget>,
 		private targetFactory: TargetFactory<ServerTarget>,
-		private toyPurchaseService: ToyPurchaseService,
-		private hacknetNodesToBuy = 5
+		private toyPurchaseService: ToyPurchaseService
 	) {
 		this.purchasedServerCount = this.ns.getPurchasedServers().length
 		this.purchasedServerLimit = this.ns.getPurchasedServerLimit()
 		this.hacknetNodesCount = this.ns.hacknet.numNodes()
+		this.hacknetNodesToBuy = this.config.hacknetNodes
 		this.nextHacknetNodePurchaseCost = this.ns.hacknet.getPurchaseNodeCost()
 		const homeRam = this.servers.getHome().getMaxRam()
 		this.ram = Math.min(
