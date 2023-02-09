@@ -7,8 +7,11 @@ import { MultiTargetBatchPlanner } from './multi-target-batch'
 import { MultiTargetDirectionalFormulatedPlanner } from './multi-target-directional-formulated'
 import { MultiTargetDirectionalRoundRobinPlanner } from './multi-target-directional-round-robin'
 
+const BatchTotalRamThreshold = 10_000 // 10 "TB"
+const BatchUtilizationThreshold = 0.25 // 25%
+
 export class PayloadPlanningService implements PayloadPlanner {
-	private strategy = 'batch'
+	private strategy = 'formulated'
 	private payloadPlanner: PayloadPlanner
 
 	constructor(
@@ -18,6 +21,13 @@ export class PayloadPlanningService implements PayloadPlanner {
 		private logger: NsLogger
 	) {
 		this.payloadPlanner = this.select()
+	}
+
+	getTotalRam(): number {
+		return this.payloadPlanner.getTotalRam()
+	}
+	getFreeRam(): number {
+		return this.payloadPlanner.getFreeRam()
 	}
 
 	summarize() {
@@ -56,6 +66,19 @@ export class PayloadPlanningService implements PayloadPlanner {
 			this.payloadPlanner = this.select()
 		}
 
-		return this.payloadPlanner.plan(rooted)
+		const plan = this.payloadPlanner.plan(rooted)
+
+		// *** Auto-switch from "formulated" to "batch" once RAM is high enough and utilization of it low enough ***
+		if (
+			!strategy &&
+			this.strategy === 'formulated' &&
+			this.getTotalRam() > BatchTotalRamThreshold &&
+			this.getFreeRam() / this.getTotalRam() > BatchUtilizationThreshold
+		) {
+			this.strategy = 'batch'
+			this.payloadPlanner = this.select()
+		}
+
+		return plan
 	}
 }

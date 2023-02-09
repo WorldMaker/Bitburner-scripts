@@ -132,6 +132,14 @@ export class MultiTargetDirectionalFormulatedPlanner implements PayloadPlanner {
 		this.appSelector = new SalvoAppSelector(apps)
 	}
 
+	getTotalRam(): number {
+		return this.totalRam
+	}
+
+	getFreeRam(): number {
+		return this.freeRam
+	}
+
 	summarize(): string {
 		const ramPercent = this.freeRam / this.totalRam
 		return `INFO attacking ${this.satisfiedTargets}/${this.attackedTargets}/${
