@@ -69,14 +69,20 @@ export class TargetFactionAugmentsService {
 		for (const augment of factionAugments) {
 			const { money } = this.ns.getPlayer()
 			if (augment.cost > money) {
-				this.logger
-					.debug`Need more money for ${augment.name}: ${money}/${augment.cost}`
+				this.logger.debug`Need more money for ${
+					augment.name
+				}: ${this.ns.nFormat(money, '0.00a')} / ${this.ns.nFormat(
+					augment.cost,
+					'0.00a'
+				)}`
 				return
 			}
 			const factionRep = this.ns.singularity.getFactionRep(augment.faction)
 			if (augment.rep > factionRep) {
-				this.logger
-					.debug`Need more rep for ${augment.name}: ${factionRep}/${augment.rep}`
+				this.logger.debug`Need more rep for ${augment.name}: ${this.ns.nFormat(
+					factionRep,
+					'0.00a'
+				)} / ${this.ns.nFormat(augment.rep, '0.00a')}`
 				return
 			}
 			this.logger.trace`buying ${augment.name}`
@@ -94,8 +100,6 @@ export class TargetFactionAugmentsService {
 
 	private async acquireBonusAugments() {
 		let purchased = false
-
-		this.priorities.prioritize()
 
 		for (const augment of this.priorities.getPriorities()) {
 			const { money } = this.ns.getPlayer()
