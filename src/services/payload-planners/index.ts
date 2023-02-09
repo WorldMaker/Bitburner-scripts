@@ -7,9 +7,11 @@ import { TargetService } from '../target'
 import { MultiTargetBatchPlanner } from './multi-target-batch'
 import { MultiTargetDirectionalFormulatedPlanner } from './multi-target-directional-formulated'
 import { MultiTargetDirectionalRoundRobinPlanner } from './multi-target-directional-round-robin'
+import { SingleTargetSinglePayloadPlanner } from './single-target-single-payload'
 
 const BatchTotalRamThreshold = 10_000 // 10 "TB"
 const BatchUtilizationThreshold = 0.25 // 25%
+const SharePayload = 'payload-s.js'
 
 export class PayloadPlanningService implements PayloadPlanner {
 	private strategy = 'formulated'
@@ -50,6 +52,12 @@ export class PayloadPlanningService implements PayloadPlanner {
 					this.logger,
 					this.targetService,
 					this.apps
+				)
+			case 'share':
+				return new SingleTargetSinglePayloadPlanner(
+					this.logger,
+					this.targetService,
+					this.apps.getApp(SharePayload)
 				)
 			case 'formulated':
 			default:

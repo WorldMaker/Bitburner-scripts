@@ -14,6 +14,7 @@ buildSync({
 		'./src/payload-g.ts',
 		'./src/payload-h.ts',
 		'./src/payload-w.ts',
+		'./src/payload-s.ts',
 		'./src/payload-sg.ts',
 		'./src/payload-sh.ts',
 		'./src/payload-sw.ts',
