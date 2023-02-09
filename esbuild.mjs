@@ -67,7 +67,6 @@ buildSync({
 		able: './src/bootstrap-service.ts',
 		boot: './src/bootstrap-service-cct.ts',
 		corp: './src/corporate-service.ts',
-		'install-faction-augments': './src/install-faction-augments.ts',
 		'score-targets': './src/score-targets.ts',
 		shirt: './src/shirt.ts',
 	},

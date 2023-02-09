@@ -27,6 +27,7 @@ import { PathfinderService } from './services/pathfinder'
 import { AugmentPrioritizer } from './services/singularity/augments'
 import { AugmentToyPurchaser } from './services/singularity/toy-augments'
 import { Config } from './models/config'
+import { TargetFactionAugmentsService } from './services/singularity/target-faction-augments'
 
 export async function main(ns: NS) {
 	ns.disableLog('ALL')
@@ -100,6 +101,12 @@ export async function main(ns: NS) {
 	)
 	const augmentPrioritizer = new AugmentPrioritizer(ns)
 	toyPurchaseService.register(new AugmentToyPurchaser(ns, augmentPrioritizer))
+	const targetFactionAugments = new TargetFactionAugmentsService(
+		ns,
+		config,
+		logger,
+		augmentPrioritizer
+	)
 
 	const running = true
 	while (running) {
@@ -131,11 +138,13 @@ export async function main(ns: NS) {
 
 		await backdoorService.manage(rooted)
 		augmentPrioritizer.prioritize()
+		await targetFactionAugments.manage()
 
 		purchaseService.purchase()
 
 		await cctService.manage()
 
+		targetFactionAugments.summarize()
 		backdoorService.summarize()
 		logger.log(shirtService.summarize())
 		purchaseService.summarize()
