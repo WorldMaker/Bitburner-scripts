@@ -1,6 +1,5 @@
 import { NsLogger } from './logging/logger.js'
 import { Config } from './models/config.js'
-import { PlayerStats } from './models/stats.js'
 import { deployTargetFactory } from './models/targets/server-target'
 import { AppCacheService } from './services/app-cache.js'
 import { DeploymentService } from './services/deployment.js'
@@ -10,6 +9,7 @@ import { PayloadService } from './services/payload.js'
 import { PurchaseService } from './services/purchase.js'
 import { ScannerService } from './services/scanner.js'
 import { ServerCacheService } from './services/server-cache.js'
+import { ServiceService } from './services/service.js'
 import { TargetService } from './services/target.js'
 import { ToyPurchaseService } from './services/toy-purchase/index.js'
 
@@ -25,18 +25,23 @@ export async function main(ns: NS) {
 
 	const apps = new AppCacheService(ns)
 	const logger = new NsLogger(ns)
+	const manager = new ServiceService(ns, logger, config)
+
 	const targetService = new TargetService()
 	const payloadService = new PayloadService()
 	const targetFactory = deployTargetFactory
 	const servers = new ServerCacheService(ns, targetFactory)
 	const toyPurchaseService = new ToyPurchaseService(ns, logger, servers, 0)
-	const purchaseService = new PurchaseService(
-		ns,
-		config,
-		logger,
-		servers,
-		targetFactory,
-		toyPurchaseService
+
+	manager.register(
+		new PurchaseService(
+			ns,
+			config,
+			logger,
+			servers,
+			targetFactory,
+			toyPurchaseService
+		)
 	)
 	const payloadPlanner = new PayloadPlanningService(
 		ns,
@@ -47,32 +52,24 @@ export async function main(ns: NS) {
 	)
 	const hackerService = new HackerService(ns, logger)
 	const scannerService = new ScannerService(ns, config, servers, targetFactory)
-	const deploymentService = new DeploymentService(
-		hackerService,
-		logger,
-		payloadPlanner,
-		payloadService,
-		servers,
-		scannerService,
-		targetService
+	manager.useDeploymentService(
+		new DeploymentService(
+			hackerService,
+			logger,
+			payloadPlanner,
+			payloadService,
+			servers,
+			scannerService,
+			targetService
+		)
 	)
 
 	const running = true
 	while (running) {
-		config.load()
+		await manager.manage()
 
-		// *** hacking and deploying payloads ***
-		const stats = new PlayerStats(ns)
-		deploymentService.deploy(stats)
+		manager.summarize()
 
-		// *** purchasing servers ***
-		purchaseService.purchase()
-
-		// *** status logging ***
-		purchaseService.summarize()
-		deploymentService.summarize(stats)
-
-		config.save()
 		await ns.sleep(10 /* s */ * 1000 /* ms */)
 	}
 }

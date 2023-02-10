@@ -18,7 +18,6 @@ import { HackerService } from './services/hacker'
 import { TargetService } from './services/target'
 import { PayloadService } from './services/payload'
 import { AppCacheService } from './services/app-cache'
-import { PlayerStats } from './models/stats'
 import { ShirtService } from './services/shirt'
 import { SleeveUpgrader } from './services/toy-purchase/sleeve-upgrader'
 import { CorpToyBudget } from './services/toy-purchase/corp'
@@ -28,6 +27,7 @@ import { AugmentPrioritizer } from './services/singularity/augments'
 import { AugmentToyPurchaser } from './services/singularity/toy-augments'
 import { Config } from './models/config'
 import { TargetFactionAugmentsService } from './services/singularity/target-faction-augments'
+import { ServiceService } from './services/service'
 
 export async function main(ns: NS) {
 	ns.disableLog('ALL')
@@ -40,12 +40,17 @@ export async function main(ns: NS) {
 	}
 
 	const logger = new NsLogger(ns)
+	const manager = new ServiceService(ns, logger, config)
 	const company = new Company(ns)
-	const mandatoryFun = new MandatoryFunService(ns, logger, company)
-	const officeManager = new ProductOfficeManager(ns, logger, company)
-	const productManager = new ProductManager(ns, logger, company)
-	const productPriceService = new ProductPriceService(ns, company)
-	const productPurchaseService = new ProductPurchaseService(ns, logger, company)
+
+	manager.register(
+		new MandatoryFunService(ns, logger, company),
+		new ProductOfficeManager(ns, logger, company),
+		new ProductManager(ns, logger, company),
+		new ProductPriceService(ns, company),
+		new ProductPurchaseService(ns, logger, company)
+	)
+	manager.registerFactory(() => getPhaseManager(ns, logger, company))
 
 	// *** Auto-CCT ***
 	const servers = new ServerCacheService(ns, deployTargetFactory)
@@ -55,19 +60,11 @@ export async function main(ns: NS) {
 		servers,
 		deployTargetFactory
 	)
-	const cctService = new CctService(ns, servers, logger)
+	manager.register(new CctService(ns, servers, logger))
 
 	// *** Hack Deployment & Purchasing ***
-	const toyPurchaseService = new ToyPurchaseService(ns, logger, servers, 0)
-	const purchaseService = new PurchaseService(
-		ns,
-		config,
-		logger,
-		servers,
-		deployTargetFactory,
-		toyPurchaseService
-	)
 	const apps = new AppCacheService(ns)
+	const toyPurchaseService = new ToyPurchaseService(ns, logger, servers, 0)
 	const targetService = new TargetService()
 	const payloadService = new PayloadService()
 	const payloadPlanner = new PayloadPlanningService(
@@ -78,40 +75,47 @@ export async function main(ns: NS) {
 		logger
 	)
 	const hackerService = new HackerService(ns, logger)
-	const deploymentService = new DeploymentService(
-		hackerService,
-		logger,
-		payloadPlanner,
-		payloadService,
-		servers,
-		scannerService,
-		targetService
+	manager.useDeploymentService(
+		new DeploymentService(
+			hackerService,
+			logger,
+			payloadPlanner,
+			payloadService,
+			servers,
+			scannerService,
+			targetService
+		)
+	)
+
+	manager.register(
+		new PurchaseService(
+			ns,
+			config,
+			logger,
+			servers,
+			deployTargetFactory,
+			toyPurchaseService
+		)
 	)
 
 	const shirtService = new ShirtService(ns)
+	manager.register(shirtService)
 	toyPurchaseService.register(new SleeveUpgrader(ns, shirtService))
 	toyPurchaseService.register(new CorpToyBudget(ns))
 
 	// *** Singularity ***
 
-	const backdoorService = new BackdoorService(
-		ns,
-		logger,
-		new PathfinderService(logger, servers)
+	manager.registerRooted(
+		new BackdoorService(ns, logger, new PathfinderService(logger, servers))
 	)
 	const augmentPrioritizer = new AugmentPrioritizer(ns)
 	toyPurchaseService.register(new AugmentToyPurchaser(ns, augmentPrioritizer))
-	const targetFactionAugments = new TargetFactionAugmentsService(
-		ns,
-		config,
-		logger,
-		augmentPrioritizer
+	manager.register(
+		new TargetFactionAugmentsService(ns, config, logger, augmentPrioritizer)
 	)
 
 	const running = true
 	while (running) {
-		config.load()
-
 		if (company.corporation) {
 			// try to align to a specific point in company cycle
 			while (company.corporation.state !== 'START') {
@@ -119,51 +123,17 @@ export async function main(ns: NS) {
 				company.updateState()
 			}
 		}
-		const phaseManager = getPhaseManager(ns, logger, company)
 
-		if (phaseManager) {
-			await phaseManager.manage()
-		}
-
-		shirtService.manage()
-
-		mandatoryFun.manage()
-		officeManager.manage()
-		productManager.manage()
-		productPriceService.manage()
-		productPurchaseService.purchase()
-
-		const stats = new PlayerStats(ns)
-		const rooted = deploymentService.deploy(stats)
-
-		await backdoorService.manage(rooted)
 		augmentPrioritizer.prioritize()
-		await targetFactionAugments.manage()
 
-		purchaseService.purchase()
+		await manager.manage()
 
-		await cctService.manage()
-
-		targetFactionAugments.summarize()
-		backdoorService.summarize()
-		logger.log(shirtService.summarize())
-		purchaseService.summarize()
-		deploymentService.summarize(stats)
-		cctService.summarize()
-		logger.log(mandatoryFun.summarize())
-		logger.log(officeManager.summarize())
-		logger.log(productManager.summarize())
-		logger.log(productPriceService.summarize())
-		logger.log(productPurchaseService.summarize())
+		manager.summarize()
 		logger.info`${company.name} is ${company.getState()}; funds ${ns.nFormat(
 			company.funds,
 			'0.00a'
 		)}`
-		if (phaseManager) {
-			logger.log(phaseManager.summarize())
-		}
 
-		config.save()
 		await ns.sleep(10 /* s */ * 1000 /* ms */)
 	}
 }

@@ -33,6 +33,10 @@ export class ProductPurchaseService {
 		return `INFO no product division upgrades`
 	}
 
+	manage() {
+		this.purchase()
+	}
+
 	purchase() {
 		if (!this.company.hasProductDivision()) {
 			return

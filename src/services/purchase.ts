@@ -50,6 +50,10 @@ export class PurchaseService {
 			.info`bought ${this.purchasedServerCount}/${this.purchasedServerLimit} servers; ${this.hacknetNodesCount}/${this.hacknetNodesToBuy} hacknet`
 	}
 
+	manage() {
+		this.purchase()
+	}
+
 	purchase() {
 		if (this.wantsToPurchase()) {
 			this.ownPurchase()
