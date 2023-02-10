@@ -10,9 +10,8 @@ export class ProductOfficeManager {
 
 	summarize() {
 		if (this.company.hasProductDivision()) {
-			return `INFO managing product offices`
+			this.logger.info`managing product offices`
 		}
-		return `INFO no product offices to manage`
 	}
 
 	manage() {

@@ -26,9 +26,7 @@ export class ProductManager {
 
 	summarize() {
 		if (this.company.hasProductDivision()) {
-			return `INFO managing products`
-		} else {
-			return `INFO no product division to manage`
+			this.logger.info`managing products`
 		}
 	}
 

@@ -4,6 +4,8 @@ import { ServerTarget } from '../../models/targets/server-target'
 import { PathfinderService } from '../pathfinder'
 
 export class BackdoorService {
+	#backdoored = 0
+
 	constructor(
 		private ns: NS,
 		private logger: NsLogger,
@@ -11,7 +13,9 @@ export class BackdoorService {
 	) {}
 
 	summarize() {
-		this.logger.info`backdooring servers`
+		if (this.#backdoored) {
+			this.logger.info`backdoored ${this.#backdoored} servers`
+		}
 	}
 
 	async manage(rooted: Iterable<ServerTarget>) {
@@ -28,6 +32,7 @@ export class BackdoorService {
 							}
 							if (connected) {
 								await this.ns.singularity.installBackdoor()
+								this.#backdoored++
 							}
 						}
 					}

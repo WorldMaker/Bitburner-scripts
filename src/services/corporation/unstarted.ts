@@ -16,11 +16,10 @@ export class UnstartedPhaseManager implements PhaseManager {
 		private company: Company
 	) {}
 
-	summarize(): string {
-		if (this.waitingForCash) {
-			return `INFO waiting for funds to start a company`
+	summarize() {
+		if (!this.waitingForCash) {
+			this.logger.info`starting a company`
 		}
-		return `INFO starting a company`
 	}
 
 	manage(): Promise<void> {

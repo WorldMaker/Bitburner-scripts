@@ -15,4 +15,8 @@ export class ProductPriceCache {
 		}
 		return price
 	}
+
+	getProductPrices() {
+		return this.cache.values()
+	}
 }

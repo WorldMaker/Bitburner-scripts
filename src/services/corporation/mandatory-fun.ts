@@ -6,6 +6,10 @@ const AutoCoffeeResearch = 'AutoBrew'
 const AutoPartyResearch = 'AutoPartyManager'
 
 export class MandatoryFunService {
+	#coffees = 0
+	#parties = 0
+	#offices = 0
+
 	constructor(
 		private ns: NS,
 		private logger: NsLogger,
@@ -13,10 +17,19 @@ export class MandatoryFunService {
 	) {}
 
 	summarize() {
-		return `INFO encouraging mandatory fun across company`
+		if (this.#offices) {
+			this.logger.info`encouraging mandatory fun across ${
+				this.#offices
+			} offices; ${this.ns.nFormat(this.#coffees, '0.00a')}☕ ${this.ns.nFormat(
+				this.#parties,
+				'0.00a'
+			)}🎉`
+		}
 	}
 
 	manage() {
+		this.#offices = 0
+
 		for (const divisionName of this.company.corporation?.divisions ?? []) {
 			const hasAutoCoffee = this.ns.corporation.hasResearched(
 				divisionName,
@@ -32,11 +45,13 @@ export class MandatoryFunService {
 			}
 
 			for (const city of Object.values(this.ns.enums.CityName)) {
+				this.#offices++
 				const office = this.ns.corporation.getOffice(divisionName, city)
 				if (!hasAutoParty && (office.avgMor < 95 || office.avgHap < 95)) {
 					this.logger.debug`throwing party for ${divisionName} ${city}`
 					try {
 						this.ns.corporation.throwParty(divisionName, city, PartyBudget)
+						this.#parties++
 					} catch (err) {
 						this.logger.warn`unable to throw party: ${err}`
 					}
@@ -45,6 +60,7 @@ export class MandatoryFunService {
 					this.logger.debug`buying coffee for ${divisionName} ${city}`
 					try {
 						this.ns.corporation.buyCoffee(divisionName, city)
+						this.#coffees++
 					} catch (err) {
 						this.logger.warn`unable to buy coffee: ${err}`
 					}

@@ -46,8 +46,10 @@ export class PurchaseService {
 			this.logger.hooray`Finished purchasing`
 			this.announcedFinish = true
 		}
-		this.logger
-			.info`bought ${this.purchasedServerCount}/${this.purchasedServerLimit} servers; ${this.hacknetNodesCount}/${this.hacknetNodesToBuy} hacknet`
+		if (!this.finishedMajorPurchases) {
+			this.logger
+				.info`bought ${this.purchasedServerCount}/${this.purchasedServerLimit} servers; ${this.hacknetNodesCount}/${this.hacknetNodesToBuy} hacknet`
+		}
 	}
 
 	manage() {

@@ -47,7 +47,7 @@ export async function main(ns: NS) {
 		new MandatoryFunService(ns, logger, company),
 		new ProductOfficeManager(ns, logger, company),
 		new ProductManager(ns, logger, company),
-		new ProductPriceService(ns, company),
+		new ProductPriceService(ns, logger, company),
 		new ProductPurchaseService(ns, logger, company)
 	)
 	manager.registerFactory(() => getPhaseManager(ns, logger, company))

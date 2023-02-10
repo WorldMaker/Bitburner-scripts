@@ -1,10 +1,15 @@
+import { NsLogger } from '../../logging/logger'
 import { Company, ProductDevelopment } from '../../models/corporation'
 import { ProductPriceCache } from './product-price-cache'
 
 export class ProductPriceService {
 	private priceCache: ProductPriceCache | null = null
 
-	constructor(private ns: NS, private company: Company) {
+	constructor(
+		private ns: NS,
+		private logger: NsLogger,
+		private company: Company
+	) {
 		const productDivision = this.company.getProductDivision()
 		if (productDivision) {
 			if (
@@ -20,9 +25,11 @@ export class ProductPriceService {
 
 	summarize() {
 		if (this.priceCache) {
-			return `INFO managing product prices`
+			const prices = [...this.priceCache.getProductPrices()]
+				.map((price) => `${price.getStateEmoji()} ${price.getMultiplier()}`)
+				.join(', ')
+			this.logger.info`managing product prices; ${prices}`
 		}
-		return `INFO not managing product prices`
 	}
 
 	manage() {
