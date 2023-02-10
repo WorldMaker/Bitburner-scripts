@@ -27,12 +27,15 @@ export class TargetFactionAugmentsService {
 		if (this.config.targetAugmentFaction) {
 			switch (this.state) {
 				case '🎯':
-					return this.logger
+					this.logger
 						.info`acquiring ${this.state} ${this.config.targetAugmentFaction} augments`
+					break
 				case '🎊':
-					return this.logger.info`acquiring ${this.state} bonus augments`
+					this.logger.info`acquiring ${this.state} bonus augments`
+					break
 				case '💻':
-					return this.logger.info`acquiring ${this.state} home improvements`
+					this.logger.info`acquiring ${this.state} home improvements`
+					break
 			}
 		}
 	}
