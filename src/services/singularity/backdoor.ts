@@ -36,6 +36,8 @@ export class BackdoorService {
 							}
 						}
 					}
+					// come back to this process on the next tick
+					return
 				}
 			}
 		}
