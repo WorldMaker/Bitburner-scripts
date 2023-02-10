@@ -63,7 +63,7 @@ export class TargetFactionAugmentsService {
 
 	private async acquireTargetAugments(faction: string) {
 		const factionAugments = from(this.priorities.getPriorities()).pipe(
-			filter((augment) => augment.faction === faction)
+			filter((augment) => faction === 'all' || augment.faction === faction)
 		)
 
 		for (const augment of factionAugments) {
