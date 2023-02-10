@@ -46,6 +46,15 @@ export class ServiceService implements Service {
 		const services = [...this.services]
 		services.reverse()
 
+		const count =
+			services.length +
+			this.rootedServices.length +
+			this.factories.length +
+			(this.deploymentService ? 1 : 0)
+		if (count) {
+			this.logger.info`managing ${count} total services`
+		}
+
 		if (this.stats && this.deploymentService) {
 			this.deploymentService.summarize(this.stats)
 		}
