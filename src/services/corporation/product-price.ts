@@ -1,9 +1,11 @@
 import { NsLogger } from '../../logging/logger'
 import { Company, ProductDevelopment } from '../../models/corporation'
+import { ProductPrice } from '../../models/product'
 import { ProductPriceCache } from './product-price-cache'
 
 export class ProductPriceService {
 	private priceCache: ProductPriceCache | null = null
+	private readonly prices: ProductPrice[] = []
 
 	constructor(
 		private ns: NS,
@@ -25,7 +27,7 @@ export class ProductPriceService {
 
 	summarize() {
 		if (this.priceCache) {
-			const prices = [...this.priceCache.getProductPrices()]
+			const prices = this.prices
 				.map((price) => `${price.getStateEmoji()} ${price.getMultiplier()}`)
 				.join(', ')
 			this.logger.info`managing product prices; ${prices}`
@@ -35,6 +37,8 @@ export class ProductPriceService {
 	manage() {
 		this.company.updateState()
 		const productDivision = this.company.getProductDivision()
+
+		this.prices.splice(0, this.prices.length)
 
 		if (!productDivision) {
 			this.priceCache = null
@@ -61,6 +65,7 @@ export class ProductPriceService {
 				productName
 			)
 			const price = this.priceCache.getProductPrice(product)
+			this.prices.push(price)
 			this.ns.print(
 				`${price.getState()} ${productName} price at MP*${price.getMultiplier()}`
 			)
