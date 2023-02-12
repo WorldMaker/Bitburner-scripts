@@ -2,6 +2,7 @@ import { IterableX } from '@reactivex/ix-esnext-esm/iterable/iterablex'
 import { filter } from '@reactivex/ix-esnext-esm/iterable/operators/filter'
 import { flatMap } from '@reactivex/ix-esnext-esm/iterable/operators/flatmap'
 import { map } from '@reactivex/ix-esnext-esm/iterable/operators/map'
+import { memoize } from '@reactivex/ix-esnext-esm/iterable/operators/memoize'
 import {
 	orderBy,
 	thenByDescending,
@@ -58,7 +59,8 @@ export class AugmentPrioritizer {
 					}
 				}
 			),
-			thenByDescending((augment) => augment.cost)
+			thenByDescending((augment) => augment.cost),
+			memoize()
 		)
 	}
 }
