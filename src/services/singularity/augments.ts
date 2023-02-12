@@ -9,6 +9,8 @@ import {
 
 const { from } = IterableX
 
+export const NFG = 'NeuroFlux Governor'
+
 export interface AugmentInfo {
 	faction: string
 	name: string
@@ -52,6 +54,7 @@ export class AugmentPrioritizer {
 		const ownedAugments = new Set(
 			this.ns.singularity.getOwnedAugmentations(true)
 		)
+		ownedAugments.delete(NFG)
 
 		for (const augment of ownedAugments) {
 			this.augmentsByNameThenFaction.delete(augment)
@@ -69,8 +72,7 @@ export class AugmentPrioritizer {
 						prereq: new Set(this.ns.singularity.getAugmentationPrereq(name)),
 					}))
 				)
-			),
-			filter((augment) => !ownedAugments.has(augment.name))
+			)
 		)
 
 		for (const augment of augments) {

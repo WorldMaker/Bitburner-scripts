@@ -2,7 +2,7 @@ import { IterableX } from '@reactivex/ix-esnext-esm/iterable/iterablex'
 import { filter } from '@reactivex/ix-esnext-esm/iterable/operators/filter'
 import { NsLogger } from '../../logging/logger'
 import { Config } from '../../models/config'
-import { AugmentPrioritizer } from './augments'
+import { AugmentPrioritizer, NFG } from './augments'
 
 const { from } = IterableX
 
@@ -70,6 +70,11 @@ export class TargetFactionAugmentsService {
 		)
 
 		for (const augment of factionAugments) {
+			if (augment.name === NFG) {
+				// always a bonus aug
+				continue
+			}
+
 			const { money } = this.ns.getPlayer()
 			if (augment.cost > money) {
 				this.logger.debug`Need more money for ${
