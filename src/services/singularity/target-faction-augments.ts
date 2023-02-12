@@ -92,6 +92,23 @@ export class TargetFactionAugmentsService {
 			if (
 				!this.ns.singularity.purchaseAugmentation(augment.faction, augment.name)
 			) {
+				if (augment.prereq.size > 0) {
+					for (const prereq of augment.prereq) {
+						const augments = this.priorities.getAugment(prereq)
+						if (augments) {
+							for (const preregAugment of augments.values()) {
+								if (
+									this.ns.singularity.purchaseAugmentation(
+										preregAugment.faction,
+										preregAugment.name
+									)
+								) {
+									return
+								}
+							}
+						}
+					}
+				}
 				this.logger.warn`Unable to purchase ${augment.name}`
 				return
 			}
