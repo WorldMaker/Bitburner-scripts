@@ -29,6 +29,7 @@ import { Config } from './models/config'
 import { TargetFactionAugmentsService } from './services/singularity/target-faction-augments'
 import { ServiceService } from './services/service'
 import { CorpBribeService } from './services/singularity/corp-bribe'
+import { ToyHomeImprovement } from './services/singularity/toy-home-improvement'
 
 export async function main(ns: NS) {
 	ns.disableLog('ALL')
@@ -114,6 +115,7 @@ export async function main(ns: NS) {
 		new CorpBribeService(ns, logger, company, augmentPrioritizer)
 	)
 	toyPurchaseService.register(new AugmentToyPurchaser(ns, augmentPrioritizer))
+	toyPurchaseService.register(new ToyHomeImprovement(ns))
 	manager.register(
 		new TargetFactionAugmentsService(ns, config, logger, augmentPrioritizer)
 	)
