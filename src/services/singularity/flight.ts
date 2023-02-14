@@ -2,7 +2,7 @@ import { NsLogger } from '../../logging/logger'
 import { Config } from '../../models/config'
 import { NFG } from './augments'
 
-const FlightPlan = ['CSEC', 'NiteSec', 'The Black Hand', 'BitRunners']
+const FlightPlan = ['CyberSec', 'NiteSec', 'The Black Hand', 'BitRunners']
 
 const Programs: [string, number][] = [
 	['BruteSSH.exe', 50],
@@ -57,23 +57,32 @@ export class FlightController {
 		const factions = new Set(player.factions)
 		let current = ''
 		let currentAugments: string[] = []
+		const owned = new Set(this.ns.singularity.getOwnedAugmentations(true))
 		for (const plan of FlightPlan) {
 			if (!factions.has(plan)) {
+				this.logger.trace`not invited to ${plan} yet`
 				continue
 			}
-			const augments = this.ns.singularity.getAugmentationsFromFaction(plan)
-			if (augments.length === 0) {
+			const augments = this.ns.singularity
+				.getAugmentationsFromFaction(plan)
+				.filter((augment) => !owned.has(augment))
+			if (!augments.length) {
+				this.logger.trace`${plan} has no augments remaining`
 				this.#factionsComplete++
 				continue
 			}
-			if (augments.length === 1 && augments[0] === NFG) {
+			if (augments.length === 1 && augments[0].startsWith(NFG)) {
+				this.logger.trace`${plan} has only NFG remaining`
 				this.#factionsComplete++
 				continue
 			}
-			current = plan
-			currentAugments = augments
-			if (this.config.targetAugmentFaction !== current) {
-				this.config.targetAugmentFaction = current
+			this.logger.trace`${plan} needs augments ${augments}`
+			if (current === '') {
+				current = plan
+				currentAugments = augments
+				if (this.config.targetAugmentFaction !== current) {
+					this.config.targetAugmentFaction = current
+				}
 			}
 		}
 
@@ -82,20 +91,25 @@ export class FlightController {
 		const work = this.ns.singularity.getCurrentWork()
 		const workType = work?.type
 
-		if (workType === 'CREATE_PROGRAM') {
-			return
-		}
-
 		// create any missing programs
+		this.#programsComplete = 0
+		let startedCreation = false
 		for (const [program, level] of Programs) {
 			if (this.ns.fileExists(program)) {
 				this.#programsComplete++
 				continue
 			}
-			if (player.skills.hacking >= level) {
-				this.ns.singularity.createProgram(program, true)
-				return
+			if (
+				workType !== 'CREATE_PROGRAM' &&
+				!startedCreation &&
+				player.skills.hacking >= level
+			) {
+				startedCreation ||= this.ns.singularity.createProgram(program, true)
 			}
+		}
+
+		if (startedCreation || workType === 'CREATE_PROGRAM') {
+			return
 		}
 
 		if (workType === 'FACTION') {
