@@ -2,7 +2,13 @@ import { NsLogger } from '../../logging/logger'
 import { Config } from '../../models/config'
 import { NFG } from './augments'
 
-const FlightPlan = ['CyberSec', 'NiteSec', 'The Black Hand', 'BitRunners']
+const FlightPlan = [
+	'CyberSec',
+	'NiteSec',
+	'The Black Hand',
+	'BitRunners',
+	'Daedalus',
+]
 
 const Programs: [string, number][] = [
 	['BruteSSH.exe', 50],
