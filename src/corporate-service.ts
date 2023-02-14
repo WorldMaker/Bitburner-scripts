@@ -117,7 +117,7 @@ export async function main(ns: NS) {
 	)
 	toyPurchaseService.register(new AugmentToyPurchaser(ns, augmentPrioritizer))
 	toyPurchaseService.register(new ToyHomeImprovement(ns))
-	manager.register(new FlightController(ns, config, logger))
+	manager.register(new FlightController(ns, config, logger, augmentPrioritizer))
 	manager.register(
 		new TargetFactionAugmentsService(ns, config, logger, augmentPrioritizer)
 	)

@@ -1,6 +1,6 @@
 import { NsLogger } from '../../logging/logger'
 import { Config } from '../../models/config'
-import { NFG } from './augments'
+import { AugmentPrioritizer, NFG } from './augments'
 
 const FlightPlan = [
 	'CyberSec',
@@ -29,7 +29,8 @@ export class FlightController {
 	constructor(
 		private readonly ns: NS,
 		private readonly config: Config,
-		private readonly logger: NsLogger
+		private readonly logger: NsLogger,
+		private readonly augmentPrioritizer: AugmentPrioritizer
 	) {}
 
 	summarize() {
@@ -54,6 +55,9 @@ export class FlightController {
 		for (const invite of invites) {
 			if (!this.ns.singularity.joinFaction(invite)) {
 				this.logger.warn`could not join ${invite}`
+			} else {
+				// reprioritize augments when accepting invites
+				this.augmentPrioritizer.prioritize()
 			}
 		}
 
