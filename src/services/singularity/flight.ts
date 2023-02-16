@@ -41,7 +41,7 @@ export class FlightController {
 		) {
 			this.logger.info`monitoring ✈ flight plan; ${this.#factionsComplete}/${
 				FlightPlan.length
-			}; ${this.#programsComplete}/${Programs.length}`
+			}, ${this.#programsComplete}/${Programs.length}`
 		}
 	}
 
