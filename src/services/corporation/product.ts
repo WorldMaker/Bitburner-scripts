@@ -28,7 +28,12 @@ export class ProductManager {
 	summarize() {
 		if (this.company.hasProductDivision()) {
 			const development = this.#developmentProducts
-				.map((product) => `⚒ ${product.developmentProgress}%`)
+				.map(
+					(product) =>
+						`⚒ ${(product.developmentProgress / 100).toLocaleString(undefined, {
+							style: 'percent',
+						})}`
+				)
 				.join(', ')
 			this.logger.info`managing products; ${development}`
 		}
