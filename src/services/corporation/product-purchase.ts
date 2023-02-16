@@ -122,6 +122,13 @@ export class ProductPurchaseService {
 				toyBudget -= upgradeCost
 			}
 		}
+		for (const unlock of this.ns.corporation.getConstants().unlockNames) {
+			const unlockCost = this.ns.corporation.getUnlockUpgradeCost(unlock)
+			if (unlockCost < toyBudget) {
+				this.ns.corporation.unlockUpgrade(unlock)
+				toyBudget -= unlockCost
+			}
+		}
 		const productDevelopmentOffice = this.ns.corporation.getOffice(
 			productDivision.name,
 			ProductDevelopment.City
