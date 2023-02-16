@@ -5,6 +5,7 @@ import { AppCacheService } from './services/app-cache.js'
 import { CctService } from './services/cct.js'
 import { DeploymentService } from './services/deployment.js'
 import { HackerService } from './services/hacker.js'
+import { PathfinderService } from './services/pathfinder.js'
 import { PayloadPlanningService } from './services/payload-planners/index.js'
 import { PayloadService } from './services/payload.js'
 import { PurchaseService } from './services/purchase.js'
@@ -12,6 +13,7 @@ import { ScannerService } from './services/scanner.js'
 import { ServerCacheService } from './services/server-cache.js'
 import { ServiceService } from './services/service.js'
 import { AugmentPrioritizer } from './services/singularity/augments.js'
+import { BackdoorService } from './services/singularity/backdoor.js'
 import { FlightController } from './services/singularity/flight.js'
 import { TargetFactionAugmentsService } from './services/singularity/target-faction-augments.js'
 import { TargetService } from './services/target.js'
@@ -69,6 +71,9 @@ export async function main(ns: NS) {
 		)
 	)
 
+	manager.registerRooted(
+		new BackdoorService(ns, logger, new PathfinderService(logger, servers))
+	)
 	const augmentPrioritizer = new AugmentPrioritizer(ns)
 	manager.register(new FlightController(ns, config, logger, augmentPrioritizer))
 	manager.register(
