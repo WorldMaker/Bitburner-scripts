@@ -1,4 +1,3 @@
-import { first } from '@reactivex/ix-esnext-esm/iterable/first'
 import { NsLogger } from '../../logging/logger'
 import { Company } from '../../models/corporation'
 import { AugmentPrioritizer } from './augments'
@@ -27,28 +26,29 @@ export class CorpBribeService {
 			return
 		}
 
-		const topPriority = first(this.priorities.getPriorities())
-		if (!topPriority) {
-			return
-		}
-		const { money } = this.ns.getPlayer()
-		if (topPriority.cost > money) {
-			return
-		}
-		const factionRep = this.ns.singularity.getFactionRep(topPriority.faction)
-		if (topPriority.rep < factionRep) {
-			return
-		}
-
-		const repNeeded = topPriority.rep - factionRep
 		const { bribeAmountPerReputation } = this.ns.corporation.getConstants()
 
-		const bribeAmount = Math.ceil(repNeeded * bribeAmountPerReputation)
-		this.logger.trace`bribing ${topPriority.faction} with ${this.ns.nFormat(
-			bribeAmount,
-			'0.00a'
-		)} to gain at least ${repNeeded} favor`
-		this.ns.corporation.bribe(topPriority.faction, bribeAmount)
-		this.#bribes += bribeAmount
+		for (const priority of this.priorities.getPriorities()) {
+			const { money } = this.ns.getPlayer()
+			if (priority.cost > money) {
+				continue
+			}
+			const factionRep = this.ns.singularity.getFactionRep(priority.faction)
+			if (priority.rep < factionRep) {
+				continue
+			}
+
+			const repNeeded = priority.rep - factionRep
+
+			const bribeAmount = Math.ceil(repNeeded * bribeAmountPerReputation)
+			this.logger.trace`bribing ${priority.faction} with ${this.ns.nFormat(
+				bribeAmount,
+				'0.00a'
+			)} to gain at least ${repNeeded} favor`
+			if (this.ns.corporation.bribe(priority.faction, bribeAmount)) {
+				this.#bribes += bribeAmount
+				return
+			}
+		}
 	}
 }
