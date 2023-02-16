@@ -65,8 +65,9 @@ buildSync({
 buildSync({
 	entryPoints: {
 		able: './src/bootstrap-service.ts',
-		boot: './src/bootstrap-service-cct.ts',
+		boot: './src/bootstrap-service-flight.ts',
 		corp: './src/corporate-service.ts',
+		solve: './src/bootstrap-service-cct.ts',
 		'score-targets': './src/score-targets.ts',
 		shirt: './src/shirt.ts',
 	},
