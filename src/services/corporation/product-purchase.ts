@@ -123,10 +123,18 @@ export class ProductPurchaseService {
 			}
 		}
 		for (const unlock of this.ns.corporation.getConstants().unlockNames) {
+			if (this.ns.corporation.hasUnlockUpgrade(unlock)) {
+				continue
+			}
 			const unlockCost = this.ns.corporation.getUnlockUpgradeCost(unlock)
 			if (unlockCost < toyBudget) {
-				this.ns.corporation.unlockUpgrade(unlock)
-				toyBudget -= unlockCost
+				try {
+					this.ns.corporation.unlockUpgrade(unlock)
+					toyBudget -= unlockCost
+				} catch (err) {
+					this.logger
+						.warn`unable to unlock ${this.company.name} feature ${unlock}; ${err}`
+				}
 			}
 		}
 		const productDevelopmentOffice = this.ns.corporation.getOffice(
