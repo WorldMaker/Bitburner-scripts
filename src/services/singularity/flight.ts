@@ -122,17 +122,16 @@ export class FlightController {
 			return
 		}
 
-		if (workType === 'FACTION') {
-			return
-		}
-
 		// build any necessary faction rep
 		const repNeeded = currentAugments.reduce(
 			(acc, cur) =>
 				Math.max(acc, this.ns.singularity.getAugmentationRepReq(cur)),
 			0
 		)
-		if (repNeeded > 0) {
+		if (
+			repNeeded > 0 &&
+			(workType !== 'FACTION' || work?.factionName !== current)
+		) {
 			this.ns.singularity.workForFaction(current, 'hacking', true)
 			return
 		}
