@@ -128,11 +128,10 @@ export class FlightController {
 				Math.max(acc, this.ns.singularity.getAugmentationRepReq(cur)),
 			0
 		)
-		if (
-			repNeeded > 0 &&
-			(workType !== 'FACTION' || work?.factionName !== current)
-		) {
-			this.ns.singularity.workForFaction(current, 'hacking', true)
+		if (repNeeded > 0) {
+			if (workType !== 'FACTION' || work?.factionName !== current) {
+				this.ns.singularity.workForFaction(current, 'hacking', true)
+			}
 			return
 		}
 
