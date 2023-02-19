@@ -70,6 +70,13 @@ export class SingleTargetDirectionalPayloadPlanner implements PayloadPlanner {
 		this.appSelector = new SingleTargetAppSelector(apps)
 	}
 
+	getTotalRam(): number {
+		throw new Error('Method not implemented.')
+	}
+	getFreeRam(): number {
+		throw new Error('Method not implemented.')
+	}
+
 	summarize(): string {
 		return `INFO ${this.targetService.getTopTarget().getTargetDirection()}ing ${
 			this.targetService.getTopTarget().name

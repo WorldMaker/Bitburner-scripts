@@ -11,6 +11,13 @@ export class SingleTargetSinglePayloadPlanner implements PayloadPlanner {
 		private app: App
 	) {}
 
+	getTotalRam(): number {
+		throw new Error('Method not implemented.')
+	}
+	getFreeRam(): number {
+		throw new Error('Method not implemented.')
+	}
+
 	summarize() {
 		return `INFO attacking ${this.targetService.getTopTarget().name}`
 	}

@@ -5,17 +5,19 @@ const targetHackingLevelMultiplier = 1 / 2
 
 export class PlayerStats {
 	protected player: Player
-	public readonly hackingLevel: number
 	public readonly formulasExist: boolean
 
 	constructor(protected ns: NS) {
 		this.player = this.ns.getPlayer()
-		this.hackingLevel = this.player.skills.hacking
 		this.formulasExist = this.ns.fileExists('Formulas.exe')
 	}
 
 	getPlayer() {
 		return this.player
+	}
+
+	get hackingLevel() {
+		return this.player.skills.hacking
 	}
 
 	getTargetHackingLevel() {

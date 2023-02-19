@@ -17,6 +17,7 @@ const BaseTotalProducts = 3
 export class ProductManager {
 	private hasResearchedUpgradeCapacity1 = false
 	private hasResearchedUpgradeCapacity2 = false
+	#developmentProducts: Product[] = []
 
 	constructor(
 		private ns: NS,
@@ -26,9 +27,15 @@ export class ProductManager {
 
 	summarize() {
 		if (this.company.hasProductDivision()) {
-			return `INFO managing products`
-		} else {
-			return `INFO no product division to manage`
+			const development = this.#developmentProducts
+				.map(
+					(product) =>
+						`⚒ ${(product.developmentProgress / 100).toLocaleString(undefined, {
+							style: 'percent',
+						})}`
+				)
+				.join(', ')
+			this.logger.info`managing products; ${development}`
 		}
 	}
 
@@ -54,7 +61,7 @@ export class ProductManager {
 			)
 		)
 
-		const developmentProducts = [
+		this.#developmentProducts = [
 			...products.pipe(filter((product) => product.developmentProgress < 100)),
 		]
 
@@ -77,7 +84,7 @@ export class ProductManager {
 			totalProducts++
 		}
 
-		if (developmentProducts.length < 1) {
+		if (this.#developmentProducts.length < 1) {
 			if (productionProducts.length >= totalProducts) {
 				const discontinuedProduct = productionProducts.shift()!
 				this.ns.corporation.discontinueProduct(

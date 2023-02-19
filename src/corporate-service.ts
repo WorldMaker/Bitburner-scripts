@@ -18,7 +18,6 @@ import { HackerService } from './services/hacker'
 import { TargetService } from './services/target'
 import { PayloadService } from './services/payload'
 import { AppCacheService } from './services/app-cache'
-import { PlayerStats } from './models/stats'
 import { ShirtService } from './services/shirt'
 import { SleeveUpgrader } from './services/toy-purchase/sleeve-upgrader'
 import { CorpToyBudget } from './services/toy-purchase/corp'
@@ -26,98 +25,104 @@ import { BackdoorService } from './services/singularity/backdoor'
 import { PathfinderService } from './services/pathfinder'
 import { AugmentPrioritizer } from './services/singularity/augments'
 import { AugmentToyPurchaser } from './services/singularity/toy-augments'
-
-let running = false
-let strategy: string | null = null
+import { Config } from './models/config'
+import { TargetFactionAugmentsService } from './services/singularity/target-faction-augments'
+import { ServiceService } from './services/service'
+import { CorpBribeService } from './services/singularity/corp-bribe'
+import { ToyHomeImprovement } from './services/singularity/toy-home-improvement'
+import { FlightController } from './services/singularity/flight'
 
 export async function main(ns: NS) {
 	ns.disableLog('ALL')
 
-	const command = ns.args[0]?.toString()
+	const config = new Config(ns)
+	config.load()
 
-	if (command) {
-		switch (command) {
-			case 'stop':
-				running = false
-				return
-
-			case 'start':
-				running = false
-				ns.tail()
-				break
-
-			case 'strategy':
-				strategy = ns.args[1]?.toString()
-				break
-
-			default:
-				ns.tprint(`WARN Unknown command ${command}`)
-				break
-		}
+	if (config.tail) {
+		ns.tail()
 	}
-
-	if (running) {
-		return
-	}
-
-	running = true
 
 	const logger = new NsLogger(ns)
+	const manager = new ServiceService(ns, logger, config)
 	const company = new Company(ns)
-	const mandatoryFun = new MandatoryFunService(ns, logger, company)
-	const officeManager = new ProductOfficeManager(ns, logger, company)
-	const productManager = new ProductManager(ns, logger, company)
-	const productPriceService = new ProductPriceService(ns, company)
-	const productPurchaseService = new ProductPurchaseService(ns, logger, company)
+
+	manager.register(
+		new MandatoryFunService(ns, logger, company),
+		new ProductOfficeManager(ns, logger, company),
+		new ProductManager(ns, logger, company),
+		new ProductPriceService(ns, logger, company),
+		new ProductPurchaseService(ns, logger, company)
+	)
+	manager.registerFactory(() => getPhaseManager(ns, logger, company))
 
 	// *** Auto-CCT ***
 	const servers = new ServerCacheService(ns, deployTargetFactory)
-	const scannerService = new ScannerService(ns, servers, deployTargetFactory)
-	const cctService = new CctService(ns, servers, logger)
+	const scannerService = new ScannerService(
+		ns,
+		config,
+		servers,
+		deployTargetFactory
+	)
+	manager.register(new CctService(ns, servers, logger))
 
 	// *** Hack Deployment & Purchasing ***
-	const toyPurchaseService = new ToyPurchaseService(ns, logger, servers, 0)
-	const purchaseService = new PurchaseService(
-		ns,
-		logger,
-		servers,
-		deployTargetFactory,
-		toyPurchaseService
-	)
 	const apps = new AppCacheService(ns)
+	const toyPurchaseService = new ToyPurchaseService(ns, logger, servers, 0)
 	const targetService = new TargetService()
 	const payloadService = new PayloadService()
 	const payloadPlanner = new PayloadPlanningService(
 		ns,
+		config,
 		targetService,
 		apps,
 		logger
 	)
 	const hackerService = new HackerService(ns, logger)
-	const deploymentService = new DeploymentService(
-		hackerService,
-		logger,
-		payloadPlanner,
-		payloadService,
-		servers,
-		scannerService,
-		targetService
+	manager.useDeploymentService(
+		new DeploymentService(
+			hackerService,
+			logger,
+			payloadPlanner,
+			payloadService,
+			servers,
+			scannerService,
+			targetService
+		)
+	)
+
+	manager.register(
+		new PurchaseService(
+			ns,
+			config,
+			logger,
+			servers,
+			deployTargetFactory,
+			toyPurchaseService
+		)
 	)
 
 	const shirtService = new ShirtService(ns)
+	manager.register(shirtService)
 	toyPurchaseService.register(new SleeveUpgrader(ns, shirtService))
 	toyPurchaseService.register(new CorpToyBudget(ns))
 
 	// *** Singularity ***
 
-	const backdoorService = new BackdoorService(
-		ns,
-		logger,
-		new PathfinderService(logger, servers)
+	manager.registerRooted(
+		new BackdoorService(ns, logger, new PathfinderService(logger, servers))
 	)
 	const augmentPrioritizer = new AugmentPrioritizer(ns)
+	manager.register(
+		new CorpBribeService(ns, logger, company, augmentPrioritizer)
+	)
 	toyPurchaseService.register(new AugmentToyPurchaser(ns, augmentPrioritizer))
+	toyPurchaseService.register(new ToyHomeImprovement(ns))
+	manager.register(new FlightController(ns, config, logger, augmentPrioritizer))
+	manager.register(
+		new TargetFactionAugmentsService(ns, config, logger, augmentPrioritizer)
+	)
 
+	const running = true
 	while (running) {
 		if (company.corporation) {
 			// try to align to a specific point in company cycle
@@ -126,47 +131,16 @@ export async function main(ns: NS) {
 				company.updateState()
 			}
 		}
-		const phaseManager = getPhaseManager(ns, logger, company)
 
-		if (phaseManager) {
-			await phaseManager.manage()
-		}
-
-		shirtService.manage()
-
-		mandatoryFun.manage()
-		officeManager.manage()
-		productManager.manage()
-		productPriceService.manage()
-		productPurchaseService.purchase()
-
-		const stats = new PlayerStats(ns)
-		const rooted = deploymentService.deploy(stats, strategy)
-
-		await backdoorService.manage(rooted)
 		augmentPrioritizer.prioritize()
 
-		purchaseService.purchase()
+		await manager.manage()
 
-		await cctService.manage()
-
-		backdoorService.summarize()
-		logger.log(shirtService.summarize())
-		purchaseService.summarize()
-		deploymentService.summarize(stats)
-		cctService.summarize()
-		logger.log(mandatoryFun.summarize())
-		logger.log(officeManager.summarize())
-		logger.log(productManager.summarize())
-		logger.log(productPriceService.summarize())
-		logger.log(productPurchaseService.summarize())
+		manager.summarize()
 		logger.info`${company.name} is ${company.getState()}; funds ${ns.nFormat(
 			company.funds,
 			'0.00a'
 		)}`
-		if (phaseManager) {
-			logger.log(phaseManager.summarize())
-		}
 
 		await ns.sleep(10 /* s */ * 1000 /* ms */)
 	}

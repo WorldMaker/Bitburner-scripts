@@ -14,6 +14,7 @@ buildSync({
 		'./src/payload-g.ts',
 		'./src/payload-h.ts',
 		'./src/payload-w.ts',
+		'./src/payload-s.ts',
 		'./src/payload-sg.ts',
 		'./src/payload-sh.ts',
 		'./src/payload-sw.ts',
@@ -64,9 +65,10 @@ buildSync({
 buildSync({
 	entryPoints: {
 		able: './src/bootstrap-service.ts',
-		boot: './src/bootstrap-service-cct.ts',
+		boot: './src/bootstrap-service-flight.ts',
 		corp: './src/corporate-service.ts',
-		'install-faction-augments': './src/install-faction-augments.ts',
+		rm: './src/rm.ts',
+		solve: './src/bootstrap-service-cct.ts',
 		'score-targets': './src/score-targets.ts',
 		shirt: './src/shirt.ts',
 	},

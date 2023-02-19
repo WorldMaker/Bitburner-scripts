@@ -83,8 +83,20 @@ export function reduceDoubleWeakens(
 			orderBy((g) => g.key)
 		),
 	]
-	if (processesByStart.length !== 2) {
+	if (processesByStart.length > 2 || processesByStart.length === 0) {
 		return false
+	}
+	if (processesByStart.length === 1) {
+		// assume w1process completed
+		const w2process = reduce(
+			processesByStart[0],
+			batchPlanReducer,
+			batchPlanSeed('weaken')
+		)
+		return {
+			w1Process: undefined,
+			w2process,
+		}
 	}
 	const w1Process = reduce(
 		processesByStart[0],

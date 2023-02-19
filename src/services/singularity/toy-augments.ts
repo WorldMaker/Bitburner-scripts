@@ -9,11 +9,11 @@ export class AugmentToyPurchaser implements ToyPurchaser {
 
 	purchase(budget: number): number {
 		for (const augment of this.priorities.getPriorities()) {
-			if (augment.cost > budget) {
+			if (augment.cost > budget && !Number.isNaN(budget)) {
 				break
 			}
 			const factionRep = this.ns.singularity.getFactionRep(augment.faction)
-			if (factionRep > augment.rep) {
+			if (factionRep < augment.rep) {
 				break
 			}
 			if (

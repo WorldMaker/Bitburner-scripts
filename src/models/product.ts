@@ -50,6 +50,19 @@ export class ProductPrice {
 		return this.state
 	}
 
+	getStateEmoji() {
+		switch (this.state) {
+			case 'Bisecting':
+				return '🔍'
+			case 'Developing':
+				return '⚒'
+			case 'Seeking':
+				return '📈'
+			case 'Watching':
+				return '⌚'
+		}
+	}
+
 	update(product: Product) {
 		this.product = product
 		if (this.product.developmentProgress < 100) {

@@ -25,6 +25,13 @@ export class MultiTargetDirectionalRoundRobinPlanner implements PayloadPlanner {
 		this.appSelector = new AppSelector(apps)
 	}
 
+	getTotalRam(): number {
+		throw new Error('Method not implemented.')
+	}
+	getFreeRam(): number {
+		throw new Error('Method not implemented.')
+	}
+
 	summarize(): string {
 		return `INFO attacking up to ${
 			this.targetService.getTargets().length

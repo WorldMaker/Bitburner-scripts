@@ -37,4 +37,6 @@ export interface PayloadPlanner {
 		strategy?: string | null
 	): Iterable<PayloadPlan>
 	summarize(): string
+	getTotalRam(): number
+	getFreeRam(): number
 }

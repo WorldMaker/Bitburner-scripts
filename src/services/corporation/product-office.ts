@@ -2,6 +2,9 @@ import { Company, ProductDevelopment } from '../../models/corporation'
 import { NsLogger } from '../../logging/logger'
 
 export class ProductOfficeManager {
+	#devStaff = 0
+	#researchStaff = 0
+
 	constructor(
 		private ns: NS,
 		private logger: NsLogger,
@@ -10,15 +13,18 @@ export class ProductOfficeManager {
 
 	summarize() {
 		if (this.company.hasProductDivision()) {
-			return `INFO managing product offices`
+			this.logger.info`managing product offices; 👩‍🏭 ${this.#devStaff}, 👩‍🎓 ${
+				this.#researchStaff
+			}`
 		}
-		return `INFO no product offices to manage`
 	}
 
 	manage() {
 		if (!this.company.hasProductDivision()) {
 			return
 		}
+		this.#devStaff = 0
+		this.#researchStaff = 0
 		const productDivision = this.company.getProductDivision()!
 		for (const city of Object.values(this.ns.enums.CityName)) {
 			let office = this.ns.corporation.getOffice(productDivision.name, city)
@@ -45,6 +51,12 @@ export class ProductOfficeManager {
 				} else {
 					this.assignResearchStaff(office, productDivision, city)
 				}
+			}
+
+			if (city === ProductDevelopment.City) {
+				this.#devStaff += office.size
+			} else {
+				this.#researchStaff += office.size
 			}
 		}
 	}

@@ -54,13 +54,9 @@ export class DeploymentService {
 		}
 	}
 
-	deploy(
-		stats: PlayerStats,
-		strategy: string | null = null,
-		forceMaxDepth: number | null = null
-	) {
+	deploy(stats: PlayerStats) {
 		// scan the planet
-		const servers = this.scannerService.scan(undefined, forceMaxDepth)
+		const servers = this.scannerService.scan()
 
 		// hack the planet
 		const rooted = new Set<ServerTarget>()
@@ -92,7 +88,7 @@ export class DeploymentService {
 		}
 
 		// plan the payloads
-		const plans = [...this.payloadPlanner.plan(rooted, strategy)]
+		const plans = [...this.payloadPlanner.plan(rooted)]
 
 		// deliver the payloads
 		const payloads = this.payloadService.deliverAll(plans)

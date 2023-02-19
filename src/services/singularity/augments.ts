@@ -9,6 +9,8 @@ import {
 
 const { from } = IterableX
 
+export const NFG = 'NeuroFlux Governor'
+
 export interface AugmentInfo {
 	faction: string
 	name: string
@@ -18,34 +20,16 @@ export interface AugmentInfo {
 }
 
 export class AugmentPrioritizer {
-	private augments: Iterable<AugmentInfo>
+	private augmentsByNameThenFaction = new Map<
+		string,
+		Map<string, AugmentInfo>
+	>()
 
-	constructor(private readonly ns: NS) {
-		this.augments = from([])
-	}
+	constructor(private readonly ns: NS) {}
 
 	getPriorities(): Iterable<AugmentInfo> {
-		return this.augments
-	}
-
-	prioritize() {
-		const ownedAugments = new Set(
-			this.ns.singularity.getOwnedAugmentations(true)
-		)
-		this.augments = from(this.ns.getPlayer().factions).pipe(
-			flatMap((faction) =>
-				from(this.ns.singularity.getAugmentationsFromFaction(faction)).pipe(
-					filter((name) => !ownedAugments.has(name)),
-					map((name) => ({
-						faction,
-						name,
-						cost: this.ns.singularity.getAugmentationPrice(name),
-						rep: this.ns.singularity.getAugmentationRepReq(name),
-						prereq: new Set(this.ns.singularity.getAugmentationPrereq(name)),
-					}))
-				)
-			),
-			filter((augment) => !ownedAugments.has(augment.name)),
+		return from(this.augmentsByNameThenFaction.values()).pipe(
+			flatMap((augments) => augments.values()),
 			orderBy(
 				(augment) => augment,
 				(a, b) => {
@@ -60,5 +44,43 @@ export class AugmentPrioritizer {
 			),
 			thenByDescending((augment) => augment.cost)
 		)
+	}
+
+	getAugment(name: string) {
+		return this.augmentsByNameThenFaction.get(name)
+	}
+
+	prioritize() {
+		const ownedAugments = new Set(
+			this.ns.singularity.getOwnedAugmentations(true)
+		)
+		ownedAugments.delete(NFG)
+
+		for (const augment of ownedAugments) {
+			this.augmentsByNameThenFaction.delete(augment)
+		}
+
+		const augments = from(this.ns.getPlayer().factions).pipe(
+			flatMap((faction) =>
+				from(this.ns.singularity.getAugmentationsFromFaction(faction)).pipe(
+					filter((name) => !ownedAugments.has(name)),
+					map((name) => ({
+						faction,
+						name,
+						cost: this.ns.singularity.getAugmentationPrice(name),
+						rep: this.ns.singularity.getAugmentationRepReq(name),
+						prereq: new Set(this.ns.singularity.getAugmentationPrereq(name)),
+					}))
+				)
+			)
+		)
+
+		for (const augment of augments) {
+			const augments =
+				this.augmentsByNameThenFaction.get(augment.name) ??
+				new Map<string, AugmentInfo>()
+			augments.set(augment.faction, augment)
+			this.augmentsByNameThenFaction.set(augment.name, augments)
+		}
 	}
 }

@@ -25,12 +25,15 @@ export class ProductPurchaseService {
 
 	summarize() {
 		if (this.company.hasProductDivision()) {
-			return `INFO purchasing upgrades; ${this.ns.nFormat(
+			this.logger.info`purchasing upgrades; ${this.ns.nFormat(
 				this.startingFunds - this.funds,
 				'0.00a'
 			)} / ${this.ns.nFormat(this.toyBudget, '0.00a')}`
 		}
-		return `INFO no product division upgrades`
+	}
+
+	manage() {
+		this.purchase()
 	}
 
 	purchase() {
@@ -117,6 +120,21 @@ export class ProductPurchaseService {
 			if (upgradeCost < toyBudget) {
 				this.ns.corporation.levelUpgrade(upgrade)
 				toyBudget -= upgradeCost
+			}
+		}
+		for (const unlock of this.ns.corporation.getConstants().unlockNames) {
+			if (this.ns.corporation.hasUnlockUpgrade(unlock)) {
+				continue
+			}
+			const unlockCost = this.ns.corporation.getUnlockUpgradeCost(unlock)
+			if (unlockCost < toyBudget) {
+				try {
+					this.ns.corporation.unlockUpgrade(unlock)
+					toyBudget -= unlockCost
+				} catch (err) {
+					this.logger
+						.warn`unable to unlock ${this.company.name} feature ${unlock}; ${err}`
+				}
 			}
 		}
 		const productDevelopmentOffice = this.ns.corporation.getOffice(

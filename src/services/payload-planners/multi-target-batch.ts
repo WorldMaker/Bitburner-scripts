@@ -109,6 +109,14 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 		this.appSelector = new BatchAppSelector(apps)
 	}
 
+	getTotalRam(): number {
+		return this.totalRam
+	}
+
+	getFreeRam(): number {
+		return this.freeRam
+	}
+
 	summarize(): string {
 		const ramPercent = this.freeRam / this.totalRam
 		return `INFO batch attacking ${this.satisfiedTargets}/${

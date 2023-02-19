@@ -9,7 +9,7 @@ import { ProductRound4Manager } from './product-round-4'
 import { UnstartedPhaseManager } from './unstarted'
 
 export interface PhaseManager {
-	summarize(): string
+	summarize(): string | void
 	manage(): Promise<void>
 }
 
