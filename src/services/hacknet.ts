@@ -1,15 +1,29 @@
 import { NsLogger } from '../logging/logger'
 import { Config } from '../models/config'
+import { ToyBudgetProvider } from '../models/toys'
 
-export class HacknetHashService {
+const HacknetToyFunds = 100_000 // ~=10% of 1,000,000
+
+export class HacknetHashService implements ToyBudgetProvider {
+	readonly name = 'hashes'
 	#hashes = 0
 	#hashCost = 0
+	#soldForMoney = 0
 
 	constructor(
 		private readonly ns: NS,
 		private readonly config: Config,
 		private readonly logger: NsLogger
 	) {}
+
+	budget(funds: number): number {
+		const budget = this.#soldForMoney * HacknetToyFunds
+		this.#soldForMoney = 0
+		if (budget < funds) {
+			return budget
+		}
+		return 0
+	}
 
 	summarize() {
 		if (this.config.hacknetHashStrategy.length) {
@@ -31,6 +45,7 @@ export class HacknetHashService {
 				while (this.#hashes > this.#hashCost) {
 					this.ns.hacknet.spendHashes('Sell for Money')
 					this.#hashes -= this.#hashCost
+					this.#soldForMoney++
 				}
 				break
 			case 'corpfunds':

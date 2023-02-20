@@ -33,6 +33,7 @@ export async function main(ns: NS) {
 	const targetFactory = deployTargetFactory
 	const servers = new ServerCacheService(ns, targetFactory)
 	const toyPurchaseService = new ToyPurchaseService(ns, logger, servers, 0)
+	const hacknetHashService = new HacknetHashService(ns, config, logger)
 
 	manager.register(
 		new PurchaseService(
@@ -43,8 +44,9 @@ export async function main(ns: NS) {
 			targetFactory,
 			toyPurchaseService
 		),
-		new HacknetHashService(ns, config, logger)
+		hacknetHashService
 	)
+	toyPurchaseService.register(hacknetHashService)
 	const payloadPlanner = new PayloadPlanningService(
 		ns,
 		config,

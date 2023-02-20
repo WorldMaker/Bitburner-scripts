@@ -91,6 +91,7 @@ export async function main(ns: NS) {
 		)
 	)
 
+	const hacknetHashService = new HacknetHashService(ns, config, logger)
 	manager.register(
 		new PurchaseService(
 			ns,
@@ -100,8 +101,9 @@ export async function main(ns: NS) {
 			deployTargetFactory,
 			toyPurchaseService
 		),
-		new HacknetHashService(ns, config, logger)
+		hacknetHashService
 	)
+	toyPurchaseService.register(hacknetHashService)
 
 	const shirtService = new ShirtService(ns)
 	manager.register(shirtService)
