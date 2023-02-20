@@ -2,6 +2,7 @@ const ConfigFileName = 'env.json.txt'
 
 export class Config {
 	hacknetNodes = 5
+	hacknetHashStrategy = 'money'
 	hackStrategy = 'formulated'
 	flightController = false
 	scanMaxDepth = 100
@@ -17,6 +18,12 @@ export class Config {
 		if (env && typeof env === 'object') {
 			if ('hacknetNodes' in env && typeof env.hacknetNodes === 'number') {
 				this.hacknetNodes = env.hacknetNodes
+			}
+			if (
+				'hacknetHashStrategy' in env &&
+				typeof env.hacknetHashStrategy === 'string'
+			) {
+				this.hacknetHashStrategy = env.hacknetHashStrategy
 			}
 			if ('hackStrategy' in env && typeof env.hackStrategy === 'string') {
 				this.hackStrategy = env.hackStrategy
@@ -50,6 +57,7 @@ export class Config {
 		const {
 			hacknetNodes,
 			hackStrategy,
+			hacknetHashStrategy,
 			flightController,
 			scanMaxDepth,
 			shirtStrategy,
@@ -59,6 +67,7 @@ export class Config {
 		const env = {
 			hacknetNodes,
 			hackStrategy,
+			hacknetHashStrategy,
 			flightController,
 			scanMaxDepth,
 			shirtStrategy,

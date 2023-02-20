@@ -5,6 +5,7 @@ import { AppCacheService } from './services/app-cache.js'
 import { CctService } from './services/cct.js'
 import { DeploymentService } from './services/deployment.js'
 import { HackerService } from './services/hacker.js'
+import { HacknetHashService } from './services/hacknet.js'
 import { PayloadPlanningService } from './services/payload-planners/index.js'
 import { PayloadService } from './services/payload.js'
 import { PurchaseService } from './services/purchase.js'
@@ -41,7 +42,8 @@ export async function main(ns: NS) {
 			servers,
 			targetFactory,
 			toyPurchaseService
-		)
+		),
+		new HacknetHashService(ns, config, logger)
 	)
 	const payloadPlanner = new PayloadPlanningService(
 		ns,

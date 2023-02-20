@@ -31,6 +31,7 @@ import { ServiceService } from './services/service'
 import { CorpBribeService } from './services/singularity/corp-bribe'
 import { ToyHomeImprovement } from './services/singularity/toy-home-improvement'
 import { FlightController } from './services/singularity/flight'
+import { HacknetHashService } from './services/hacknet'
 
 export async function main(ns: NS) {
 	ns.disableLog('ALL')
@@ -98,7 +99,8 @@ export async function main(ns: NS) {
 			servers,
 			deployTargetFactory,
 			toyPurchaseService
-		)
+		),
+		new HacknetHashService(ns, config, logger)
 	)
 
 	const shirtService = new ShirtService(ns)
