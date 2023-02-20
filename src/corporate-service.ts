@@ -68,7 +68,7 @@ export async function main(ns: NS) {
 
 	// *** Hack Deployment & Purchasing ***
 	const apps = new AppCacheService(ns)
-	const toyPurchaseService = new ToyPurchaseService(ns, logger, servers, 0)
+	const toyPurchaseService = new ToyPurchaseService(ns, config, logger, servers)
 	const targetService = new TargetService()
 	const payloadService = new PayloadService()
 	const payloadPlanner = new PayloadPlanningService(

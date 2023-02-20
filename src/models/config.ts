@@ -4,13 +4,26 @@ export class Config {
 	hacknetNodes = 5
 	hacknetHashStrategy = 'money'
 	hackStrategy = 'formulated'
-	flightController = false
+	flightController = true
 	scanMaxDepth = 100
 	shirtStrategy = 'heist'
 	tail = true
 	targetAugmentFaction?: string | null = null
+	toyBudget = 0
 
 	constructor(private ns: NS) {}
+
+	reset() {
+		this.hacknetNodes = 5
+		this.hacknetHashStrategy = 'money'
+		this.hackStrategy = 'formulated'
+		this.flightController = true
+		this.scanMaxDepth = 100
+		this.shirtStrategy = 'heist'
+		this.tail = true
+		this.targetAugmentFaction = null
+		this.toyBudget = 0
+	}
 
 	load() {
 		const json = this.ns.read(ConfigFileName)
@@ -50,6 +63,9 @@ export class Config {
 			) {
 				this.targetAugmentFaction = env.targetAugmentFaction
 			}
+			if ('toyBudget' in env && typeof env.toyBudget === 'number') {
+				this.toyBudget = env.toyBudget
+			}
 		}
 	}
 
@@ -63,6 +79,7 @@ export class Config {
 			shirtStrategy,
 			tail,
 			targetAugmentFaction,
+			toyBudget,
 		} = this
 		const env = {
 			hacknetNodes,
@@ -73,6 +90,7 @@ export class Config {
 			shirtStrategy,
 			tail,
 			targetAugmentFaction,
+			toyBudget,
 		}
 		this.ns.write(ConfigFileName, JSON.stringify(env), 'w')
 	}

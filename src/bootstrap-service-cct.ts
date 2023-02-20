@@ -33,7 +33,7 @@ export async function main(ns: NS) {
 	const targetFactory = deployTargetFactory
 	const servers = new ServerCacheService(ns, targetFactory)
 	manager.register(new CctService(ns, servers, logger))
-	const toyPurchaseService = new ToyPurchaseService(ns, logger, servers, 0)
+	const toyPurchaseService = new ToyPurchaseService(ns, config, logger, servers)
 	const hacknetHashService = new HacknetHashService(ns, config, logger)
 	manager.register(
 		new PurchaseService(

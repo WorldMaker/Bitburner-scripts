@@ -1,4 +1,5 @@
 import { NsLogger } from '../../logging/logger'
+import { Config } from '../../models/config'
 import { ServerTarget } from '../../models/targets/server-target'
 import {
 	BudgetTicks,
@@ -19,11 +20,11 @@ export class ToyPurchaseService {
 
 	constructor(
 		private ns: NS,
+		private config: Config,
 		private logger: NsLogger,
-		servers: ServerCacheService<ServerTarget>,
-		startingBudget: number | null
+		servers: ServerCacheService<ServerTarget>
 	) {
-		this.budget = startingBudget
+		this.budget = this.config.toyBudget
 		// Priority: register from lowest to highest priority
 		this.register(new SimpleBudgetProvider())
 		this.register(new HacknetToyService(ns))
@@ -95,5 +96,7 @@ export class ToyPurchaseService {
 				'0.00a'
 			)} / ${this.ns.nFormat(startingBudget, '0.00a')}`
 		)
+
+		this.config.toyBudget = this.budget
 	}
 }
