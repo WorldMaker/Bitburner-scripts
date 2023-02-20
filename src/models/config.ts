@@ -92,6 +92,6 @@ export class Config {
 			targetAugmentFaction,
 			toyBudget,
 		}
-		this.ns.write(ConfigFileName, JSON.stringify(env), 'w')
+		this.ns.write(ConfigFileName, JSON.stringify(env, null, '\t'), 'w')
 	}
 }
