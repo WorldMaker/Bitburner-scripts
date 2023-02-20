@@ -1,6 +1,7 @@
 import { Company, MyCompany, StartingCity } from '../../models/corporation'
 import { NsLogger } from '../../logging/logger'
 import { PhaseManager } from './phase'
+import { Config } from '../../models/config'
 
 const CorporationBudget = 150_000_000_000
 const SmartSupply = 'Smart Supply'
@@ -12,6 +13,7 @@ export class UnstartedPhaseManager implements PhaseManager {
 
 	constructor(
 		private ns: NS,
+		private config: Config,
 		private logger: NsLogger,
 		private company: Company
 	) {}
@@ -32,6 +34,9 @@ export class UnstartedPhaseManager implements PhaseManager {
 
 		if (this.ns.getServerMoneyAvailable('home') < CorporationBudget) {
 			this.waitingForCash = true
+			if (this.config.hacknetHashStrategy.startsWith('corp')) {
+				this.config.hacknetHashStrategy = 'money'
+			}
 			return Promise.resolve()
 		}
 		this.waitingForCash = false
@@ -41,6 +46,11 @@ export class UnstartedPhaseManager implements PhaseManager {
 			this.logger.error`unable to start company`
 			return Promise.resolve()
 		}
+
+		if (this.config.hacknetHashStrategy === 'money') {
+			this.config.hacknetHashStrategy = 'corpfunds'
+		}
+
 		this.ns.corporation.expandIndustry(
 			MyCompany.MaterialDivision.Type,
 			MyCompany.MaterialDivision.Name

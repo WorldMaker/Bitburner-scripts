@@ -54,7 +54,7 @@ export async function main(ns: NS) {
 		new ProductPriceService(ns, logger, company),
 		new ProductPurchaseService(ns, logger, company)
 	)
-	manager.registerFactory(() => getPhaseManager(ns, logger, company))
+	manager.registerFactory(() => getPhaseManager(ns, config, logger, company))
 
 	// *** Auto-CCT ***
 	const servers = new ServerCacheService(ns, deployTargetFactory)

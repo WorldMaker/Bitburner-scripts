@@ -2,6 +2,7 @@ import { Company, MyCompany } from '../../models/corporation'
 import { NsLogger } from '../../logging/logger'
 import { BasePhaseManager } from './base-phase'
 import { PhaseManager } from './phase'
+import { Config } from '../../models/config'
 
 const DesiredResearch = [
 	'Hi-Tech R&D Laboratory',
@@ -17,7 +18,12 @@ export class ProductRound3Manager
 	private researchDesired = 0
 	private researchMet = 0
 
-	constructor(ns: NS, logger: NsLogger, company: Company) {
+	constructor(
+		ns: NS,
+		private readonly config: Config,
+		logger: NsLogger,
+		company: Company
+	) {
 		super(ns, logger, company)
 	}
 
@@ -30,6 +36,10 @@ export class ProductRound3Manager
 		if (!productDivision) {
 			this.logger.error`no product division`
 			return
+		}
+
+		if (this.config.hacknetHashStrategy === 'corpfunds') {
+			this.config.hacknetHashStrategy = 'corpresearch'
 		}
 
 		const availableResearch = productDivision.research
