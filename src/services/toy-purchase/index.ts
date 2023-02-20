@@ -8,6 +8,7 @@ import {
 } from '../../models/toys'
 import { ServerCacheService } from '../server-cache'
 import { HacknetToyService } from './hacknet'
+import { HacknetCachePurchaser } from './hacknet-cache'
 import { ServerUpgrader } from './server-upgrader'
 import { SimpleBudgetProvider } from './simple-budget'
 
@@ -26,6 +27,7 @@ export class ToyPurchaseService {
 		// Priority: register from lowest to highest priority
 		this.register(new SimpleBudgetProvider())
 		this.register(new HacknetToyService(ns))
+		this.register(new HacknetCachePurchaser(ns))
 		this.register(new ServerUpgrader(ns, servers))
 	}
 
