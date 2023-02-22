@@ -125,7 +125,7 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 			this.targetService.getTargets().length
 		} targets; RAM ${ramPercent.toLocaleString(undefined, {
 			style: 'percent',
-		})} free of ${this.totalRam}`
+		})} free of ${this.ns.formatRam(this.totalRam)}`
 	}
 
 	*plan(rooted: Iterable<ServerTarget>): Iterable<PayloadPlan> {
