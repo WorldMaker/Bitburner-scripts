@@ -137,10 +137,9 @@ export async function main(ns: NS) {
 		await manager.manage()
 
 		manager.summarize()
-		logger.info`${company.name} is ${company.getState()}; funds ${ns.nFormat(
-			company.funds,
-			'0.00a'
-		)}`
+		logger.info`${
+			company.name
+		} is ${company.getState()}; funds ${ns.formatNumber(company.funds)}`
 
 		await ns.sleep(10 /* s */ * 1000 /* ms */)
 	}

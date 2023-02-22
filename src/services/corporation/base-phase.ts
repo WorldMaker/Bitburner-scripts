@@ -77,7 +77,7 @@ export class BasePhaseManager {
 		const offer = this.ns.corporation.getInvestmentOffer()
 		if (offer.funds < desiredOffer) {
 			this.logger.log(
-				`rejecting offer for ${this.ns.nFormat(offer.funds, '0.00a')}`
+				`rejecting offer for ${this.ns.formatNumber(offer.funds)}`
 			)
 			return false
 		}

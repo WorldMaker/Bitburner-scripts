@@ -20,10 +20,9 @@ export class MandatoryFunService {
 		if (this.#offices) {
 			this.logger.info`encouraging mandatory fun across ${
 				this.#offices
-			} offices; ${this.ns.nFormat(this.#coffees, '0.00a')}☕ ${this.ns.nFormat(
-				this.#parties,
-				'0.00a'
-			)}🎉`
+			} offices; ${this.ns.formatNumber(
+				this.#coffees
+			)}☕ ${this.ns.formatNumber(this.#parties)}🎉`
 		}
 	}
 
