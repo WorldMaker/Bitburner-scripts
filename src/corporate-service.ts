@@ -31,6 +31,7 @@ import { ServiceService } from './services/service'
 import { CorpBribeService } from './services/singularity/corp-bribe'
 import { ToyHomeImprovement } from './services/singularity/toy-home-improvement'
 import { FlightController } from './services/singularity/flight'
+import { HacknetHashService } from './services/hacknet'
 
 export async function main(ns: NS) {
 	ns.disableLog('ALL')
@@ -53,7 +54,7 @@ export async function main(ns: NS) {
 		new ProductPriceService(ns, logger, company),
 		new ProductPurchaseService(ns, logger, company)
 	)
-	manager.registerFactory(() => getPhaseManager(ns, logger, company))
+	manager.registerFactory(() => getPhaseManager(ns, config, logger, company))
 
 	// *** Auto-CCT ***
 	const servers = new ServerCacheService(ns, deployTargetFactory)
@@ -67,7 +68,7 @@ export async function main(ns: NS) {
 
 	// *** Hack Deployment & Purchasing ***
 	const apps = new AppCacheService(ns)
-	const toyPurchaseService = new ToyPurchaseService(ns, logger, servers, 0)
+	const toyPurchaseService = new ToyPurchaseService(ns, config, logger, servers)
 	const targetService = new TargetService()
 	const payloadService = new PayloadService()
 	const payloadPlanner = new PayloadPlanningService(
@@ -90,6 +91,7 @@ export async function main(ns: NS) {
 		)
 	)
 
+	const hacknetHashService = new HacknetHashService(ns, config, logger)
 	manager.register(
 		new PurchaseService(
 			ns,
@@ -98,8 +100,10 @@ export async function main(ns: NS) {
 			servers,
 			deployTargetFactory,
 			toyPurchaseService
-		)
+		),
+		hacknetHashService
 	)
+	toyPurchaseService.register(hacknetHashService)
 
 	const shirtService = new ShirtService(ns)
 	manager.register(shirtService)

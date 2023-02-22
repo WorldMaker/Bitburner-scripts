@@ -176,7 +176,7 @@ export class TargetFactionAugmentsService {
 
 		if (!purchased && this.ticks > BonusTicks) {
 			// clear target
-			this.config.targetAugmentFaction = null
+			this.config.reset()
 			this.config.save()
 
 			this.logger.trace`installing`

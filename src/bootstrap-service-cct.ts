@@ -5,6 +5,7 @@ import { AppCacheService } from './services/app-cache.js'
 import { CctService } from './services/cct.js'
 import { DeploymentService } from './services/deployment.js'
 import { HackerService } from './services/hacker.js'
+import { HacknetHashService } from './services/hacknet.js'
 import { PayloadPlanningService } from './services/payload-planners/index.js'
 import { PayloadService } from './services/payload.js'
 import { PurchaseService } from './services/purchase.js'
@@ -32,7 +33,8 @@ export async function main(ns: NS) {
 	const targetFactory = deployTargetFactory
 	const servers = new ServerCacheService(ns, targetFactory)
 	manager.register(new CctService(ns, servers, logger))
-	const toyPurchaseService = new ToyPurchaseService(ns, logger, servers, 0)
+	const toyPurchaseService = new ToyPurchaseService(ns, config, logger, servers)
+	const hacknetHashService = new HacknetHashService(ns, config, logger)
 	manager.register(
 		new PurchaseService(
 			ns,
@@ -41,8 +43,10 @@ export async function main(ns: NS) {
 			servers,
 			targetFactory,
 			toyPurchaseService
-		)
+		),
+		hacknetHashService
 	)
+	toyPurchaseService.register(hacknetHashService)
 	const payloadPlanner = new PayloadPlanningService(
 		ns,
 		config,

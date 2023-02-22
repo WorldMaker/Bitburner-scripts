@@ -7,16 +7,22 @@ import { ProductRound2Manager } from './product-round-2'
 import { ProductRound3Manager } from './product-round-3'
 import { ProductRound4Manager } from './product-round-4'
 import { UnstartedPhaseManager } from './unstarted'
+import { Config } from '../../models/config'
 
 export interface PhaseManager {
 	summarize(): string | void
 	manage(): Promise<void>
 }
 
-export function getPhaseManager(ns: NS, logger: NsLogger, company: Company) {
+export function getPhaseManager(
+	ns: NS,
+	config: Config,
+	logger: NsLogger,
+	company: Company
+) {
 	switch (company.getState()) {
 		case 'Unstarted':
-			return new UnstartedPhaseManager(ns, logger, company)
+			return new UnstartedPhaseManager(ns, config, logger, company)
 		case 'Material0Round':
 			return new MaterialRound0Manager(ns, logger, company)
 		case 'Material1Round':
@@ -26,8 +32,8 @@ export function getPhaseManager(ns: NS, logger: NsLogger, company: Company) {
 		case 'Product2Round':
 			return new ProductRound2Manager(ns, logger, company)
 		case 'Product3Round':
-			return new ProductRound3Manager(ns, logger, company)
+			return new ProductRound3Manager(ns, config, logger, company)
 		case 'Product4Round':
-			return new ProductRound4Manager(ns, logger, company)
+			return new ProductRound4Manager(ns, config, logger, company)
 	}
 }
