@@ -123,17 +123,20 @@ export class FlightController {
 		}
 
 		// build any necessary faction rep
-		const maxRepNeeded = currentAugments.reduce(
-			(acc, cur) =>
-				Math.max(acc, this.ns.singularity.getAugmentationRepReq(cur)),
-			0
-		)
-		const repNeeded = maxRepNeeded - this.ns.singularity.getFactionRep(current)
-		if (repNeeded > 0) {
-			if (workType !== 'FACTION' || work?.factionName !== current) {
-				this.ns.singularity.workForFaction(current, 'hacking', true)
+		if (current.length) {
+			const maxRepNeeded = currentAugments.reduce(
+				(acc, cur) =>
+					Math.max(acc, this.ns.singularity.getAugmentationRepReq(cur)),
+				0
+			)
+			const repNeeded =
+				maxRepNeeded - this.ns.singularity.getFactionRep(current)
+			if (repNeeded > 0) {
+				if (workType !== 'FACTION' || work?.factionName !== current) {
+					this.ns.singularity.workForFaction(current, 'hacking', true)
+				}
+				return
 			}
-			return
 		}
 
 		if (workType === 'CRIME') {
