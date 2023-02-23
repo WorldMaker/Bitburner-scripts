@@ -38,9 +38,8 @@ export class ToyPurchaseService {
 	}
 
 	summarize() {
-		return `INFO shopped for toys with budget ${this.ns.nFormat(
-			this.budgetPerMinute,
-			'0.00a'
+		return `INFO shopped for toys with budget ${this.ns.formatNumber(
+			this.budgetPerMinute
 		)} per minute`
 	}
 
@@ -51,7 +50,7 @@ export class ToyPurchaseService {
 
 		const moneyAvailable = this.ns.getPlayer().money
 		let funds = moneyAvailable
-		this.logger.trace`💵 funds\t${this.ns.nFormat(funds, '0.00a')}`
+		this.logger.trace`💵 funds\t${this.ns.formatNumber(funds)}`
 
 		this.budgetPerMinute = 0
 
@@ -61,10 +60,7 @@ export class ToyPurchaseService {
 				this.budget += budget
 				this.budgetPerMinute += budget * BudgetTicks
 				funds -= budget
-				this.logger.trace`💵 ${service.name}\t${this.ns.nFormat(
-					budget,
-					'0.00a'
-				)}`
+				this.logger.trace`💵 ${service.name}\t${this.ns.formatNumber(budget)}`
 			}
 		}
 
@@ -91,10 +87,9 @@ export class ToyPurchaseService {
 		}
 
 		this.logger.log(
-			`spent toy budget ${this.ns.nFormat(
-				startingBudget - this.budget,
-				'0.00a'
-			)} / ${this.ns.nFormat(startingBudget, '0.00a')}`
+			`spent toy budget ${this.ns.formatNumber(
+				startingBudget - this.budget
+			)} / ${this.ns.formatNumber(startingBudget)}`
 		)
 
 		this.config.toyBudget = this.budget

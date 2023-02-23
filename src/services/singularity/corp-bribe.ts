@@ -14,9 +14,8 @@ export class CorpBribeService {
 
 	summarize() {
 		if (this.#bribes) {
-			this.logger.info`${this.company.name} spent ${this.ns.nFormat(
-				this.#bribes,
-				'0.00a'
+			this.logger.info`${this.company.name} spent ${this.ns.formatNumber(
+				this.#bribes
 			)} on faction bribes`
 		}
 	}
@@ -41,10 +40,9 @@ export class CorpBribeService {
 			const repNeeded = priority.rep - factionRep
 
 			const bribeAmount = Math.ceil(repNeeded * bribeAmountPerReputation)
-			this.logger.trace`bribing ${priority.faction} with ${this.ns.nFormat(
-				bribeAmount,
-				'0.00a'
-			)} to gain at least ${repNeeded} favor`
+			this.logger.trace`bribing ${priority.faction} with ${this.ns.formatNumber(
+				bribeAmount
+			)} to gain at least ${this.ns.formatNumber(repNeeded)} favor`
 			if (this.ns.corporation.bribe(priority.faction, bribeAmount)) {
 				this.#bribes += bribeAmount
 				return

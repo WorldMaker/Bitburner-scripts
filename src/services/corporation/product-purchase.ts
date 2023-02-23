@@ -25,10 +25,9 @@ export class ProductPurchaseService {
 
 	summarize() {
 		if (this.company.hasProductDivision()) {
-			this.logger.info`purchasing upgrades; ${this.ns.nFormat(
-				this.startingFunds - this.funds,
-				'0.00a'
-			)} / ${this.ns.nFormat(this.toyBudget, '0.00a')}`
+			this.logger.info`purchasing upgrades; ${this.ns.formatNumber(
+				this.startingFunds - this.funds
+			)} / ${this.ns.formatNumber(this.toyBudget)}`
 		}
 	}
 

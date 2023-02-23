@@ -79,18 +79,18 @@ export class TargetFactionAugmentsService {
 			if (augment.cost > money) {
 				this.logger.debug`Need more money for ${
 					augment.name
-				}: ${this.ns.nFormat(money, '0.00a')} / ${this.ns.nFormat(
-					augment.cost,
-					'0.00a'
+				}: ${this.ns.formatNumber(money)} / ${this.ns.formatNumber(
+					augment.cost
 				)}`
 				return
 			}
 			const factionRep = this.ns.singularity.getFactionRep(augment.faction)
 			if (augment.rep > factionRep) {
-				this.logger.debug`Need more rep for ${augment.name}: ${this.ns.nFormat(
-					factionRep,
-					'0.00a'
-				)} / ${this.ns.nFormat(augment.rep, '0.00a')}`
+				this.logger.debug`Need more rep for ${
+					augment.name
+				}: ${this.ns.formatNumber(factionRep)} / ${this.ns.formatNumber(
+					augment.rep
+				)}`
 				return
 			}
 			this.logger.trace`buying ${augment.name}`

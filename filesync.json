@@ -1,0 +1,13 @@
+{
+	"allowedFiletypes": [".js", ".txt"],
+	"allowDeletingFiles": false,
+	"port": 12525,
+	"scriptsFolder": "dist",
+	"quiet": false,
+	"dry": false,
+	"definitionFile": {
+		"update": false,
+		"location": "bitburner.d.ts"
+	},
+	"pushAllOnConnection": false
+}
