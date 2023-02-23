@@ -14,7 +14,8 @@
 		"pretest": "npm run build",
 		"test": "mocha --recursive",
 		"prettier": "prettier --write .",
-		"prettier:check": "prettier --check ."
+		"prettier:check": "prettier --check .",
+		"start": "bitburner-filesync"
 	},
 	"author": "",
 	"license": "MIT",
@@ -24,6 +25,7 @@
 		"@types/mocha": "^10.0.1",
 		"@typescript-eslint/eslint-plugin": "^5.47.1",
 		"@typescript-eslint/parser": "^5.47.1",
+		"bitburner-filesync": "^1.1.5",
 		"chai": "^4.3.7",
 		"esbuild": "^0.15.13",
 		"eslint": "^8.31.0",
