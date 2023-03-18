@@ -1,6 +1,6 @@
 import { NsLogger } from '../../logging/logger'
 import { Config } from '../../models/config'
-import { PayloadPlanner } from '../../models/payload-plan'
+import { PayloadPlan, PayloadPlanner } from '../../models/payload-plan'
 import { ServerTarget } from '../../models/targets/server-target'
 import { AppCacheService } from '../app-cache'
 import { TargetService } from '../target'
@@ -12,6 +12,27 @@ import { SingleTargetSinglePayloadPlanner } from './single-target-single-payload
 const BatchTotalRamThreshold = 10_000 // 10 "TB"
 const BatchUtilizationThreshold = 0.25 // 25%
 const SharePayload = 'payload-s.js'
+
+class NullPlanner implements PayloadPlanner {
+	plan(
+		_rooted: Iterable<ServerTarget>,
+		_strategy?: string | null | undefined
+	): Iterable<PayloadPlan> {
+		return []
+	}
+
+	summarize(): string {
+		return 'not hacking'
+	}
+
+	getTotalRam(): number {
+		return 0
+	}
+
+	getFreeRam(): number {
+		return 0
+	}
+}
 
 export class PayloadPlanningService implements PayloadPlanner {
 	private strategy = 'formulated'
@@ -40,6 +61,8 @@ export class PayloadPlanningService implements PayloadPlanner {
 
 	private select() {
 		switch (this.strategy) {
+			case 'none':
+				return new NullPlanner()
 			case 'batch':
 				return new MultiTargetBatchPlanner(
 					this.ns,
