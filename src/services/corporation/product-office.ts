@@ -45,7 +45,10 @@ export class ProductOfficeManager {
 			}
 
 			// *** Assign staff ***
-			if (office.employeeJobs.Unassigned > 0) {
+			if (
+				office.employeeJobs.Unassigned > 0 ||
+				office.employeeJobs.Training > 0
+			) {
 				if (city === ProductDevelopment.City) {
 					this.assignProductDevelopmentStaff(office, productDivision, city)
 				} else {
@@ -67,6 +70,16 @@ export class ProductOfficeManager {
 		city: CityName
 	) {
 		// One each in Operations, Engineer, Business, Management; the rest in R&D
+		if (
+			!this.ns.corporation.setAutoJobAssignment(
+				productDivision.name,
+				city,
+				'Training',
+				0
+			)
+		) {
+			return
+		}
 		this.ns.corporation.setAutoJobAssignment(
 			productDivision.name,
 			city,
@@ -122,6 +135,16 @@ export class ProductOfficeManager {
 		this.logger.log(
 			`Want to assign: [Ops: ${assignmentGoals.Operations}, Eng: ${assignmentGoals.Engineer}, Bus: ${assignmentGoals.Business}, Man: ${assignmentGoals.Management}]`
 		)
+		if (
+			!this.ns.corporation.setAutoJobAssignment(
+				productDivision.name,
+				city,
+				'Training',
+				0
+			)
+		) {
+			return
+		}
 		this.ns.corporation.setAutoJobAssignment(
 			productDivision.name,
 			city,
