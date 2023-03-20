@@ -81,7 +81,7 @@ export async function main(ns: NS) {
 	const augmentPrioritizer = new AugmentPrioritizer(ns)
 	manager.register(new FlightController(ns, config, logger, augmentPrioritizer))
 	manager.register(
-		new TargetFactionAugmentsService(ns, config, logger, augmentPrioritizer)
+		new TargetFactionAugmentsService(ns, config, logger, augmentPrioritizer, [])
 	)
 
 	const running = true

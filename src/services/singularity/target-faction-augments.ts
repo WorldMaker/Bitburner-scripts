@@ -2,7 +2,7 @@ import { IterableX } from '@reactivex/ix-esnext-esm/iterable/iterablex'
 import { filter } from '@reactivex/ix-esnext-esm/iterable/operators/filter'
 import { NsLogger } from '../../logging/logger'
 import { Config } from '../../models/config'
-import { ShirtService } from '../shirt'
+import { ToyPurchaser } from '../../models/toys'
 import { AugmentPrioritizer, NFG } from './augments'
 
 const { from } = IterableX
@@ -20,7 +20,7 @@ export class TargetFactionAugmentsService {
 		private readonly config: Config,
 		private readonly logger: NsLogger,
 		private readonly priorities: AugmentPrioritizer,
-		private readonly shirt: ShirtService
+		private readonly finalToys: ToyPurchaser[]
 	) {
 		this.state = '🎯'
 	}
@@ -176,18 +176,12 @@ export class TargetFactionAugmentsService {
 			}
 		}
 
-		for (const sleeve of this.shirt.getSleeves()) {
-			const augments = this.ns.sleeve.getSleevePurchasableAugs(sleeve.id)
-
-			for (const { name, cost } of augments) {
-				if (cost < money) {
-					this.logger.trace`buying sleeve ${sleeve.id} augment ${name}`
-					if (this.ns.sleeve.purchaseSleeveAug(sleeve.id, name)) {
-						purchased = true
-						this.ticks = 0
-						return
-					}
-				}
+		for (const purchaser of this.finalToys) {
+			const remainingBudget = purchaser.purchase(money)
+			if (remainingBudget < money) {
+				purchased = true
+				this.ticks = 0
+				return
 			}
 		}
 
