@@ -107,7 +107,8 @@ export async function main(ns: NS) {
 
 	const shirtService = new ShirtService(ns)
 	manager.register(shirtService)
-	toyPurchaseService.register(new SleeveUpgrader(ns, shirtService))
+	const sleeveUpgrader = new SleeveUpgrader(ns, shirtService)
+	toyPurchaseService.register(sleeveUpgrader)
 	toyPurchaseService.register(new CorpToyBudget(ns))
 
 	// *** Singularity ***
@@ -123,7 +124,9 @@ export async function main(ns: NS) {
 	toyPurchaseService.register(new ToyHomeImprovement(ns))
 	manager.register(new FlightController(ns, config, logger, augmentPrioritizer))
 	manager.register(
-		new TargetFactionAugmentsService(ns, config, logger, augmentPrioritizer)
+		new TargetFactionAugmentsService(ns, config, logger, augmentPrioritizer, [
+			sleeveUpgrader,
+		])
 	)
 
 	const running = true

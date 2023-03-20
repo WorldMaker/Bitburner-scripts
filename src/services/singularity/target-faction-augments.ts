@@ -2,6 +2,7 @@ import { IterableX } from '@reactivex/ix-esnext-esm/iterable/iterablex'
 import { filter } from '@reactivex/ix-esnext-esm/iterable/operators/filter'
 import { NsLogger } from '../../logging/logger'
 import { Config } from '../../models/config'
+import { ToyPurchaser } from '../../models/toys'
 import { AugmentPrioritizer, NFG } from './augments'
 
 const { from } = IterableX
@@ -18,7 +19,8 @@ export class TargetFactionAugmentsService {
 		private readonly ns: NS,
 		private readonly config: Config,
 		private readonly logger: NsLogger,
-		private readonly priorities: AugmentPrioritizer
+		private readonly priorities: AugmentPrioritizer,
+		private readonly finalToys: ToyPurchaser[]
 	) {
 		this.state = '🎯'
 	}
@@ -168,6 +170,15 @@ export class TargetFactionAugmentsService {
 		if (coresUpgradeCost < money) {
 			this.logger.trace`buying home cores upgrade`
 			if (this.ns.singularity.upgradeHomeCores()) {
+				purchased = true
+				this.ticks = 0
+				return
+			}
+		}
+
+		for (const purchaser of this.finalToys) {
+			const remainingBudget = purchaser.purchase(money)
+			if (remainingBudget < money) {
 				purchased = true
 				this.ticks = 0
 				return
