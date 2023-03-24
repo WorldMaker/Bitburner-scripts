@@ -1,5 +1,5 @@
 import { ToyPurchaser } from '../../models/toys'
-import { AugmentPrioritizer } from './augments'
+import { AugmentPrioritizer, NFG } from './augments'
 
 export class AugmentToyPurchaser implements ToyPurchaser {
 	constructor(
@@ -9,6 +9,9 @@ export class AugmentToyPurchaser implements ToyPurchaser {
 
 	purchase(budget: number): number {
 		for (const augment of this.priorities.getPriorities()) {
+			if (augment.name.startsWith(NFG)) {
+				continue
+			}
 			if (augment.cost > budget && !Number.isNaN(budget)) {
 				break
 			}
