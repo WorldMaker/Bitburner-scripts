@@ -32,6 +32,7 @@ import { CorpBribeService } from './services/singularity/corp-bribe'
 import { ToyHomeImprovement } from './services/singularity/toy-home-improvement'
 import { FlightController } from './services/singularity/flight'
 import { HacknetHashService } from './services/hacknet'
+import { DarkwebPurchaser } from './services/singularity/darkweb'
 
 export async function main(ns: NS) {
 	ns.disableLog('ALL')
@@ -92,6 +93,7 @@ export async function main(ns: NS) {
 	)
 
 	const hacknetHashService = new HacknetHashService(ns, config, logger)
+	const shirtService = new ShirtService(ns)
 	manager.register(
 		new PurchaseService(
 			ns,
@@ -101,15 +103,15 @@ export async function main(ns: NS) {
 			deployTargetFactory,
 			toyPurchaseService
 		),
-		hacknetHashService
+		hacknetHashService,
+		shirtService
 	)
-	toyPurchaseService.register(hacknetHashService)
-
-	const shirtService = new ShirtService(ns)
-	manager.register(shirtService)
 	const sleeveUpgrader = new SleeveUpgrader(ns, shirtService)
-	toyPurchaseService.register(sleeveUpgrader)
-	toyPurchaseService.register(new CorpToyBudget(ns))
+	toyPurchaseService.register(
+		hacknetHashService,
+		sleeveUpgrader,
+		new CorpToyBudget(ns)
+	)
 
 	// *** Singularity ***
 
@@ -117,13 +119,14 @@ export async function main(ns: NS) {
 		new BackdoorService(ns, logger, new PathfinderService(logger, servers))
 	)
 	const augmentPrioritizer = new AugmentPrioritizer(ns)
-	manager.register(
-		new CorpBribeService(ns, logger, company, augmentPrioritizer)
+	toyPurchaseService.register(
+		new DarkwebPurchaser(ns, company),
+		new AugmentToyPurchaser(ns, augmentPrioritizer),
+		new ToyHomeImprovement(ns)
 	)
-	toyPurchaseService.register(new AugmentToyPurchaser(ns, augmentPrioritizer))
-	toyPurchaseService.register(new ToyHomeImprovement(ns))
-	manager.register(new FlightController(ns, config, logger, augmentPrioritizer))
 	manager.register(
+		new CorpBribeService(ns, logger, company, augmentPrioritizer),
+		new FlightController(ns, config, logger, augmentPrioritizer),
 		new TargetFactionAugmentsService(ns, config, logger, augmentPrioritizer, [
 			sleeveUpgrader,
 		])
