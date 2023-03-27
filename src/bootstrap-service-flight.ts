@@ -75,12 +75,12 @@ export async function main(ns: NS) {
 		)
 	)
 
+	const augmentPrioritizer = new AugmentPrioritizer(ns)
 	manager.registerRooted(
 		new BackdoorService(ns, logger, new PathfinderService(logger, servers))
 	)
-	const augmentPrioritizer = new AugmentPrioritizer(ns)
-	manager.register(new FlightController(ns, config, logger, augmentPrioritizer))
 	manager.register(
+		new FlightController(ns, config, logger, augmentPrioritizer),
 		new TargetFactionAugmentsService(ns, config, logger, augmentPrioritizer, [])
 	)
 
