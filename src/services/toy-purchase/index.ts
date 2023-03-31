@@ -32,9 +32,9 @@ export class ToyPurchaseService {
 		this.register(new ServerUpgrader(ns, servers))
 	}
 
-	register(service: ToyService) {
+	register(...services: ToyService[]) {
 		// Given priority in reverse order of registration (last registered, highest priority)
-		this.services.unshift(service)
+		this.services.unshift(...services.reverse())
 	}
 
 	summarize() {

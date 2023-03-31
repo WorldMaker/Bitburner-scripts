@@ -1,6 +1,6 @@
 import { NsLogger } from '../../logging/logger'
 import { Company } from '../../models/corporation'
-import { AugmentPrioritizer } from './augments'
+import { AugmentPrioritizer, NFG } from './augments'
 
 export class CorpBribeService {
 	#bribes = 0
@@ -27,7 +27,12 @@ export class CorpBribeService {
 
 		const { bribeAmountPerReputation } = this.ns.corporation.getConstants()
 
+		let nfgBribe = false
+
 		for (const priority of this.priorities.getPriorities()) {
+			if (nfgBribe && priority.name.startsWith(NFG)) {
+				continue
+			}
 			const { money } = this.ns.getPlayer()
 			if (priority.cost > money) {
 				continue
@@ -45,7 +50,11 @@ export class CorpBribeService {
 			)} to gain at least ${this.ns.formatNumber(repNeeded)} favor`
 			if (this.ns.corporation.bribe(priority.faction, bribeAmount)) {
 				this.#bribes += bribeAmount
-				return
+				if (!priority.name.startsWith(NFG)) {
+					return
+				} else {
+					nfgBribe = true
+				}
 			}
 		}
 	}
