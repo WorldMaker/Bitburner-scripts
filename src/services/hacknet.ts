@@ -29,10 +29,9 @@ export class HacknetHashService implements ToyBudgetProvider {
 		if (this.config.hacknetHashStrategy.length) {
 			this.logger.info`spending hashes for ${
 				this.config.hacknetHashStrategy
-			}; ${this.ns.nFormat(this.#hashes, '0.00a')}/${this.ns.nFormat(
-				this.#hashCost,
-				'0.00a'
-			)}`
+			}; ${this.#soldForMoney}x ${this.ns.formatNumber(
+				this.#hashes
+			)}/${this.ns.formatNumber(this.#hashCost)}`
 		}
 	}
 
