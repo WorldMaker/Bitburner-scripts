@@ -112,6 +112,7 @@ export async function main(ns: NS) {
 	const sleeveUpgrader = new SleeveUpgrader(ns, shirtService)
 	toyPurchaseService.register(
 		hacknetHashService,
+		gangService,
 		sleeveUpgrader,
 		new CorpToyBudget(ns)
 	)
