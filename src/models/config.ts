@@ -5,6 +5,7 @@ export class Config {
 	hacknetHashStrategy = 'money'
 	hackStrategy = 'formulated'
 	flightController = true
+	gangFaction = 'Slum Snakes'
 	scanMaxDepth = 100
 	shirtStrategy = 'heist'
 	tail = true
@@ -47,6 +48,9 @@ export class Config {
 			) {
 				this.flightController = env.flightController
 			}
+			if ('gangFaction' in env && typeof env.gangFaction === 'string') {
+				this.gangFaction = env.gangFaction
+			}
 			if ('scanMaxDepth' in env && typeof env.scanMaxDepth === 'number') {
 				this.scanMaxDepth = env.scanMaxDepth
 			}
@@ -75,6 +79,7 @@ export class Config {
 			hackStrategy,
 			hacknetHashStrategy,
 			flightController,
+			gangFaction,
 			scanMaxDepth,
 			shirtStrategy,
 			tail,
@@ -86,6 +91,7 @@ export class Config {
 			hackStrategy,
 			hacknetHashStrategy,
 			flightController,
+			gangFaction,
 			scanMaxDepth,
 			shirtStrategy,
 			tail,

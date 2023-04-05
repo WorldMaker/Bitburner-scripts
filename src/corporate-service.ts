@@ -33,6 +33,7 @@ import { ToyHomeImprovement } from './services/singularity/toy-home-improvement'
 import { FlightController } from './services/singularity/flight'
 import { HacknetHashService } from './services/hacknet'
 import { DarkwebPurchaser } from './services/singularity/darkweb'
+import { GangManager } from './services/gang/manager'
 
 export async function main(ns: NS) {
 	ns.disableLog('ALL')
@@ -93,6 +94,7 @@ export async function main(ns: NS) {
 	)
 
 	const hacknetHashService = new HacknetHashService(ns, config, logger)
+	const gangService = new GangManager(ns, config, logger)
 	const shirtService = new ShirtService(ns)
 	manager.register(
 		new PurchaseService(
@@ -104,6 +106,7 @@ export async function main(ns: NS) {
 			toyPurchaseService
 		),
 		hacknetHashService,
+		gangService,
 		shirtService
 	)
 	const sleeveUpgrader = new SleeveUpgrader(ns, shirtService)
