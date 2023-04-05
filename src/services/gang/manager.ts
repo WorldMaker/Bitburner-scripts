@@ -37,7 +37,7 @@ export class GangManager implements ToyBudgetProvider {
 		if (this.#gang) {
 			this.logger.info`managing ${
 				this.#gang.faction
-			} gang; ${this.ns.formatNumber(this.#gang.respect)} 🤛`
+			} gang; 🤛 ${this.ns.formatNumber(this.#gang.respect)}`
 		}
 	}
 
