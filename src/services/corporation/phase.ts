@@ -30,7 +30,7 @@ export function getPhaseManager(
 		case 'Material2Round':
 			return new MaterialRound2Manager(ns, logger, company)
 		case 'Product2Round':
-			return new ProductRound2Manager(ns, logger, company)
+			return new ProductRound2Manager(ns, config, logger, company)
 		case 'Product3Round':
 			return new ProductRound3Manager(ns, config, logger, company)
 		case 'Product4Round':

@@ -7,6 +7,7 @@ import {
 import { NsLogger } from '../../logging/logger'
 import { BasePhaseManager } from './base-phase'
 import { PhaseManager } from './phase'
+import { Config } from '../../models/config'
 
 const DesiredLevelUpgrades: Partial<Record<LevelUpgrade, number>> = {
 	[LevelUpgrades.DreamSense]: 30,
@@ -23,7 +24,12 @@ export class ProductRound2Manager
 	extends BasePhaseManager
 	implements PhaseManager
 {
-	constructor(ns: NS, logger: NsLogger, company: Company) {
+	constructor(
+		ns: NS,
+		private readonly config: Config,
+		logger: NsLogger,
+		company: Company
+	) {
 		super(ns, logger, company)
 	}
 
@@ -52,6 +58,10 @@ export class ProductRound2Manager
 		if (this.levelsMet < this.levelsDesired) {
 			this.logger.log('Waiting for current needs to be met')
 			return
+		}
+
+		if (this.config.hacknetHashStrategy === 'corpfunds') {
+			this.config.hacknetHashStrategy = 'corpresearch'
 		}
 
 		if (!this.checkMorale(productDivision)) {
