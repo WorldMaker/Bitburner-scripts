@@ -4,6 +4,7 @@ import { AugmentPrioritizer, NFG } from './augments'
 
 export class CorpBribeService {
 	#bribes = 0
+	readonly #bribedFactions = new Set<string>()
 
 	constructor(
 		private readonly ns: NS,
@@ -27,9 +28,13 @@ export class CorpBribeService {
 
 		const { bribeAmountPerReputation } = this.ns.corporation.getConstants()
 
+		this.#bribedFactions.clear()
 		let nfgBribe = false
 
 		for (const priority of this.priorities.getPriorities()) {
+			if (this.#bribedFactions.has(priority.faction)) {
+				continue
+			}
 			if (nfgBribe && priority.name.startsWith(NFG)) {
 				continue
 			}
@@ -51,7 +56,7 @@ export class CorpBribeService {
 			if (this.ns.corporation.bribe(priority.faction, bribeAmount)) {
 				this.#bribes += bribeAmount
 				if (!priority.name.startsWith(NFG)) {
-					return
+					this.#bribedFactions.add(priority.faction)
 				} else {
 					nfgBribe = true
 				}
