@@ -6,14 +6,14 @@ import { ulid } from 'ulid'
 import { NsLogger } from '../../logging/logger'
 import { Config } from '../../models/config'
 import { AscendThresholds, GangMemberFirstTask } from '../../models/gang'
-import { ToyBudgetProvider } from '../../models/toys'
+import { ToyBudgetProvider, ToyPurchaser } from '../../models/toys'
 
 const { from } = IterableX
 
 const GangBudgetThreshold = 10_000_000
 const GangBudgetMultiplier = 1 / 3
 
-export class GangManager implements ToyBudgetProvider {
+export class GangManager implements ToyBudgetProvider, ToyPurchaser {
 	name = 'gang'
 	#gang: GangGenInfo | null = null
 	readonly #memberTasks = new Map<string, number>()
@@ -37,6 +37,27 @@ export class GangManager implements ToyBudgetProvider {
 		if (budget >= funds) {
 			return 0
 		}
+		return budget
+	}
+
+	purchase(budget: number): number {
+		if (!this.#gang) {
+			return budget
+		}
+
+		const equipment = this.ns.gang
+			.getEquipmentNames()
+			.map((name) => [name, this.ns.gang.getEquipmentCost(name)] as const)
+
+		for (const memberName of this.ns.gang.getMemberNames()) {
+			for (const [name, cost] of equipment) {
+				if (cost < budget && this.ns.gang.purchaseEquipment(memberName, name)) {
+					budget -= cost
+					return budget
+				}
+			}
+		}
+
 		return budget
 	}
 
