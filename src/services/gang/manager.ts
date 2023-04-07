@@ -1,8 +1,14 @@
+import { IterableX } from '@reactivex/ix-esnext-esm/iterable/iterablex'
+import { filter } from '@reactivex/ix-esnext-esm/iterable/operators/filter'
+import { map } from '@reactivex/ix-esnext-esm/iterable/operators/map'
+import { toArray } from '@reactivex/ix-esnext-esm/iterable/toarray'
 import { ulid } from 'ulid'
 import { NsLogger } from '../../logging/logger'
 import { Config } from '../../models/config'
-import { AscendThresholds } from '../../models/gang'
+import { AscendThresholds, GangMemberFirstTask } from '../../models/gang'
 import { ToyBudgetProvider } from '../../models/toys'
+
+const { from } = IterableX
 
 const GangBudgetThreshold = 10_000_000
 const GangBudgetMultiplier = 1 / 3
@@ -10,6 +16,7 @@ const GangBudgetMultiplier = 1 / 3
 export class GangManager implements ToyBudgetProvider {
 	name = 'gang'
 	#gang: GangGenInfo | null = null
+	readonly #memberTasks = new Map<string, number>()
 
 	constructor(
 		private readonly ns: NS,
@@ -35,13 +42,21 @@ export class GangManager implements ToyBudgetProvider {
 
 	summarize() {
 		if (this.#gang) {
+			const tasks = toArray(
+				from(this.#memberTasks.entries()).pipe(
+					filter(([, count]) => count > 0),
+					map(([task, count]) => `${count} ${task}`)
+				)
+			).join(', ')
 			this.logger.info`managing ${
 				this.#gang.faction
-			} gang; 🤛 ${this.ns.formatNumber(this.#gang.respect)}`
+			} gang; 🤛 ${this.ns.formatNumber(this.#gang.respect)}, ${tasks}`
 		}
 	}
 
 	manage() {
+		this.#memberTasks.clear()
+
 		if (!this.ns.gang.inGang()) {
 			if (!this.ns.getPlayer().factions.includes(this.config.gangFaction)) {
 				return
@@ -54,7 +69,10 @@ export class GangManager implements ToyBudgetProvider {
 		this.#gang = this.ns.gang.getGangInformation()
 
 		if (this.ns.gang.canRecruitMember()) {
-			this.ns.gang.recruitMember(ulid())
+			const name = ulid()
+			if (this.ns.gang.recruitMember(name)) {
+				this.ns.gang.setMemberTask(name, GangMemberFirstTask)
+			}
 		}
 
 		for (const memberName of this.ns.gang.getMemberNames()) {
@@ -68,6 +86,9 @@ export class GangManager implements ToyBudgetProvider {
 			) {
 				this.ns.gang.ascendMember(memberName)
 			}
+
+			const count = this.#memberTasks.get(member.task) ?? 0
+			this.#memberTasks.set(member.task, count + 1)
 		}
 	}
 }
