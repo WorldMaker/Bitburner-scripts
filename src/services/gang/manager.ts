@@ -77,12 +77,14 @@ export class GangManager implements ToyBudgetProvider {
 
 		for (const memberName of this.ns.gang.getMemberNames()) {
 			const member = this.ns.gang.getMemberInformation(memberName)
+			const ascension = this.ns.gang.getAscensionResult(memberName)
 
 			if (
-				member.agi_asc_mult - member.agi_mult > AscendThresholds.agi ||
-				member.def_asc_mult - member.def_mult > AscendThresholds.def ||
-				member.dex_asc_mult - member.dex_mult > AscendThresholds.dex ||
-				member.str_asc_mult - member.str_mult > AscendThresholds.str
+				ascension &&
+				(ascension.agi - member.agi_asc_mult > AscendThresholds.agi ||
+					ascension.def - member.def_asc_mult > AscendThresholds.def ||
+					ascension.dex - member.dex_asc_mult > AscendThresholds.dex ||
+					ascension.str - member.str_asc_mult > AscendThresholds.str)
 			) {
 				this.ns.gang.ascendMember(memberName)
 			}
