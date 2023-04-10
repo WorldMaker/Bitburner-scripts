@@ -129,7 +129,7 @@ export async function main(ns: NS) {
 		new ToyHomeImprovement(ns)
 	)
 	manager.register(
-		new CorpBribeService(ns, logger, company, augmentPrioritizer),
+		new CorpBribeService(ns, config, logger, company, augmentPrioritizer),
 		new FlightController(ns, config, logger, augmentPrioritizer),
 		new TargetFactionAugmentsService(ns, config, logger, augmentPrioritizer, [
 			gangService,

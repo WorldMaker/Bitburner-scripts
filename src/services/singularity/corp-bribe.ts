@@ -1,4 +1,5 @@
 import { NsLogger } from '../../logging/logger'
+import { Config } from '../../models/config'
 import { Company } from '../../models/corporation'
 import { AugmentPrioritizer, NFG } from './augments'
 
@@ -8,6 +9,7 @@ export class CorpBribeService {
 
 	constructor(
 		private readonly ns: NS,
+		private readonly config: Config,
 		private readonly logger: NsLogger,
 		private readonly company: Company,
 		private readonly priorities: AugmentPrioritizer
@@ -29,6 +31,12 @@ export class CorpBribeService {
 		const { bribeAmountPerReputation } = this.ns.corporation.getConstants()
 
 		this.#bribedFactions.clear()
+		
+		// assume we can't bribe the gang faction
+		if (this.config.gangFaction) {
+			this.#bribedFactions.add(this.config.gangFaction)
+		}
+
 		let nfgBribe = false
 
 		for (const priority of this.priorities.getPriorities()) {
