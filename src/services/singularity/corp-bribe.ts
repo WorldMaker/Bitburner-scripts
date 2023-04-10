@@ -31,7 +31,7 @@ export class CorpBribeService {
 		const { bribeAmountPerReputation } = this.ns.corporation.getConstants()
 
 		this.#bribedFactions.clear()
-		
+
 		// assume we can't bribe the gang faction
 		if (this.config.gangFaction) {
 			this.#bribedFactions.add(this.config.gangFaction)
