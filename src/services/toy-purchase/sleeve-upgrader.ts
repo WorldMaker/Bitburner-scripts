@@ -23,14 +23,23 @@ export class SleeveUpgrader implements ToyBudgetProvider, ToyPurchaser {
 
 	purchase(budget: number): number {
 		for (const sleeve of this.shirt.getSleeves()) {
-			const augments = this.ns.sleeve.getSleevePurchasableAugs(sleeve.id)
+			switch (sleeve.getState()) {
+				case '✔':
+				case '👩‍🎓':
+				case '👷‍♀️':
+				case '💻':
+				case '🦝':
+				case '🦹‍♀️':
+					const augments = this.ns.sleeve.getSleevePurchasableAugs(sleeve.id)
 
-			for (const { name, cost } of augments) {
-				if (cost < budget) {
-					if (this.ns.sleeve.purchaseSleeveAug(sleeve.id, name)) {
-						budget -= cost
+					for (const { name, cost } of augments) {
+						if (cost < budget) {
+							if (this.ns.sleeve.purchaseSleeveAug(sleeve.id, name)) {
+								budget -= cost
+							}
+						}
 					}
-				}
+					break
 			}
 		}
 		return budget

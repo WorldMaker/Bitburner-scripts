@@ -131,7 +131,7 @@ export class TargetFactionAugmentsService {
 		for (const augment of this.priorities.getPriorities()) {
 			const { money } = this.ns.getPlayer()
 			const factionRep = this.ns.singularity.getFactionRep(augment.faction)
-			if (augment.cost < money && augment.rep < factionRep) {
+			if (augment.cost < money && augment.rep <= factionRep) {
 				this.logger.trace`buying ${augment.name}`
 				if (
 					this.ns.singularity.purchaseAugmentation(
