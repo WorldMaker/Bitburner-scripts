@@ -72,6 +72,10 @@ export class GangManager implements ToyBudgetProvider, ToyPurchaser {
 			this.logger.info`managing ${
 				this.#gang.faction
 			} gang; 🤛 ${this.ns.formatNumber(this.#gang.respect)}, ${tasks}`
+		} else {
+			this.logger.info`karma ${this.ns.formatNumber(
+				(this.ns as any).heart?.break?.()
+			)}`
 		}
 	}
 
