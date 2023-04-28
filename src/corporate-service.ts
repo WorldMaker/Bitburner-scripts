@@ -83,6 +83,7 @@ export async function main(ns: NS) {
 	const hackerService = new HackerService(ns, logger)
 	manager.useDeploymentService(
 		new DeploymentService(
+			config,
 			hackerService,
 			logger,
 			payloadPlanner,

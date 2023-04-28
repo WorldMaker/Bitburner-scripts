@@ -3,6 +3,7 @@ const ConfigFileName = 'env.json.txt'
 export class Config {
 	hacknetNodes = 5
 	hacknetHashStrategy = 'money'
+	hacknetDeployThreshold = 200_000_000_000
 	hackStrategy = 'formulated'
 	flightController = true
 	gangFaction = 'Slum Snakes'
@@ -38,6 +39,12 @@ export class Config {
 				typeof env.hacknetHashStrategy === 'string'
 			) {
 				this.hacknetHashStrategy = env.hacknetHashStrategy
+			}
+			if (
+				'hacknetDeployThreshold' in env &&
+				typeof env.hacknetDeployThreshold === 'number'
+			) {
+				this.hacknetDeployThreshold = env.hacknetDeployThreshold
 			}
 			if ('hackStrategy' in env && typeof env.hackStrategy === 'string') {
 				this.hackStrategy = env.hackStrategy
@@ -78,6 +85,7 @@ export class Config {
 			hacknetNodes,
 			hackStrategy,
 			hacknetHashStrategy,
+			hacknetDeployThreshold,
 			flightController,
 			gangFaction,
 			scanMaxDepth,
@@ -90,6 +98,7 @@ export class Config {
 			hacknetNodes,
 			hackStrategy,
 			hacknetHashStrategy,
+			hacknetDeployThreshold,
 			flightController,
 			gangFaction,
 			scanMaxDepth,

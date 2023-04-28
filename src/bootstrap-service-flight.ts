@@ -65,6 +65,7 @@ export async function main(ns: NS) {
 	const scannerService = new ScannerService(ns, config, servers, targetFactory)
 	manager.useDeploymentService(
 		new DeploymentService(
+			config,
 			hackerService,
 			logger,
 			payloadPlanner,

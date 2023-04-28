@@ -1,4 +1,5 @@
 import { NsLogger } from '../logging/logger.js'
+import { Config } from '../models/config.js'
 import { PayloadPlanner } from '../models/payload-plan.js'
 import { PlayerStats } from '../models/stats'
 import { ServerTarget } from '../models/targets/server-target'
@@ -20,6 +21,7 @@ export class DeploymentService {
 	private payloads = 0
 
 	constructor(
+		private config: Config,
 		private hackerService: HackerService,
 		private logger: NsLogger,
 		private payloadPlanner: PayloadPlanner,
@@ -64,7 +66,24 @@ export class DeploymentService {
 
 		for (const server of servers) {
 			if (this.hackerService.rootServer(server, stats)) {
-				rooted.add(server)
+				if (server.name.startsWith('hacknet-')) {
+					switch (this.config.hacknetHashStrategy) {
+						case 'money':
+							if (
+								stats.getPlayer().money > this.config.hacknetDeployThreshold
+							) {
+								rooted.add(server)
+							}
+							break
+						case 'none':
+						case '':
+						case null:
+							rooted.add(server)
+							break
+					}
+				} else {
+					rooted.add(server)
+				}
 			}
 		}
 
