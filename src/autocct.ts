@@ -8,6 +8,8 @@ import { ServerCacheService } from './services/server-cache'
 let running = false
 
 export async function main(ns: NS) {
+	ns.disableLog('ALL')
+
 	const [command] = ns.args
 
 	let force = false
