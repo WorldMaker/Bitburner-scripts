@@ -1,5 +1,6 @@
 import { Cooperative, evaluateCct } from '../cct'
 import { NsLogger } from '../logging/logger'
+import { Config } from '../models/config'
 import { Target } from '../models/targets'
 import { ServerCacheService } from './server-cache'
 
@@ -16,6 +17,7 @@ export class CctService<T extends Target> {
 
 	constructor(
 		private readonly ns: NS,
+		private readonly config: Config,
 		private readonly servers: ServerCacheService<T>,
 		private readonly logger: NsLogger
 	) {}
@@ -30,6 +32,9 @@ export class CctService<T extends Target> {
 	}
 
 	summarize() {
+		if (!this.config.cct) {
+			return
+		}
 		if (this.unknowns > 0 || this.skips > 0) {
 			this.logger
 				.info`${this.unknowns} unknown contracts; ${this.skips} skipped contracts`
@@ -43,6 +48,10 @@ export class CctService<T extends Target> {
 	}
 
 	async manage(force = false, showSkippedResults = false) {
+		if (!this.config.cct) {
+			return
+		}
+
 		this.unknowns = 0
 		this.skips = 0
 

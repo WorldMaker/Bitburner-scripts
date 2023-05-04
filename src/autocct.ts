@@ -60,7 +60,7 @@ export async function main(ns: NS) {
 		servers,
 		simpleTargetFactory
 	)
-	const cctService = new CctService(ns, servers, logger)
+	const cctService = new CctService(ns, config, servers, logger)
 
 	let ran = false
 
