@@ -32,8 +32,8 @@ export class CctService<T extends Target> {
 		}
 	}
 
-	summarize() {
-		if (!this.config.cct) {
+	summarize(force = false) {
+		if (!(this.config.cct || force)) {
 			return
 		}
 		if (this.unknowns > 0 || this.skips > 0) {

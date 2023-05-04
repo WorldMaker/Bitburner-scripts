@@ -79,7 +79,7 @@ export async function main(ns: NS) {
 			isolateType?.toString()
 		)
 
-		cctService.summarize()
+		cctService.summarize(true)
 
 		await ns.sleep(10 /* s */ * 1000 /* ms */)
 	}
