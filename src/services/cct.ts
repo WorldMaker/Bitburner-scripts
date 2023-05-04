@@ -10,6 +10,7 @@ export class CctService<T extends Target> {
 	private lastCooperative = Date.now()
 	private skiplist = new Set<string>()
 
+	private pending = 0
 	private successes = 0
 	private attempts = 0
 	private unknowns = 0
@@ -39,7 +40,10 @@ export class CctService<T extends Target> {
 			this.logger
 				.info`${this.unknowns} unknown contracts; ${this.skips} skipped contracts`
 		}
-		if (this.successes === this.attempts) {
+		if (this.pending > 0) {
+			this.logger
+				.info`${this.successes}/${this.attempts}/${this.pending} contracts completed`
+		} else if (this.successes === this.attempts) {
 			this.logger
 				.success`${this.successes}/${this.attempts} contracts completed`
 		} else {
@@ -52,13 +56,18 @@ export class CctService<T extends Target> {
 			return
 		}
 
+		this.pending = 0
 		this.unknowns = 0
 		this.skips = 0
+
+		let attempted = false
 
 		for (const server of this.servers.values()) {
 			const cctFiles = this.ns.ls(server.name, '.cct')
 			if (cctFiles.length) {
 				this.logger.trace`${cctFiles.length} cct files on ${server.name}`
+				this.pending += cctFiles.length
+
 				for (const cctFile of cctFiles) {
 					const type = this.ns.codingcontract.getContractType(
 						cctFile,
@@ -73,8 +82,10 @@ export class CctService<T extends Target> {
 						this.skiplist,
 						force
 					)
-					if (attempt || (known && force)) {
+					if (!attempted && (attempt || (known && force))) {
+						attempted = true
 						this.attempts++
+						this.pending--
 						let succeeded: string | boolean = false
 						this.logger.debug`\t⚒ ${cctFile} – ${type}: ${JSON.stringify(data)}`
 						try {
@@ -102,10 +113,10 @@ export class CctService<T extends Target> {
 
 						// add a tiny pause for the game's sake to keep from locking the terminal on long solutions
 						await this.cooperative(() => `attempted contract on ${server.name}`)
-						return
 					} else {
 						if (known) {
 							this.skips++
+							this.pending--
 							this.logger.log(
 								`\t➖ ${cctFile} – ${type}: ${JSON.stringify(data)}`
 							)
@@ -114,6 +125,7 @@ export class CctService<T extends Target> {
 							}
 						} else {
 							this.unknowns++
+							this.pending--
 							this.logger.log(
 								`\t❓ ${cctFile} – ${type}: ${JSON.stringify(data)}`
 							)
