@@ -38,7 +38,7 @@ export async function main(ns: NS) {
 	const payloadService = new PayloadService()
 	const targetFactory = deployTargetFactory
 	const servers = new ServerCacheService(ns, targetFactory)
-	manager.register(new CctService(ns, servers, logger))
+	manager.register(new CctService(ns, config, servers, logger))
 	const toyPurchaseService = new ToyPurchaseService(ns, config, logger, servers)
 	const hacknetHashService = new HacknetHashService(ns, config, logger)
 

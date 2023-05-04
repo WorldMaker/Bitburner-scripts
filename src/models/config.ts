@@ -1,6 +1,7 @@
 const ConfigFileName = 'env.json.txt'
 
 export class Config {
+	cct = true
 	hacknetNodes = 5
 	hacknetHashStrategy = 'money'
 	hacknetDeployThreshold = 200_000_000_000
@@ -31,6 +32,9 @@ export class Config {
 		const json = this.ns.read(ConfigFileName)
 		const env: unknown = json && json !== '' ? JSON.parse(json) : null
 		if (env && typeof env === 'object') {
+			if ('cct' in env && typeof env.cct === 'boolean') {
+				this.cct = env.cct
+			}
 			if ('hacknetNodes' in env && typeof env.hacknetNodes === 'number') {
 				this.hacknetNodes = env.hacknetNodes
 			}
@@ -82,6 +86,7 @@ export class Config {
 
 	save() {
 		const {
+			cct,
 			hacknetNodes,
 			hackStrategy,
 			hacknetHashStrategy,
@@ -95,6 +100,7 @@ export class Config {
 			toyBudget,
 		} = this
 		const env = {
+			cct,
 			hacknetNodes,
 			hackStrategy,
 			hacknetHashStrategy,

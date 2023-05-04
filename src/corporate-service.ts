@@ -66,7 +66,7 @@ export async function main(ns: NS) {
 		servers,
 		deployTargetFactory
 	)
-	manager.register(new CctService(ns, servers, logger))
+	manager.register(new CctService(ns, config, servers, logger))
 
 	// *** Hack Deployment & Purchasing ***
 	const apps = new AppCacheService(ns)

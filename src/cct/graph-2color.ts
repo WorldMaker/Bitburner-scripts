@@ -53,13 +53,11 @@ export function colorBipartiteGraph([nodeCount, edges]: GraphEdgeList) {
 
 	let valid = colorNode(graph, 0, 0)
 
-	if (valid) {
-		let uncolored = graph.filter((node) => node.color === null)
+	let uncolored = graph.filter((node) => node.color === null)
 
-		while (uncolored.length) {
-			valid &&= colorNode(graph, uncolored[0].id, 0)
-			uncolored = graph.filter((node) => node.color === null)
-		}
+	while (valid && uncolored.length) {
+		valid &&= colorNode(graph, uncolored[0].id, 0)
+		uncolored = graph.filter((node) => node.color === null)
 	}
 
 	if (valid) {

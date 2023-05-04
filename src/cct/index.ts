@@ -114,7 +114,7 @@ export function evaluateCct(
 		case 'Find All Valid Math Expressions':
 			return {
 				known: true,
-				attempt,
+				attempt: data[0].length < 10 && attempt,
 				solver: () => solveValidMathExpressions(data, cooperative, logger),
 			}
 		case 'Find Largest Prime Factor':
@@ -192,7 +192,7 @@ export function evaluateCct(
 		case 'Total Ways to Sum II':
 			return {
 				known: true,
-				attempt,
+				attempt: data[0] < 100 && attempt,
 				solver: () => sumCombinations(data, cooperative),
 			}
 		case 'Unique Paths in a Grid I':

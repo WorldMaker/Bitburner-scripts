@@ -8,7 +8,9 @@ import { ServerCacheService } from './services/server-cache'
 let running = false
 
 export async function main(ns: NS) {
-	const [command] = ns.args
+	ns.disableLog('ALL')
+
+	const [command, isolateType] = ns.args
 
 	let force = false
 
@@ -60,7 +62,7 @@ export async function main(ns: NS) {
 		servers,
 		simpleTargetFactory
 	)
-	const cctService = new CctService(ns, servers, logger)
+	const cctService = new CctService(ns, config, servers, logger)
 
 	let ran = false
 
@@ -70,9 +72,14 @@ export async function main(ns: NS) {
 
 		scannerService.scan()
 
-		await cctService.manage(force, showSkippedResults)
+		await cctService.manage(
+			force,
+			showSkippedResults,
+			runonce,
+			isolateType?.toString()
+		)
 
-		cctService.summarize()
+		cctService.summarize(true)
 
 		await ns.sleep(10 /* s */ * 1000 /* ms */)
 	}
