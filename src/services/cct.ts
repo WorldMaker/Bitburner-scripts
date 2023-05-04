@@ -89,6 +89,7 @@ export class CctService<T extends Target> {
 							this.logger.debug`\t⚒ ${cctFile} – ${type}: ${JSON.stringify(
 								data
 							)}`
+							await this.ns.sleep(50) // tiny sleep to make sure above log is presented
 							try {
 								succeeded = this.ns.codingcontract.attempt(
 									await solver(),
