@@ -58,7 +58,7 @@ export class CctService<T extends Target> {
 		for (const server of this.servers.values()) {
 			const cctFiles = this.ns.ls(server.name, '.cct')
 			if (cctFiles.length) {
-				this.logger.log(server.name)
+				this.logger.trace`${cctFiles.length} cct files on ${server.name}`
 				for (const cctFile of cctFiles) {
 					const type = this.ns.codingcontract.getContractType(
 						cctFile,
@@ -101,9 +101,8 @@ export class CctService<T extends Target> {
 						}
 
 						// add a tiny pause for the game's sake to keep from locking the terminal on long solutions
-						await this.cooperative(
-							() => `attempting contracts on ${server.name}`
-						)
+						await this.cooperative(() => `attempted contract on ${server.name}`)
+						return
 					} else {
 						if (known) {
 							this.skips++
