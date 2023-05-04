@@ -52,7 +52,7 @@ export class CctService<T extends Target> {
 	}
 
 	async manage(force = false, showSkippedResults = false) {
-		if (!this.config.cct) {
+		if (!(this.config.cct || force)) {
 			return
 		}
 
