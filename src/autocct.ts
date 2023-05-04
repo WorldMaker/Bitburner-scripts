@@ -10,7 +10,7 @@ let running = false
 export async function main(ns: NS) {
 	ns.disableLog('ALL')
 
-	const [command] = ns.args
+	const [command, isolateType] = ns.args
 
 	let force = false
 
@@ -72,7 +72,12 @@ export async function main(ns: NS) {
 
 		scannerService.scan()
 
-		await cctService.manage(force, showSkippedResults)
+		await cctService.manage(
+			force,
+			showSkippedResults,
+			runonce,
+			isolateType?.toString()
+		)
 
 		cctService.summarize()
 

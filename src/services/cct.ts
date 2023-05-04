@@ -51,7 +51,12 @@ export class CctService<T extends Target> {
 		}
 	}
 
-	async manage(force = false, showSkippedResults = false) {
+	async manage(
+		force = false,
+		showSkippedResults = false,
+		attemptAll = false,
+		isolateType: string | null = null
+	) {
 		if (!(this.config.cct || force)) {
 			return
 		}
@@ -81,8 +86,11 @@ export class CctService<T extends Target> {
 						this.skiplist,
 						force
 					)
-					if (attempt || (known && force)) {
-						if (!attempted) {
+					if (
+						(!isolateType || isolateType === type) &&
+						(attempt || (known && force))
+					) {
+						if (attemptAll || !attempted) {
 							attempted = true
 							this.attempts++
 							let succeeded: string | boolean = false
