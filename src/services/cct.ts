@@ -66,7 +66,6 @@ export class CctService<T extends Target> {
 			const cctFiles = this.ns.ls(server.name, '.cct')
 			if (cctFiles.length) {
 				this.logger.trace`${cctFiles.length} cct files on ${server.name}`
-				this.pending += cctFiles.length
 
 				for (const cctFile of cctFiles) {
 					const type = this.ns.codingcontract.getContractType(
@@ -82,41 +81,50 @@ export class CctService<T extends Target> {
 						this.skiplist,
 						force
 					)
-					if (!attempted && (attempt || (known && force))) {
-						attempted = true
-						this.attempts++
-						this.pending--
-						let succeeded: string | boolean = false
-						this.logger.debug`\t⚒ ${cctFile} – ${type}: ${JSON.stringify(data)}`
-						try {
-							succeeded = this.ns.codingcontract.attempt(
-								await solver(),
-								cctFile,
-								server.name
-							)
-						} catch (err) {
-							this.logger.error`Error solving ${type}: ${err}`
-						}
-						if (succeeded) {
-							this.successes++
-							this.logger.display(
-								`\t✔ ${server.name}\t${cctFile} – ${type}: ${succeeded}`
+					if (attempt || (known && force)) {
+						if (!attempted) {
+							attempted = true
+							this.attempts++
+							let succeeded: string | boolean = false
+							this.logger.debug`\t⚒ ${cctFile} – ${type}: ${JSON.stringify(
+								data
+							)}`
+							try {
+								succeeded = this.ns.codingcontract.attempt(
+									await solver(),
+									cctFile,
+									server.name
+								)
+							} catch (err) {
+								this.logger.error`Error solving ${type}: ${err}`
+							}
+							if (succeeded) {
+								this.successes++
+								this.logger.display(
+									`\t✔ ${server.name}\t${cctFile} – ${type}: ${succeeded}`
+								)
+							} else {
+								this.logger.display(
+									`\t❌ ${server.name}\t${cctFile} – ${type}: ${JSON.stringify(
+										data
+									)}`
+								)
+								this.skiplist.add(type)
+							}
+
+							// add a tiny pause for the game's sake to keep from locking the terminal on long solutions
+							await this.cooperative(
+								() => `attempted contract on ${server.name}`
 							)
 						} else {
-							this.logger.display(
-								`\t❌ ${server.name}\t${cctFile} – ${type}: ${JSON.stringify(
-									data
-								)}`
+							this.pending++
+							this.logger.log(
+								`\t⌛ ${cctFile} – ${type}: ${JSON.stringify(data)}`
 							)
-							this.skiplist.add(type)
 						}
-
-						// add a tiny pause for the game's sake to keep from locking the terminal on long solutions
-						await this.cooperative(() => `attempted contract on ${server.name}`)
 					} else {
 						if (known) {
 							this.skips++
-							this.pending--
 							this.logger.log(
 								`\t➖ ${cctFile} – ${type}: ${JSON.stringify(data)}`
 							)
@@ -125,7 +133,6 @@ export class CctService<T extends Target> {
 							}
 						} else {
 							this.unknowns++
-							this.pending--
 							this.logger.log(
 								`\t❓ ${cctFile} – ${type}: ${JSON.stringify(data)}`
 							)
