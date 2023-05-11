@@ -20,12 +20,6 @@ export class NsContext {
 	targetAugmentFaction?: string | null = null
 	toyBudget = 0
 
-	#stats: PlayerStats | null = null
-	get stats(): PlayerStats {
-		this.#stats ??= new PlayerStats(this.ns)
-		return this.#stats
-	}
-
 	constructor(public readonly ns: NS, public readonly logger: NsLogger) {}
 
 	reset() {
@@ -41,8 +35,6 @@ export class NsContext {
 	}
 
 	load() {
-		this.#stats = new PlayerStats(this.ns)
-
 		const json = this.ns.read(ConfigFileName)
 		const env: unknown = json && json !== '' ? JSON.parse(json) : null
 		if (env && typeof env === 'object') {
@@ -134,6 +126,12 @@ export class NsContext {
 export class TargetContext<T extends Target> extends NsContext {
 	public readonly servers: ServerCacheService<T>
 
+	#stats: PlayerStats | null = null
+	get stats(): PlayerStats {
+		this.#stats ??= new PlayerStats(this.ns)
+		return this.#stats
+	}
+
 	constructor(
 		ns: NS,
 		logger: NsLogger,
@@ -142,5 +140,11 @@ export class TargetContext<T extends Target> extends NsContext {
 		super(ns, logger)
 
 		this.servers = new ServerCacheService(ns, targetFactory)
+	}
+
+	load() {
+		this.#stats = new PlayerStats(this.ns)
+
+		super.load()
 	}
 }
