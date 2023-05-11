@@ -8,7 +8,6 @@ import {
 } from '../../models/corporation'
 import { MaterialPhaseManager } from './material-phase'
 import { PhaseManager } from './phase'
-import { NsContext } from '../../models/context'
 
 const DesiredWarehouseLevel = 3
 const DesiredLevelUpgrades: Partial<Record<LevelUpgrade, number>> = {
@@ -35,9 +34,9 @@ export class MaterialRound0Manager
 	private readonly citiesDesired: CityName[]
 	private citiesMet = 0
 
-	constructor(context: NsContext, company: Company) {
-		super(context, company)
-		const { ns } = this.context
+	constructor(company: Company) {
+		super(company)
+		const { ns } = this.company.context
 		this.citiesDesired = Object.values(ns.enums.CityName)
 	}
 
@@ -46,7 +45,7 @@ export class MaterialRound0Manager
 	}
 
 	assignEmployees(materialDivision: Division, city: CityName) {
-		const { ns } = this.context
+		const { ns } = this.company.context
 		const office = ns.corporation.getOffice(materialDivision.name, city)
 		if (office.employeeJobs.Unassigned > 0) {
 			while (ns.corporation.hireEmployee(materialDivision.name, city)) {
@@ -74,7 +73,7 @@ export class MaterialRound0Manager
 	}
 
 	expandAllCities(materialDivision: Division) {
-		const { ns, logger } = this.context
+		const { ns, logger } = this.company.context
 		for (const city of this.citiesDesired) {
 			if (materialDivision.cities.includes(city)) {
 				// *** Ensure has a warehouse ***
@@ -124,7 +123,7 @@ export class MaterialRound0Manager
 	}
 
 	async manage(): Promise<void> {
-		const { logger } = this.context
+		const { logger } = this.company.context
 		const materialDivision = this.company.getMaterialDivision()
 		if (!materialDivision) {
 			logger.error`no material division`

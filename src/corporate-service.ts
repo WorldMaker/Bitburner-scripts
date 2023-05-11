@@ -47,16 +47,16 @@ export async function main(ns: NS) {
 	}
 
 	const manager = new ServiceService(context)
-	const company = new Company(ns)
+	const company = new Company(context)
 
 	manager.register(
-		new MandatoryFunService(context, company),
-		new ProductOfficeManager(context, company),
-		new ProductManager(context, company),
-		new ProductPriceService(context, company),
-		new ProductPurchaseService(context, company)
+		new MandatoryFunService(company),
+		new ProductOfficeManager(company),
+		new ProductManager(company),
+		new ProductPriceService(company),
+		new ProductPurchaseService(company)
 	)
-	manager.registerFactory(() => getPhaseManager(context, company))
+	manager.registerFactory(() => getPhaseManager(company))
 
 	// *** Auto-CCT ***
 	const scannerService = new ScannerService(context)
@@ -108,12 +108,12 @@ export async function main(ns: NS) {
 	)
 	const augmentPrioritizer = new AugmentPrioritizer(ns)
 	toyPurchaseService.register(
-		new DarkwebPurchaser(ns, company),
+		new DarkwebPurchaser(context),
 		new AugmentToyPurchaser(ns, augmentPrioritizer),
 		new ToyHomeImprovement(ns)
 	)
 	manager.register(
-		new CorpBribeService(context, company, augmentPrioritizer),
+		new CorpBribeService(context, augmentPrioritizer),
 		new FlightController(context, augmentPrioritizer),
 		new TargetFactionAugmentsService(context, augmentPrioritizer, [
 			gangService,

@@ -1,4 +1,3 @@
-import { NsContext } from '../../models/context'
 import { Company, ProductDevelopment } from '../../models/corporation'
 import { ProductPrice } from '../../models/product'
 import { ProductPriceCache } from './product-price-cache'
@@ -7,8 +6,8 @@ export class ProductPriceService {
 	private priceCache: ProductPriceCache | null = null
 	private readonly prices: ProductPrice[] = []
 
-	constructor(private readonly context: NsContext, private company: Company) {
-		const { ns } = this.context
+	constructor(private readonly company: Company) {
+		const { ns } = this.company.context
 		const productDivision = this.company.getProductDivision()
 		if (productDivision) {
 			if (
@@ -23,7 +22,7 @@ export class ProductPriceService {
 	}
 
 	summarize() {
-		const { logger } = this.context
+		const { logger } = this.company.context
 		if (this.priceCache) {
 			const prices = this.prices
 				.map((price) => `${price.getStateEmoji()} ${price.getMultiplier()}`)
@@ -33,7 +32,7 @@ export class ProductPriceService {
 	}
 
 	manage() {
-		const { ns, logger } = this.context
+		const { ns, logger } = this.company.context
 		this.company.updateState()
 		const productDivision = this.company.getProductDivision()
 

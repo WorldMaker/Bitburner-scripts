@@ -3,7 +3,6 @@ import {
 	LevelUpgrades,
 	ProductDevelopment,
 } from '../../models/corporation'
-import { NsContext } from '../../models/context'
 
 const ToyPurchaseBudget = 1 / 10_000 /* per tick */
 const ToyPurchaseProfitBudget = 5 /* per tick => * 10 seconds per tick so 1/2 of profit per second */
@@ -17,10 +16,10 @@ export class ProductPurchaseService {
 	private hasEnoughBaselineResearch = false
 	private canUseRevenueBudget = false
 
-	constructor(private readonly context: NsContext, private company: Company) {}
+	constructor(private readonly company: Company) {}
 
 	summarize() {
-		const { ns, logger } = this.context
+		const { ns, logger } = this.company.context
 		if (this.company.hasProductDivision()) {
 			logger.info`purchasing upgrades; ${ns.formatNumber(
 				this.startingFunds - this.funds
@@ -36,7 +35,7 @@ export class ProductPurchaseService {
 		if (!this.company.hasProductDivision()) {
 			return
 		}
-		const { ns, logger } = this.context
+		const { ns, logger } = this.company.context
 		// recheck funds and other things
 		this.company.updateState()
 		this.startingFunds = this.funds = this.company.funds

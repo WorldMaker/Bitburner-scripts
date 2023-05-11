@@ -8,7 +8,6 @@ import {
 } from '../../models/corporation'
 import { MaterialPhaseManager } from './material-phase'
 import { PhaseManager } from './phase'
-import { NsContext } from '../../models/context'
 
 const DesiredWarehouseLevel = 19
 const DesiredMaterial: Partial<Record<BoostMaterial, number>> = {
@@ -22,8 +21,8 @@ export class MaterialRound2Manager
 	extends MaterialPhaseManager
 	implements PhaseManager
 {
-	constructor(context: NsContext, company: Company) {
-		super(context, company)
+	constructor(company: Company) {
+		super(company)
 	}
 
 	summarize() {
@@ -31,7 +30,7 @@ export class MaterialRound2Manager
 	}
 
 	async manage(): Promise<void> {
-		const { ns, logger } = this.context
+		const { ns, logger } = this.company.context
 		const materialDivision = this.company.getMaterialDivision()
 		if (!materialDivision) {
 			logger.error`no material division`

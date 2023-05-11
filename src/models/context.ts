@@ -7,6 +7,7 @@ const ConfigFileName = 'env.json.txt'
 
 export class NsContext {
 	cct = true
+	hasPublicCompany = false
 	hacknetNodes = 5
 	hacknetHashStrategy = 'money'
 	hacknetDeployThreshold = 200_000_000_000

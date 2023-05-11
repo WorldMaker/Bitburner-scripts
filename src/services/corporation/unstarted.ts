@@ -1,6 +1,5 @@
 import { Company, MyCompany, StartingCity } from '../../models/corporation'
 import { PhaseManager } from './phase'
-import { NsContext } from '../../models/context'
 
 const CorporationBudget = 150_000_000_000
 const SmartSupply = 'Smart Supply'
@@ -10,17 +9,17 @@ const SellAtMarketPrice = 'MP'
 export class UnstartedPhaseManager implements PhaseManager {
 	private waitingForCash = true
 
-	constructor(private readonly context: NsContext, private company: Company) {}
+	constructor(private readonly company: Company) {}
 
 	summarize() {
-		const { logger } = this.context
+		const { logger } = this.company.context
 		if (!this.waitingForCash) {
 			logger.info`starting a company`
 		}
 	}
 
 	manage(): Promise<void> {
-		const { ns, logger } = this.context
+		const { ns, logger } = this.company.context
 		let created = false
 		try {
 			created ||= ns.corporation.createCorporation(MyCompany.Name, false)
@@ -30,8 +29,8 @@ export class UnstartedPhaseManager implements PhaseManager {
 
 		if (ns.getServerMoneyAvailable('home') < CorporationBudget) {
 			this.waitingForCash = true
-			if (this.context.hacknetHashStrategy.startsWith('corp')) {
-				this.context.hacknetHashStrategy = 'money'
+			if (this.company.context.hacknetHashStrategy.startsWith('corp')) {
+				this.company.context.hacknetHashStrategy = 'money'
 			}
 			return Promise.resolve()
 		}
@@ -43,8 +42,8 @@ export class UnstartedPhaseManager implements PhaseManager {
 			return Promise.resolve()
 		}
 
-		if (this.context.hacknetHashStrategy === 'money') {
-			this.context.hacknetHashStrategy = 'corpfunds'
+		if (this.company.context.hacknetHashStrategy === 'money') {
+			this.company.context.hacknetHashStrategy = 'corpfunds'
 		}
 
 		ns.corporation.expandIndustry(

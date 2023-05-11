@@ -1,5 +1,4 @@
 import { NsContext } from '../../models/context'
-import { Company } from '../../models/corporation'
 import { AugmentPrioritizer, NFG } from './augments'
 
 export class CorpBribeService {
@@ -8,23 +7,22 @@ export class CorpBribeService {
 
 	constructor(
 		private readonly context: NsContext,
-		private readonly company: Company,
 		private readonly priorities: AugmentPrioritizer
 	) {}
 
 	summarize() {
 		const { ns, logger } = this.context
 		if (this.#bribes) {
-			logger.info`${this.company.name} spent ${ns.formatNumber(
+			logger.info`spent ${ns.formatNumber(
 				this.#bribes
-			)} on faction bribes`
+			)} corporate money on faction bribes`
 		}
 	}
 
 	manage() {
-		const { ns, logger } = this.context
+		const { ns, logger, hasPublicCompany } = this.context
 
-		if (this.company.getState() !== 'Public') {
+		if (!hasPublicCompany) {
 			return
 		}
 

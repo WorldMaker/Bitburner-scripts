@@ -1,4 +1,3 @@
-import { NsContext } from '../../models/context'
 import { Company } from '../../models/corporation'
 
 const PartyBudget = 500_000 /* $/employee */ // roughly 5% increase in hap/mor
@@ -10,10 +9,10 @@ export class MandatoryFunService {
 	#parties = 0
 	#offices = 0
 
-	constructor(private readonly context: NsContext, private company: Company) {}
+	constructor(private readonly company: Company) {}
 
 	summarize() {
-		const { ns, logger } = this.context
+		const { ns, logger } = this.company.context
 		if (this.#offices) {
 			logger.info`encouraging mandatory fun across ${
 				this.#offices
@@ -24,7 +23,7 @@ export class MandatoryFunService {
 	}
 
 	manage() {
-		const { ns, logger } = this.context
+		const { ns, logger } = this.company.context
 		this.#offices = 0
 
 		for (const divisionName of this.company.corporation?.divisions ?? []) {

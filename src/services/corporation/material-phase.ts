@@ -1,6 +1,5 @@
 import { BoostMaterial, Company } from '../../models/corporation'
 import { BasePhaseManager } from './base-phase'
-import { NsContext } from '../../models/context'
 
 export type DesiredMaterial = Partial<Record<BoostMaterial, number>>
 
@@ -10,15 +9,15 @@ export class MaterialPhaseManager extends BasePhaseManager {
 	protected materialsDesired = 0
 	protected materialsMet = 0
 
-	constructor(context: NsContext, company: Company) {
-		super(context, company)
+	constructor(company: Company) {
+		super(company)
 	}
 
 	manageWarehouseLevel(
 		materialDivision: Division,
 		desiredWarehouseLevel: number
 	) {
-		const { ns, logger } = this.context
+		const { ns, logger } = this.company.context
 		for (const city of materialDivision.cities) {
 			this.warehouseLevelsDesired += desiredWarehouseLevel
 			let warehouse: Warehouse | null = null
@@ -53,7 +52,7 @@ export class MaterialPhaseManager extends BasePhaseManager {
 		materialDivision: Division,
 		desiredMaterial: DesiredMaterial
 	) {
-		const { ns } = this.context
+		const { ns } = this.company.context
 		if (this.warehouseLevelsMet < this.warehouseLevelsDesired) {
 			for (const amountDesired of Object.values(desiredMaterial)) {
 				this.materialsDesired += amountDesired * materialDivision.cities.length

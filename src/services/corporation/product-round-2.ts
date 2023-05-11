@@ -6,7 +6,6 @@ import {
 } from '../../models/corporation'
 import { BasePhaseManager } from './base-phase'
 import { PhaseManager } from './phase'
-import { NsContext } from '../../models/context'
 
 const DesiredLevelUpgrades: Partial<Record<LevelUpgrade, number>> = {
 	[LevelUpgrades.DreamSense]: 30,
@@ -23,16 +22,17 @@ export class ProductRound2Manager
 	extends BasePhaseManager
 	implements PhaseManager
 {
-	constructor(context: NsContext, company: Company) {
-		super(context, company)
+	constructor(company: Company) {
+		super(company)
 	}
 
 	summarize() {
-		return `INFO preparing ${MyCompany.ProductDivision.Name} for third investment round; ${this.levelsMet}/${this.levelsDesired}`
+		const { logger } = this.company.context
+		logger.info`preparing ${MyCompany.ProductDivision.Name} for third investment round; ${this.levelsMet}/${this.levelsDesired}`
 	}
 
 	async manage(): Promise<void> {
-		const { logger } = this.context
+		const { logger } = this.company.context
 		const productDivision = this.company.getProductDivision()
 		if (!productDivision) {
 			logger.error`no product division`
@@ -55,8 +55,8 @@ export class ProductRound2Manager
 			return
 		}
 
-		if (this.context.hacknetHashStrategy === 'corpfunds') {
-			this.context.hacknetHashStrategy = 'corpresearch'
+		if (this.company.context.hacknetHashStrategy === 'corpfunds') {
+			this.company.context.hacknetHashStrategy = 'corpresearch'
 		}
 
 		if (!this.checkMorale(productDivision)) {

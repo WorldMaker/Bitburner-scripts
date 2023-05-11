@@ -8,7 +8,6 @@ import {
 } from '../../models/corporation'
 import { MaterialPhaseManager } from './material-phase'
 import { PhaseManager } from './phase'
-import { NsContext } from '../../models/context'
 
 const DesiredWarehouseLevel = 10
 const DesiredLevelUpgrades: Partial<Record<LevelUpgrade, number>> = {
@@ -27,8 +26,8 @@ export class MaterialRound1Manager
 	extends MaterialPhaseManager
 	implements PhaseManager
 {
-	constructor(context: NsContext, company: Company) {
-		super(context, company)
+	constructor(company: Company) {
+		super(company)
 	}
 
 	summarize() {
@@ -36,7 +35,7 @@ export class MaterialRound1Manager
 	}
 
 	increaseHeadCount(materialDivision: Division) {
-		const { ns } = this.context
+		const { ns } = this.company.context
 		for (const city of Object.values(ns.enums.CityName)) {
 			const office = ns.corporation.getOffice(materialDivision.name, city)
 			if (office.size < 9) {
@@ -83,7 +82,7 @@ export class MaterialRound1Manager
 	}
 
 	reassignResearch(materialDivision: Division) {
-		const { ns } = this.context
+		const { ns } = this.company.context
 		for (const city of Object.values(ns.enums.CityName)) {
 			ns.corporation.setAutoJobAssignment(
 				materialDivision.name,
@@ -101,7 +100,7 @@ export class MaterialRound1Manager
 	}
 
 	async manage(): Promise<void> {
-		const { logger } = this.context
+		const { logger } = this.company.context
 		const materialDivision = this.company.getMaterialDivision()
 		if (!materialDivision) {
 			logger.error`no material division`

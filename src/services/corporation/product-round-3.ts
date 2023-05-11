@@ -1,7 +1,6 @@
 import { Company, MyCompany } from '../../models/corporation'
 import { BasePhaseManager } from './base-phase'
 import { PhaseManager } from './phase'
-import { NsContext } from '../../models/context'
 
 const DesiredResearch = [
 	'Hi-Tech R&D Laboratory',
@@ -17,24 +16,25 @@ export class ProductRound3Manager
 	private researchDesired = 0
 	private researchMet = 0
 
-	constructor(context: NsContext, company: Company) {
-		super(context, company)
+	constructor(company: Company) {
+		super(company)
 	}
 
 	summarize() {
-		return `INFO preparing ${MyCompany.ProductDivision.Name} for fourth investment round; ${this.researchMet}/${this.researchDesired}`
+		const { logger } = this.company.context
+		logger.info`preparing ${MyCompany.ProductDivision.Name} for fourth investment round; ${this.researchMet}/${this.researchDesired}`
 	}
 
 	async manage(): Promise<void> {
-		const { ns, logger } = this.context
+		const { ns, logger } = this.company.context
 		const productDivision = this.company.getProductDivision()
 		if (!productDivision) {
 			logger.error`no product division`
 			return
 		}
 
-		if (this.context.hacknetHashStrategy === 'corpfunds') {
-			this.context.hacknetHashStrategy = 'corpresearch'
+		if (this.company.context.hacknetHashStrategy === 'corpfunds') {
+			this.company.context.hacknetHashStrategy = 'corpresearch'
 		}
 
 		const availableResearch = productDivision.research

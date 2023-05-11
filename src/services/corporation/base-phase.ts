@@ -2,7 +2,6 @@ import { IterableX } from '@reactivex/ix-esnext-esm/iterable/iterablex'
 import { map } from '@reactivex/ix-esnext-esm/iterable/operators/map'
 import { reduce } from '@reactivex/ix-esnext-esm/iterable/reduce'
 import { Company, LevelUpgrade } from '../../models/corporation'
-import { NsContext } from '../../models/context'
 
 const { from } = IterableX
 
@@ -13,15 +12,12 @@ export class BasePhaseManager {
 	protected levelsDesired = 0
 	protected levelsMet = 0
 
-	constructor(
-		protected readonly context: NsContext,
-		protected company: Company
-	) {
+	constructor(protected readonly company: Company) {
 		this.funds = company.funds
 	}
 
 	manageLevelUpgrades(desiredLevelUpgrades: DesiredLevelUpgrades) {
-		const { ns, logger } = this.context
+		const { ns, logger } = this.company.context
 		for (const [upgrade, desiredLevel] of Object.entries(
 			desiredLevelUpgrades
 		)) {
@@ -44,7 +40,7 @@ export class BasePhaseManager {
 	}
 
 	checkMorale(division: Division) {
-		const { ns, logger } = this.context
+		const { ns, logger } = this.company.context
 		const cities = Object.values(ns.enums.CityName)
 		const counts = reduce(
 			from(cities).pipe(
@@ -75,7 +71,7 @@ export class BasePhaseManager {
 	}
 
 	invest(desiredOffer: number) {
-		const { ns, logger } = this.context
+		const { ns, logger } = this.company.context
 		const offer = ns.corporation.getInvestmentOffer()
 		if (offer.funds + this.company.funds < desiredOffer) {
 			logger.log(`rejecting offer for ${ns.formatNumber(offer.funds)}`)

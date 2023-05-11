@@ -8,7 +8,6 @@ import {
 	MyCompany,
 	ProductDevelopment,
 } from '../../models/corporation'
-import { NsContext } from '../../models/context'
 
 const { from } = IterableX
 
@@ -19,10 +18,10 @@ export class ProductManager {
 	private hasResearchedUpgradeCapacity2 = false
 	#developmentProducts: Product[] = []
 
-	constructor(private readonly context: NsContext, private company: Company) {}
+	constructor(private readonly company: Company) {}
 
 	summarize() {
-		const { logger } = this.context
+		const { logger } = this.company.context
 		if (this.company.hasProductDivision()) {
 			const development = this.#developmentProducts
 				.map(
@@ -40,7 +39,7 @@ export class ProductManager {
 		if (!this.company.hasProductDivision()) {
 			return
 		}
-		const { ns, logger } = this.context
+		const { ns, logger } = this.company.context
 		const productDivision = this.company.getProductDivision()!
 
 		this.hasResearchedUpgradeCapacity1 ||= ns.corporation.hasResearched(

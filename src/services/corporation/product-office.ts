@@ -1,14 +1,13 @@
 import { Company, ProductDevelopment } from '../../models/corporation'
-import { NsContext } from '../../models/context'
 
 export class ProductOfficeManager {
 	#devStaff = 0
 	#researchStaff = 0
 
-	constructor(private readonly context: NsContext, private company: Company) {}
+	constructor(private readonly company: Company) {}
 
 	summarize() {
-		const { logger } = this.context
+		const { logger } = this.company.context
 		if (this.company.hasProductDivision()) {
 			logger.info`managing product offices; 👩‍🏭 ${this.#devStaff}, 👩‍🎓 ${
 				this.#researchStaff
@@ -20,7 +19,7 @@ export class ProductOfficeManager {
 		if (!this.company.hasProductDivision()) {
 			return
 		}
-		const { ns, logger } = this.context
+		const { ns, logger } = this.company.context
 		this.#devStaff = 0
 		this.#researchStaff = 0
 		const productDivision = this.company.getProductDivision()!
@@ -63,7 +62,7 @@ export class ProductOfficeManager {
 		productDivision: Division,
 		city: CityName
 	) {
-		const { ns } = this.context
+		const { ns } = this.company.context
 		// One each in Operations, Engineer, Business, Management; the rest in R&D
 		if (
 			!ns.corporation.setAutoJobAssignment(
@@ -112,7 +111,7 @@ export class ProductOfficeManager {
 		productDivision: Division,
 		city: CityName
 	) {
-		const { ns, logger } = this.context
+		const { ns, logger } = this.company.context
 		const perTask = office.employees / 3.5
 		const assignmentGoals = {
 			Operations: Math.floor(perTask),
