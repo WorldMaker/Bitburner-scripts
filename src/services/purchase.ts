@@ -1,6 +1,5 @@
 import { TargetContext } from '../models/context.js'
 import { ServerTarget } from '../models/targets/server-target'
-import { ToyPurchaseService } from './toy-purchase/index.js'
 
 const PurchasedServerRamMultiplier = 0.015625
 const MaxStartingRam = 2 ** 10
@@ -16,10 +15,7 @@ export class PurchaseService {
 	private announcedFinish = false
 	private hacknetNodesToBuy = 5
 
-	constructor(
-		private context: TargetContext<ServerTarget>,
-		private toyPurchaseService: ToyPurchaseService
-	) {
+	constructor(private context: TargetContext<ServerTarget>) {
 		const { ns, servers } = this.context
 		this.purchasedServerCount = ns.getPurchasedServers().length
 		this.purchasedServerLimit = ns.getPurchasedServerLimit()
@@ -36,7 +32,6 @@ export class PurchaseService {
 
 	summarize() {
 		const { logger } = this.context
-		logger.log(this.toyPurchaseService.summarize())
 		if (this.finishedMajorPurchases && !this.announcedFinish) {
 			logger.hooray`Finished purchasing`
 			this.announcedFinish = true
@@ -56,8 +51,6 @@ export class PurchaseService {
 		} else {
 			this.finishedMajorPurchases = true
 		}
-
-		this.toyPurchaseService.purchase()
 	}
 
 	private wantsToPurchase() {

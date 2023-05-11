@@ -69,6 +69,10 @@ export class ToyPurchaseService {
 		}
 	}
 
+	manage() {
+		this.purchase()
+	}
+
 	purchase() {
 		const { ns, logger } = this.context
 

@@ -39,7 +39,8 @@ export async function main(ns: NS) {
 	const hacknetHashService = new HacknetHashService(context)
 
 	manager.register(
-		new PurchaseService(context, toyPurchaseService),
+		toyPurchaseService,
+		new PurchaseService(context),
 		hacknetHashService
 	)
 	toyPurchaseService.register(hacknetHashService)

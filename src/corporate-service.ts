@@ -87,7 +87,8 @@ export async function main(ns: NS) {
 	const gangService = new GangManager(context)
 	const shirtService = new ShirtService(ns)
 	manager.register(
-		new PurchaseService(context, toyPurchaseService),
+		toyPurchaseService,
+		new PurchaseService(context),
 		hacknetHashService,
 		gangService,
 		shirtService
