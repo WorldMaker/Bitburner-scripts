@@ -1,9 +1,6 @@
 import { NsLogger } from './logging/logger'
-import { TargetContext } from './models/context'
-import {
-	deployTargetFactory,
-	ServerTarget,
-} from './models/targets/server-target'
+import { DeploymentContext } from './models/context'
+import { ServerTarget } from './models/targets/server-target'
 import { ScannerService } from './services/scanner'
 import { TargetService } from './services/target'
 
@@ -11,7 +8,7 @@ export async function main(ns: NS) {
 	const [command] = ns.args
 
 	const logger = new NsLogger(ns)
-	const context = new TargetContext(ns, logger, deployTargetFactory)
+	const context = new DeploymentContext(ns, logger)
 	context.load()
 
 	const scannerService = new ScannerService(context)

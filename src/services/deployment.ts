@@ -1,4 +1,4 @@
-import { TargetContext } from '../models/context.js'
+import { DeploymentContext } from '../models/context.js'
 import { PayloadPlanner } from '../models/payload-plan.js'
 import { ServerTarget } from '../models/targets/server-target'
 import { HackerService } from './hacker.js'
@@ -18,7 +18,7 @@ export class DeploymentService {
 	private payloads = 0
 
 	constructor(
-		private context: TargetContext<ServerTarget>,
+		private context: DeploymentContext,
 		private hackerService: HackerService,
 		private payloadPlanner: PayloadPlanner,
 		private payloadService: PayloadService,

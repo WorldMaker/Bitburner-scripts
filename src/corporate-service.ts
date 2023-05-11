@@ -6,7 +6,6 @@ import { ProductOfficeManager } from './services/corporation/product-office'
 import { ProductPriceService } from './services/corporation/product-price'
 import { ProductPurchaseService } from './services/corporation/product-purchase'
 import { MandatoryFunService } from './services/corporation/mandatory-fun'
-import { deployTargetFactory } from './models/targets/server-target'
 import { ScannerService } from './services/scanner'
 import { CctService } from './services/cct'
 import { PurchaseService } from './services/purchase'
@@ -24,7 +23,7 @@ import { BackdoorService } from './services/singularity/backdoor'
 import { PathfinderService } from './services/pathfinder'
 import { AugmentPrioritizer } from './services/singularity/augments'
 import { AugmentToyPurchaser } from './services/singularity/toy-augments'
-import { TargetContext } from './models/context'
+import { DeploymentContext } from './models/context'
 import { TargetFactionAugmentsService } from './services/singularity/target-faction-augments'
 import { ServiceService } from './services/service'
 import { CorpBribeService } from './services/singularity/corp-bribe'
@@ -39,7 +38,7 @@ export async function main(ns: NS) {
 	ns.disableLog('ALL')
 
 	const logger = new NsLogger(ns)
-	const context = new TargetContext(ns, logger, deployTargetFactory)
+	const context = new DeploymentContext(ns, logger)
 	context.load()
 
 	if (context.tail) {

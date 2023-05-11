@@ -1,4 +1,4 @@
-import { TargetContext } from '../models/context.js'
+import { DeploymentContext } from '../models/context.js'
 import { ServerTarget } from '../models/targets/server-target'
 
 export class HackerService {
@@ -8,7 +8,7 @@ export class HackerService {
 	private httpWormExists: boolean
 	private sqlInjectExists: boolean
 
-	constructor(private context: TargetContext<ServerTarget>) {
+	constructor(private context: DeploymentContext) {
 		const { ns } = this.context
 		this.bruteSshExists = ns.fileExists('BruteSSH.exe')
 		this.ftpCrackExists = ns.fileExists('FTPCrack.exe')

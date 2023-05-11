@@ -2,6 +2,7 @@ import { NsLogger } from '../logging/logger'
 import { ServerCacheService } from '../services/server-cache'
 import { PlayerStats } from './stats'
 import { Target, TargetFactory } from './targets'
+import { ServerTarget, deployTargetFactory } from './targets/server-target'
 
 const ConfigFileName = 'env.json.txt'
 
@@ -126,12 +127,6 @@ export class NsContext {
 export class TargetContext<T extends Target> extends NsContext {
 	public readonly servers: ServerCacheService<T>
 
-	#stats: PlayerStats | null = null
-	get stats(): PlayerStats {
-		this.#stats ??= new PlayerStats(this.ns)
-		return this.#stats
-	}
-
 	constructor(
 		ns: NS,
 		logger: NsLogger,
@@ -140,6 +135,18 @@ export class TargetContext<T extends Target> extends NsContext {
 		super(ns, logger)
 
 		this.servers = new ServerCacheService(ns, targetFactory)
+	}
+}
+
+export class DeploymentContext extends TargetContext<ServerTarget> {
+	#stats: PlayerStats | null = null
+	get stats(): PlayerStats {
+		this.#stats ??= new PlayerStats(this.ns)
+		return this.#stats
+	}
+
+	constructor(ns: NS, logger: NsLogger) {
+		super(ns, logger, deployTargetFactory)
 	}
 
 	load() {

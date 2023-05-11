@@ -1,6 +1,5 @@
 import { NsLogger } from './logging/logger.js'
-import { TargetContext } from './models/context.js'
-import { deployTargetFactory } from './models/targets/server-target'
+import { DeploymentContext } from './models/context.js'
 import { AppCacheService } from './services/app-cache.js'
 import { DeploymentService } from './services/deployment.js'
 import { HackerService } from './services/hacker.js'
@@ -17,7 +16,7 @@ export async function main(ns: NS) {
 	ns.disableLog('ALL')
 
 	const logger = new NsLogger(ns)
-	const context = new TargetContext(ns, logger, deployTargetFactory)
+	const context = new DeploymentContext(ns, logger)
 	context.load()
 
 	if (context.tail) {
