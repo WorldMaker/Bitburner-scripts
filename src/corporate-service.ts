@@ -34,6 +34,7 @@ import { FlightController } from './services/singularity/flight'
 import { HacknetHashService } from './services/hacknet'
 import { DarkwebPurchaser } from './services/singularity/darkweb'
 import { GangManager } from './services/gang/manager'
+import { BladeBurnerService } from './services/bladeburner'
 
 export async function main(ns: NS) {
 	ns.disableLog('ALL')
@@ -137,6 +138,10 @@ export async function main(ns: NS) {
 			sleeveUpgrader,
 		])
 	)
+
+	// *** Bladeburner ***
+
+	manager.register(new BladeBurnerService(ns, logger))
 
 	const running = true
 	while (running) {
