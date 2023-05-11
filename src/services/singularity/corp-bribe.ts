@@ -1,5 +1,4 @@
-import { NsLogger } from '../../logging/logger'
-import { Config } from '../../models/config'
+import { NsContext } from '../../models/context'
 import { Company } from '../../models/corporation'
 import { AugmentPrioritizer, NFG } from './augments'
 
@@ -8,33 +7,34 @@ export class CorpBribeService {
 	readonly #bribedFactions = new Set<string>()
 
 	constructor(
-		private readonly ns: NS,
-		private readonly config: Config,
-		private readonly logger: NsLogger,
+		private readonly context: NsContext,
 		private readonly company: Company,
 		private readonly priorities: AugmentPrioritizer
 	) {}
 
 	summarize() {
+		const { ns, logger } = this.context
 		if (this.#bribes) {
-			this.logger.info`${this.company.name} spent ${this.ns.formatNumber(
+			logger.info`${this.company.name} spent ${ns.formatNumber(
 				this.#bribes
 			)} on faction bribes`
 		}
 	}
 
 	manage() {
+		const { ns, logger } = this.context
+
 		if (this.company.getState() !== 'Public') {
 			return
 		}
 
-		const { bribeAmountPerReputation } = this.ns.corporation.getConstants()
+		const { bribeAmountPerReputation } = ns.corporation.getConstants()
 
 		this.#bribedFactions.clear()
 
 		// assume we can't bribe the gang faction
-		if (this.config.gangFaction) {
-			this.#bribedFactions.add(this.config.gangFaction)
+		if (this.context.gangFaction) {
+			this.#bribedFactions.add(this.context.gangFaction)
 		}
 
 		let nfgBribe = false
@@ -46,11 +46,11 @@ export class CorpBribeService {
 			if (nfgBribe && priority.name.startsWith(NFG)) {
 				continue
 			}
-			const { money } = this.ns.getPlayer()
+			const { money } = ns.getPlayer()
 			if (priority.cost > money) {
 				continue
 			}
-			const factionRep = this.ns.singularity.getFactionRep(priority.faction)
+			const factionRep = ns.singularity.getFactionRep(priority.faction)
 			if (priority.rep < factionRep) {
 				continue
 			}
@@ -58,10 +58,10 @@ export class CorpBribeService {
 			const repNeeded = priority.rep - factionRep
 
 			const bribeAmount = Math.ceil(repNeeded * bribeAmountPerReputation)
-			this.logger.trace`bribing ${priority.faction} with ${this.ns.formatNumber(
+			logger.trace`bribing ${priority.faction} with ${ns.formatNumber(
 				bribeAmount
-			)} to gain at least ${this.ns.formatNumber(repNeeded)} favor`
-			if (this.ns.corporation.bribe(priority.faction, bribeAmount)) {
+			)} to gain at least ${ns.formatNumber(repNeeded)} favor`
+			if (ns.corporation.bribe(priority.faction, bribeAmount)) {
 				this.#bribes += bribeAmount
 				if (!priority.name.startsWith(NFG)) {
 					this.#bribedFactions.add(priority.faction)

@@ -1,6 +1,6 @@
 import { BoostMaterial, Company } from '../../models/corporation'
-import { NsLogger } from '../../logging/logger'
 import { BasePhaseManager } from './base-phase'
+import { NsContext } from '../../models/context'
 
 export type DesiredMaterial = Partial<Record<BoostMaterial, number>>
 
@@ -10,22 +10,20 @@ export class MaterialPhaseManager extends BasePhaseManager {
 	protected materialsDesired = 0
 	protected materialsMet = 0
 
-	constructor(ns: NS, logger: NsLogger, company: Company) {
-		super(ns, logger, company)
+	constructor(context: NsContext, company: Company) {
+		super(context, company)
 	}
 
 	manageWarehouseLevel(
 		materialDivision: Division,
 		desiredWarehouseLevel: number
 	) {
+		const { ns, logger } = this.context
 		for (const city of materialDivision.cities) {
 			this.warehouseLevelsDesired += desiredWarehouseLevel
 			let warehouse: Warehouse | null = null
 			try {
-				warehouse = this.ns.corporation.getWarehouse(
-					materialDivision.name,
-					city
-				)
+				warehouse = ns.corporation.getWarehouse(materialDivision.name, city)
 			} catch {
 				continue
 			}
@@ -34,17 +32,17 @@ export class MaterialPhaseManager extends BasePhaseManager {
 				warehouse.level
 			)
 			if (warehouse.level < desiredWarehouseLevel) {
-				const cost = this.ns.corporation.getUpgradeWarehouseCost(
+				const cost = ns.corporation.getUpgradeWarehouseCost(
 					materialDivision.name,
 					city
 				)
 				if (cost <= this.funds) {
 					try {
-						this.ns.corporation.upgradeWarehouse(materialDivision.name, city)
+						ns.corporation.upgradeWarehouse(materialDivision.name, city)
 						this.funds -= cost
 						this.warehouseLevelsMet++
 					} catch (error) {
-						this.logger.warn`unable to upgrade warehouse in ${city}: ${error}`
+						logger.warn`unable to upgrade warehouse in ${city}: ${error}`
 					}
 				}
 			}
@@ -55,6 +53,7 @@ export class MaterialPhaseManager extends BasePhaseManager {
 		materialDivision: Division,
 		desiredMaterial: DesiredMaterial
 	) {
+		const { ns } = this.context
 		if (this.warehouseLevelsMet < this.warehouseLevelsDesired) {
 			for (const amountDesired of Object.values(desiredMaterial)) {
 				this.materialsDesired += amountDesired * materialDivision.cities.length
@@ -69,7 +68,7 @@ export class MaterialPhaseManager extends BasePhaseManager {
 				desiredMaterial
 			)) {
 				this.materialsDesired += amountDesired
-				const material = this.ns.corporation.getMaterial(
+				const material = ns.corporation.getMaterial(
 					materialDivision.name,
 					city,
 					materialName
@@ -80,7 +79,7 @@ export class MaterialPhaseManager extends BasePhaseManager {
 					if (cost <= this.funds) {
 						// we want to buy as much as possible (ideally the entire amount) in a single tick
 						const toBuyPerSecond = toBuy /* per tick */ / 10 /* seconds/tick */
-						this.ns.corporation.buyMaterial(
+						ns.corporation.buyMaterial(
 							materialDivision.name,
 							city,
 							materialName,
@@ -97,20 +96,17 @@ export class MaterialPhaseManager extends BasePhaseManager {
 		if (buyCity && buyMaterial) {
 			// *** Wait for purchase ***
 
-			const benchmark = this.ns.corporation.getMaterial(
+			const benchmark = ns.corporation.getMaterial(
 				materialDivision.name,
 				buyCity,
 				buyMaterial
 			).qty
 			while (
 				benchmark ===
-				this.ns.corporation.getMaterial(
-					materialDivision.name,
-					buyCity,
-					buyMaterial
-				).qty
+				ns.corporation.getMaterial(materialDivision.name, buyCity, buyMaterial)
+					.qty
 			) {
-				await this.ns.sleep(20 /* ms */)
+				await ns.sleep(20 /* ms */)
 			}
 		}
 
@@ -121,13 +117,8 @@ export class MaterialPhaseManager extends BasePhaseManager {
 				desiredMaterial
 			)) {
 				// clear purchase
-				this.ns.corporation.buyMaterial(
-					materialDivision.name,
-					city,
-					materialName,
-					0
-				)
-				const materialAmount = this.ns.corporation.getMaterial(
+				ns.corporation.buyMaterial(materialDivision.name, city, materialName, 0)
+				const materialAmount = ns.corporation.getMaterial(
 					materialDivision.name,
 					city,
 					materialName

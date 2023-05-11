@@ -1,6 +1,11 @@
+import { NsLogger } from '../logging/logger'
+import { ServerCacheService } from '../services/server-cache'
+import { PlayerStats } from './stats'
+import { Target, TargetFactory } from './targets'
+
 const ConfigFileName = 'env.json.txt'
 
-export class Config {
+export class NsContext {
 	cct = true
 	hacknetNodes = 5
 	hacknetHashStrategy = 'money'
@@ -14,7 +19,13 @@ export class Config {
 	targetAugmentFaction?: string | null = null
 	toyBudget = 0
 
-	constructor(private ns: NS) {}
+	#stats: PlayerStats | null = null
+	get stats(): PlayerStats {
+		this.#stats ??= new PlayerStats(this.ns)
+		return this.#stats
+	}
+
+	constructor(public readonly ns: NS, public readonly logger: NsLogger) {}
 
 	reset() {
 		this.hacknetNodes = 5
@@ -29,6 +40,8 @@ export class Config {
 	}
 
 	load() {
+		this.#stats = new PlayerStats(this.ns)
+
 		const json = this.ns.read(ConfigFileName)
 		const env: unknown = json && json !== '' ? JSON.parse(json) : null
 		if (env && typeof env === 'object') {
@@ -114,5 +127,19 @@ export class Config {
 			toyBudget,
 		}
 		this.ns.write(ConfigFileName, JSON.stringify(env, null, '\t'), 'w')
+	}
+}
+
+export class TargetContext<T extends Target> extends NsContext {
+	public readonly servers: ServerCacheService<T>
+
+	constructor(
+		ns: NS,
+		logger: NsLogger,
+		public readonly targetFactory: TargetFactory<T>
+	) {
+		super(ns, logger)
+
+		this.servers = new ServerCacheService(ns, targetFactory)
 	}
 }

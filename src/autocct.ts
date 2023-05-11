@@ -1,9 +1,8 @@
 import { NsLogger } from './logging/logger'
-import { Config } from './models/config'
+import { TargetContext } from './models/context'
 import { simpleTargetFactory } from './models/targets/simple-target'
 import { CctService } from './services/cct'
 import { ScannerService } from './services/scanner'
-import { ServerCacheService } from './services/server-cache'
 
 let running = false
 
@@ -52,23 +51,17 @@ export async function main(ns: NS) {
 		running = true
 	}
 
-	const config = new Config(ns)
-	config.load()
 	const logger = new NsLogger(ns, runonce)
-	const servers = new ServerCacheService(ns, simpleTargetFactory)
-	const scannerService = new ScannerService(
-		ns,
-		config,
-		servers,
-		simpleTargetFactory
-	)
-	const cctService = new CctService(ns, config, servers, logger)
+	const context = new TargetContext(ns, logger, simpleTargetFactory)
+	context.load()
+	const scannerService = new ScannerService(context)
+	const cctService = new CctService(context)
 
 	let ran = false
 
 	while ((runonce && !ran) || (!runonce && running)) {
 		ran = true
-		config.load()
+		context.load()
 
 		scannerService.scan()
 

@@ -1,5 +1,5 @@
 import { NsLogger } from './logging/logger.js'
-import { Config } from './models/config.js'
+import { TargetContext } from './models/context.js'
 import { deployTargetFactory } from './models/targets/server-target'
 import { AppCacheService } from './services/app-cache.js'
 import { CctService } from './services/cct.js'
@@ -11,7 +11,6 @@ import { PayloadPlanningService } from './services/payload-planners/index.js'
 import { PayloadService } from './services/payload.js'
 import { PurchaseService } from './services/purchase.js'
 import { ScannerService } from './services/scanner.js'
-import { ServerCacheService } from './services/server-cache.js'
 import { ServiceService } from './services/service.js'
 import { AugmentPrioritizer } from './services/singularity/augments.js'
 import { BackdoorService } from './services/singularity/backdoor.js'
@@ -23,54 +22,41 @@ import { ToyPurchaseService } from './services/toy-purchase/index.js'
 export async function main(ns: NS) {
 	ns.disableLog('ALL')
 
-	const config = new Config(ns)
-	config.load()
+	const logger = new NsLogger(ns)
+	const context = new TargetContext(ns, logger, deployTargetFactory)
+	context.load()
 
-	if (config.tail) {
+	if (context.tail) {
 		ns.tail()
 	}
 
 	const apps = new AppCacheService(ns)
-	const logger = new NsLogger(ns)
-	const manager = new ServiceService(ns, logger, config)
+	const manager = new ServiceService(context)
 
 	const targetService = new TargetService()
 	const payloadService = new PayloadService()
-	const targetFactory = deployTargetFactory
-	const servers = new ServerCacheService(ns, targetFactory)
-	manager.register(new CctService(ns, config, servers, logger))
-	const toyPurchaseService = new ToyPurchaseService(ns, config, logger, servers)
-	const hacknetHashService = new HacknetHashService(ns, config, logger)
+	manager.register(new CctService(context))
+	const toyPurchaseService = new ToyPurchaseService(context)
+	const hacknetHashService = new HacknetHashService(context)
 
 	manager.register(
-		new PurchaseService(
-			ns,
-			config,
-			logger,
-			servers,
-			targetFactory,
-			toyPurchaseService
-		),
+		new PurchaseService(context, toyPurchaseService),
 		hacknetHashService
 	)
 	toyPurchaseService.register(hacknetHashService)
 	const payloadPlanner = new PayloadPlanningService(
-		ns,
-		config,
+		context,
 		targetService,
-		apps,
-		logger
+		apps
 	)
-	const hackerService = new HackerService(ns, logger)
-	const scannerService = new ScannerService(ns, config, servers, targetFactory)
+	const hackerService = new HackerService(context)
+	const scannerService = new ScannerService(context)
 	manager.useDeploymentService(
 		new DeploymentService(
-			config,
+			context,
 			hackerService,
-			logger,
 			payloadPlanner,
 			payloadService,
-			servers,
 			scannerService,
 			targetService
 		)
@@ -78,11 +64,11 @@ export async function main(ns: NS) {
 
 	const augmentPrioritizer = new AugmentPrioritizer(ns)
 	manager.registerRooted(
-		new BackdoorService(ns, logger, new PathfinderService(logger, servers))
+		new BackdoorService(context, new PathfinderService(context))
 	)
 	manager.register(
-		new FlightController(ns, config, logger, augmentPrioritizer),
-		new TargetFactionAugmentsService(ns, config, logger, augmentPrioritizer, [])
+		new FlightController(context, augmentPrioritizer),
+		new TargetFactionAugmentsService(context, augmentPrioritizer, [])
 	)
 
 	const running = true

@@ -1,5 +1,4 @@
-import { NsLogger } from '../../logging/logger'
-import { Config } from '../../models/config'
+import { TargetContext } from '../../models/context'
 import { ServerTarget } from '../../models/targets/server-target'
 import {
 	BudgetTicks,
@@ -7,7 +6,6 @@ import {
 	isPurchaser,
 	ToyService,
 } from '../../models/toys'
-import { ServerCacheService } from '../server-cache'
 import { HacknetToyService } from './hacknet'
 import { HacknetCachePurchaser } from './hacknet-cache'
 import { ServerUpgrader } from './server-upgrader'
@@ -18,13 +16,9 @@ export class ToyPurchaseService {
 	private budgetPerMinute = 0
 	private services: ToyService[] = []
 
-	constructor(
-		private ns: NS,
-		private config: Config,
-		private logger: NsLogger,
-		servers: ServerCacheService<ServerTarget>
-	) {
-		this.budget = this.config.toyBudget
+	constructor(private readonly context: TargetContext<ServerTarget>) {
+		const { ns, servers } = this.context
+		this.budget = this.context.toyBudget
 		// Priority: register from lowest to highest priority
 		this.register(new SimpleBudgetProvider())
 		this.register(new HacknetToyService(ns))
@@ -38,19 +32,22 @@ export class ToyPurchaseService {
 	}
 
 	summarize() {
-		return `INFO shopped for toys with budget ${this.ns.formatNumber(
+		const { ns, logger } = this.context
+		logger.info`shopped for toys with budget ${ns.formatNumber(
 			this.budgetPerMinute
 		)} per minute`
 	}
 
 	updateBudget() {
+		const { ns, logger } = this.context
+
 		if (this.budget === null) {
 			return
 		}
 
-		const moneyAvailable = this.ns.getPlayer().money
+		const moneyAvailable = ns.getPlayer().money
 		let funds = moneyAvailable
-		this.logger.trace`💵 funds\t${this.ns.formatNumber(funds)}`
+		logger.trace`💵 funds\t${ns.formatNumber(funds)}`
 
 		this.budgetPerMinute = 0
 
@@ -60,7 +57,7 @@ export class ToyPurchaseService {
 				this.budget += budget
 				this.budgetPerMinute += budget * BudgetTicks
 				funds -= budget
-				this.logger.trace`💵 ${service.name}\t${this.ns.formatNumber(budget)}`
+				logger.trace`💵 ${service.name}\t${ns.formatNumber(budget)}`
 			}
 		}
 
@@ -73,6 +70,8 @@ export class ToyPurchaseService {
 	}
 
 	purchase() {
+		const { ns, logger } = this.context
+
 		this.updateBudget()
 		if (!this.budget) {
 			return
@@ -86,12 +85,12 @@ export class ToyPurchaseService {
 			}
 		}
 
-		this.logger.log(
-			`spent toy budget ${this.ns.formatNumber(
+		logger.log(
+			`spent toy budget ${ns.formatNumber(
 				startingBudget - this.budget
-			)} / ${this.ns.formatNumber(startingBudget)}`
+			)} / ${ns.formatNumber(startingBudget)}`
 		)
 
-		this.config.toyBudget = this.budget
+		this.context.toyBudget = this.budget
 	}
 }

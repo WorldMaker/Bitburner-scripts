@@ -6,9 +6,9 @@ import {
 	LevelUpgrades,
 	MyCompany,
 } from '../../models/corporation'
-import { NsLogger } from '../../logging/logger'
 import { MaterialPhaseManager } from './material-phase'
 import { PhaseManager } from './phase'
+import { NsContext } from '../../models/context'
 
 const DesiredWarehouseLevel = 10
 const DesiredLevelUpgrades: Partial<Record<LevelUpgrade, number>> = {
@@ -27,8 +27,8 @@ export class MaterialRound1Manager
 	extends MaterialPhaseManager
 	implements PhaseManager
 {
-	constructor(ns: NS, logger: NsLogger, company: Company) {
-		super(ns, logger, company)
+	constructor(context: NsContext, company: Company) {
+		super(context, company)
 	}
 
 	summarize() {
@@ -36,42 +36,43 @@ export class MaterialRound1Manager
 	}
 
 	increaseHeadCount(materialDivision: Division) {
-		for (const city of Object.values(this.ns.enums.CityName)) {
-			const office = this.ns.corporation.getOffice(materialDivision.name, city)
+		const { ns } = this.context
+		for (const city of Object.values(ns.enums.CityName)) {
+			const office = ns.corporation.getOffice(materialDivision.name, city)
 			if (office.size < 9) {
-				this.ns.corporation.upgradeOfficeSize(
+				ns.corporation.upgradeOfficeSize(
 					materialDivision.name,
 					city,
 					9 - office.size
 				)
-				while (this.ns.corporation.hireEmployee(materialDivision.name, city)) {
+				while (ns.corporation.hireEmployee(materialDivision.name, city)) {
 					// keep hiring
 				}
-				this.ns.corporation.setAutoJobAssignment(
+				ns.corporation.setAutoJobAssignment(
 					materialDivision.name,
 					city,
 					'Operations',
 					2
 				)
-				this.ns.corporation.setAutoJobAssignment(
+				ns.corporation.setAutoJobAssignment(
 					materialDivision.name,
 					city,
 					'Engineer',
 					2
 				)
-				this.ns.corporation.setAutoJobAssignment(
+				ns.corporation.setAutoJobAssignment(
 					materialDivision.name,
 					city,
 					'Business',
 					2
 				)
-				this.ns.corporation.setAutoJobAssignment(
+				ns.corporation.setAutoJobAssignment(
 					materialDivision.name,
 					city,
 					'Management',
 					2
 				)
-				this.ns.corporation.setAutoJobAssignment(
+				ns.corporation.setAutoJobAssignment(
 					materialDivision.name,
 					city,
 					'Research & Development',
@@ -82,14 +83,15 @@ export class MaterialRound1Manager
 	}
 
 	reassignResearch(materialDivision: Division) {
-		for (const city of Object.values(this.ns.enums.CityName)) {
-			this.ns.corporation.setAutoJobAssignment(
+		const { ns } = this.context
+		for (const city of Object.values(ns.enums.CityName)) {
+			ns.corporation.setAutoJobAssignment(
 				materialDivision.name,
 				city,
 				'Research & Development',
 				0
 			)
-			this.ns.corporation.setAutoJobAssignment(
+			ns.corporation.setAutoJobAssignment(
 				materialDivision.name,
 				city,
 				'Operations',
@@ -99,9 +101,10 @@ export class MaterialRound1Manager
 	}
 
 	async manage(): Promise<void> {
+		const { logger } = this.context
 		const materialDivision = this.company.getMaterialDivision()
 		if (!materialDivision) {
-			this.logger.error`no material division`
+			logger.error`no material division`
 			return
 		}
 
@@ -109,8 +112,7 @@ export class MaterialRound1Manager
 		try {
 			this.increaseHeadCount(materialDivision)
 		} catch (err) {
-			this.logger
-				.warn`Unable to increase headcount in material division; ${err}`
+			logger.warn`Unable to increase headcount in material division; ${err}`
 		}
 
 		this.manageLevelUpgrades(DesiredLevelUpgrades)
@@ -124,12 +126,12 @@ export class MaterialRound1Manager
 			this.warehouseLevelsMet < this.warehouseLevelsDesired ||
 			this.materialsMet < this.materialsDesired
 		) {
-			this.logger.log('Waiting for current needs to be met')
+			logger.log('Waiting for current needs to be met')
 			return
 		}
 
 		if (this.funds < 0) {
-			this.logger.log('Waiting for profitability')
+			logger.log('Waiting for profitability')
 			return
 		}
 
@@ -141,8 +143,7 @@ export class MaterialRound1Manager
 		try {
 			this.reassignResearch(materialDivision)
 		} catch (err) {
-			this.logger
-				.warn`Unable to reassign research in the material division; ${err}`
+			logger.warn`Unable to reassign research in the material division; ${err}`
 		}
 
 		this.invest(DesiredOffer)

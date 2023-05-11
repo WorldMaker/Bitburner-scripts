@@ -1,5 +1,4 @@
-import { NsLogger } from '../logging/logger'
-import { Config } from '../models/config'
+import { NsContext } from '../models/context'
 import { ToyBudgetProvider } from '../models/toys'
 
 const HacknetToyFunds = 100_000 // ~=10% of 1,000,000
@@ -10,11 +9,7 @@ export class HacknetHashService implements ToyBudgetProvider {
 	#hashCost = 0
 	#soldForMoney = 0
 
-	constructor(
-		private readonly ns: NS,
-		private readonly config: Config,
-		private readonly logger: NsLogger
-	) {}
+	constructor(private readonly context: NsContext) {}
 
 	budget(funds: number): number {
 		const budget = this.#soldForMoney * HacknetToyFunds
@@ -26,40 +21,40 @@ export class HacknetHashService implements ToyBudgetProvider {
 	}
 
 	summarize() {
-		if (this.config.hacknetHashStrategy.length) {
-			this.logger.info`spending hashes for ${
-				this.config.hacknetHashStrategy
-			}; ${this.#soldForMoney}x ${this.ns.formatNumber(
-				this.#hashes
-			)}/${this.ns.formatNumber(this.#hashCost)}`
+		const { ns, logger } = this.context
+		if (this.context.hacknetHashStrategy.length) {
+			logger.info`spending hashes for ${this.context.hacknetHashStrategy}; ${
+				this.#soldForMoney
+			}x ${ns.formatNumber(this.#hashes)}/${ns.formatNumber(this.#hashCost)}`
 		}
 	}
 
 	manage() {
-		this.#hashes = this.ns.hacknet.numHashes()
+		const { ns } = this.context
+		this.#hashes = ns.hacknet.numHashes()
 
-		switch (this.config.hacknetHashStrategy) {
+		switch (this.context.hacknetHashStrategy) {
 			case 'money':
-				this.#hashCost = this.ns.hacknet.hashCost('Sell for Money')
+				this.#hashCost = ns.hacknet.hashCost('Sell for Money')
 				while (this.#hashes > this.#hashCost) {
-					this.ns.hacknet.spendHashes('Sell for Money')
+					ns.hacknet.spendHashes('Sell for Money')
 					this.#hashes -= this.#hashCost
 					this.#soldForMoney++
 				}
 				break
 			case 'corpfunds':
-				this.#hashCost = this.ns.hacknet.hashCost('Sell for Corporation Funds')
+				this.#hashCost = ns.hacknet.hashCost('Sell for Corporation Funds')
 				while (this.#hashes > this.#hashCost) {
-					this.ns.hacknet.spendHashes('Sell for Corporation Funds')
+					ns.hacknet.spendHashes('Sell for Corporation Funds')
 					this.#hashes -= this.#hashCost
 				}
 				break
 			case 'corpresearch':
-				this.#hashCost = this.ns.hacknet.hashCost(
+				this.#hashCost = ns.hacknet.hashCost(
 					'Exchange for Corporation Research'
 				)
 				while (this.#hashes > this.#hashCost) {
-					this.ns.hacknet.spendHashes('Exchange for Corporation Research')
+					ns.hacknet.spendHashes('Exchange for Corporation Research')
 					this.#hashes -= this.#hashCost
 				}
 				break

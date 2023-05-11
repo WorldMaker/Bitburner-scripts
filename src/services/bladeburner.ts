@@ -1,16 +1,18 @@
-import { NsLogger } from '../logging/logger'
+import { NsContext } from '../models/context'
 
 export class BladeBurnerService {
-	constructor(private readonly ns: NS, private readonly logger: NsLogger) {}
+	constructor(private readonly context: NsContext) {}
 
 	summarize() {
-		if (this.ns.bladeburner.inBladeburner()) {
-			this.logger.info`joined bladeburner`
+		const { ns, logger } = this.context
+		if (ns.bladeburner.inBladeburner()) {
+			logger.info`joined bladeburner`
 		}
 	}
 
 	manage() {
-		const player = this.ns.getPlayer()
+		const { ns } = this.context
+		const player = ns.getPlayer()
 		if (
 			player.skills.agility < 100 ||
 			player.skills.defense < 100 ||
@@ -20,7 +22,7 @@ export class BladeBurnerService {
 			return
 		}
 
-		if (!this.ns.bladeburner.joinBladeburnerDivision()) {
+		if (!ns.bladeburner.joinBladeburnerDivision()) {
 			return
 		}
 

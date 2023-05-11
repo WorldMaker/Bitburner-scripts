@@ -1,4 +1,4 @@
-import { NsLogger } from '../../logging/logger'
+import { NsContext } from '../../models/context'
 import { Company } from '../../models/corporation'
 
 const PartyBudget = 500_000 /* $/employee */ // roughly 5% increase in hap/mor
@@ -10,31 +10,29 @@ export class MandatoryFunService {
 	#parties = 0
 	#offices = 0
 
-	constructor(
-		private ns: NS,
-		private logger: NsLogger,
-		private company: Company
-	) {}
+	constructor(private readonly context: NsContext, private company: Company) {}
 
 	summarize() {
+		const { ns, logger } = this.context
 		if (this.#offices) {
-			this.logger.info`encouraging mandatory fun across ${
+			logger.info`encouraging mandatory fun across ${
 				this.#offices
-			} offices; ☕ ${this.ns.formatNumber(
-				this.#coffees
-			)}, 🎉 ${this.ns.formatNumber(this.#parties)}`
+			} offices; ☕ ${ns.formatNumber(this.#coffees)}, 🎉 ${ns.formatNumber(
+				this.#parties
+			)}`
 		}
 	}
 
 	manage() {
+		const { ns, logger } = this.context
 		this.#offices = 0
 
 		for (const divisionName of this.company.corporation?.divisions ?? []) {
-			const hasAutoCoffee = this.ns.corporation.hasResearched(
+			const hasAutoCoffee = ns.corporation.hasResearched(
 				divisionName,
 				AutoCoffeeResearch
 			)
-			const hasAutoParty = this.ns.corporation.hasResearched(
+			const hasAutoParty = ns.corporation.hasResearched(
 				divisionName,
 				AutoPartyResearch
 			)
@@ -43,25 +41,25 @@ export class MandatoryFunService {
 				continue
 			}
 
-			for (const city of Object.values(this.ns.enums.CityName)) {
+			for (const city of Object.values(ns.enums.CityName)) {
 				this.#offices++
-				const office = this.ns.corporation.getOffice(divisionName, city)
+				const office = ns.corporation.getOffice(divisionName, city)
 				if (!hasAutoParty && (office.avgMor < 95 || office.avgHap < 95)) {
-					this.logger.debug`throwing party for ${divisionName} ${city}`
+					logger.debug`throwing party for ${divisionName} ${city}`
 					try {
-						this.ns.corporation.throwParty(divisionName, city, PartyBudget)
+						ns.corporation.throwParty(divisionName, city, PartyBudget)
 						this.#parties++
 					} catch (err) {
-						this.logger.warn`unable to throw party: ${err}`
+						logger.warn`unable to throw party: ${err}`
 					}
 				}
 				if (!hasAutoCoffee && office.avgEne < 95) {
-					this.logger.debug`buying coffee for ${divisionName} ${city}`
+					logger.debug`buying coffee for ${divisionName} ${city}`
 					try {
-						this.ns.corporation.buyCoffee(divisionName, city)
+						ns.corporation.buyCoffee(divisionName, city)
 						this.#coffees++
 					} catch (err) {
-						this.logger.warn`unable to buy coffee: ${err}`
+						logger.warn`unable to buy coffee: ${err}`
 					}
 				}
 			}

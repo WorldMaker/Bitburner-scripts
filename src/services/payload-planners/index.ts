@@ -1,5 +1,4 @@
-import { NsLogger } from '../../logging/logger'
-import { Config } from '../../models/config'
+import { NsContext } from '../../models/context'
 import { PayloadPlan, PayloadPlanner } from '../../models/payload-plan'
 import { ServerTarget } from '../../models/targets/server-target'
 import { AppCacheService } from '../app-cache'
@@ -39,11 +38,9 @@ export class PayloadPlanningService implements PayloadPlanner {
 	private payloadPlanner: PayloadPlanner
 
 	constructor(
-		private ns: NS,
-		private config: Config,
+		private readonly context: NsContext,
 		private targetService: TargetService,
-		private apps: AppCacheService,
-		private logger: NsLogger
+		private apps: AppCacheService
 	) {
 		this.payloadPlanner = this.select()
 	}
@@ -60,33 +57,34 @@ export class PayloadPlanningService implements PayloadPlanner {
 	}
 
 	private select() {
+		const { ns, logger } = this.context
 		switch (this.strategy) {
 			case 'none':
 				return new NullPlanner()
 			case 'batch':
 				return new MultiTargetBatchPlanner(
-					this.ns,
-					this.logger,
+					ns,
+					logger,
 					this.targetService,
 					this.apps
 				)
 			case 'multidirectional':
 				return new MultiTargetDirectionalRoundRobinPlanner(
-					this.logger,
+					logger,
 					this.targetService,
 					this.apps
 				)
 			case 'share':
 				return new SingleTargetSinglePayloadPlanner(
-					this.logger,
+					logger,
 					this.targetService,
 					this.apps.getApp(SharePayload)
 				)
 			case 'formulated':
 			default:
 				return new MultiTargetDirectionalFormulatedPlanner(
-					this.ns,
-					this.logger,
+					ns,
+					logger,
 					this.targetService,
 					this.apps
 				)
@@ -94,8 +92,8 @@ export class PayloadPlanningService implements PayloadPlanner {
 	}
 
 	plan(rooted: Iterable<ServerTarget>) {
-		if (this.config.hackStrategy !== this.strategy) {
-			this.strategy = this.config.hackStrategy
+		if (this.context.hackStrategy !== this.strategy) {
+			this.strategy = this.context.hackStrategy
 			this.payloadPlanner = this.select()
 		}
 
@@ -111,7 +109,7 @@ export class PayloadPlanningService implements PayloadPlanner {
 			this.payloadPlanner = this.select()
 		}
 
-		this.config.hackStrategy = this.strategy
+		this.context.hackStrategy = this.strategy
 
 		return plan
 	}

@@ -6,9 +6,9 @@ import {
 	LevelUpgrades,
 	MyCompany,
 } from '../../models/corporation'
-import { NsLogger } from '../../logging/logger'
 import { MaterialPhaseManager } from './material-phase'
 import { PhaseManager } from './phase'
+import { NsContext } from '../../models/context'
 
 const DesiredWarehouseLevel = 3
 const DesiredLevelUpgrades: Partial<Record<LevelUpgrade, number>> = {
@@ -35,9 +35,9 @@ export class MaterialRound0Manager
 	private readonly citiesDesired: CityName[]
 	private citiesMet = 0
 
-	constructor(ns: NS, logger: NsLogger, company: Company) {
-		super(ns, logger, company)
-
+	constructor(context: NsContext, company: Company) {
+		super(context, company)
+		const { ns } = this.context
 		this.citiesDesired = Object.values(ns.enums.CityName)
 	}
 
@@ -46,24 +46,25 @@ export class MaterialRound0Manager
 	}
 
 	assignEmployees(materialDivision: Division, city: CityName) {
-		const office = this.ns.corporation.getOffice(materialDivision.name, city)
+		const { ns } = this.context
+		const office = ns.corporation.getOffice(materialDivision.name, city)
 		if (office.employeeJobs.Unassigned > 0) {
-			while (this.ns.corporation.hireEmployee(materialDivision.name, city)) {
+			while (ns.corporation.hireEmployee(materialDivision.name, city)) {
 				// keep hiring
 			}
-			this.ns.corporation.setAutoJobAssignment(
+			ns.corporation.setAutoJobAssignment(
 				materialDivision.name,
 				city,
 				'Operations',
 				1
 			)
-			this.ns.corporation.setAutoJobAssignment(
+			ns.corporation.setAutoJobAssignment(
 				materialDivision.name,
 				city,
 				'Engineer',
 				1
 			)
-			this.ns.corporation.setAutoJobAssignment(
+			ns.corporation.setAutoJobAssignment(
 				materialDivision.name,
 				city,
 				'Business',
@@ -73,21 +74,18 @@ export class MaterialRound0Manager
 	}
 
 	expandAllCities(materialDivision: Division) {
+		const { ns, logger } = this.context
 		for (const city of this.citiesDesired) {
 			if (materialDivision.cities.includes(city)) {
 				// *** Ensure has a warehouse ***
 				try {
-					this.ns.corporation.getWarehouse(materialDivision.name, city)
+					ns.corporation.getWarehouse(materialDivision.name, city)
 					this.citiesMet++
 				} catch {
-					const cost = this.ns.corporation.getConstants().warehouseInitialCost
+					const cost = ns.corporation.getConstants().warehouseInitialCost
 					if (this.funds >= cost) {
-						this.ns.corporation.purchaseWarehouse(materialDivision.name, city)
-						this.ns.corporation.setSmartSupply(
-							materialDivision.name,
-							city,
-							true
-						)
+						ns.corporation.purchaseWarehouse(materialDivision.name, city)
+						ns.corporation.setSmartSupply(materialDivision.name, city, true)
 						this.funds -= cost
 						this.citiesMet++
 					}
@@ -95,11 +93,11 @@ export class MaterialRound0Manager
 				continue
 			}
 
-			const cost = this.ns.corporation.getConstants().officeInitialCost
+			const cost = ns.corporation.getConstants().officeInitialCost
 			if (this.funds >= cost) {
-				this.ns.corporation.expandCity(materialDivision.name, city)
+				ns.corporation.expandCity(materialDivision.name, city)
 				for (const material of MyCompany.MaterialDivision.SellMaterials) {
-					this.ns.corporation.sellMaterial(
+					ns.corporation.sellMaterial(
 						MyCompany.MaterialDivision.Name,
 						city,
 						material,
@@ -112,14 +110,12 @@ export class MaterialRound0Manager
 				try {
 					this.assignEmployees(materialDivision, city)
 				} catch (err) {
-					this.logger
-						.warn`Unable to assign employees in material division; ${err}`
+					logger.warn`Unable to assign employees in material division; ${err}`
 				}
-				const warehouseCost =
-					this.ns.corporation.getConstants().warehouseInitialCost
+				const warehouseCost = ns.corporation.getConstants().warehouseInitialCost
 				if (this.funds >= warehouseCost) {
-					this.ns.corporation.purchaseWarehouse(materialDivision.name, city)
-					this.ns.corporation.setSmartSupply(materialDivision.name, city, true)
+					ns.corporation.purchaseWarehouse(materialDivision.name, city)
+					ns.corporation.setSmartSupply(materialDivision.name, city, true)
 					this.funds -= warehouseCost
 					this.citiesMet++
 				}
@@ -128,9 +124,10 @@ export class MaterialRound0Manager
 	}
 
 	async manage(): Promise<void> {
+		const { logger } = this.context
 		const materialDivision = this.company.getMaterialDivision()
 		if (!materialDivision) {
-			this.logger.error`no material division`
+			logger.error`no material division`
 			return
 		}
 
@@ -147,12 +144,12 @@ export class MaterialRound0Manager
 			this.warehouseLevelsMet < this.warehouseLevelsDesired ||
 			this.materialsMet < this.materialsDesired
 		) {
-			this.logger.log('Waiting for current needs to be met')
+			logger.log('Waiting for current needs to be met')
 			return
 		}
 
 		if (this.funds < 0) {
-			this.logger.log('Waiting for profitability')
+			logger.log('Waiting for profitability')
 			return
 		}
 

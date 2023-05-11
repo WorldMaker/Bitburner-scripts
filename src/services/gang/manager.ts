@@ -3,8 +3,7 @@ import { filter } from '@reactivex/ix-esnext-esm/iterable/operators/filter'
 import { map } from '@reactivex/ix-esnext-esm/iterable/operators/map'
 import { toArray } from '@reactivex/ix-esnext-esm/iterable/toarray'
 import { ulid } from 'ulid'
-import { NsLogger } from '../../logging/logger'
-import { Config } from '../../models/config'
+import { NsContext } from '../../models/context'
 import { AscendThresholds, GangMemberFirstTask } from '../../models/gang'
 import { ToyBudgetProvider, ToyPurchaser } from '../../models/toys'
 
@@ -18,11 +17,7 @@ export class GangManager implements ToyBudgetProvider, ToyPurchaser {
 	#gang: GangGenInfo | null = null
 	readonly #memberTasks = new Map<string, number>()
 
-	constructor(
-		private readonly ns: NS,
-		private readonly config: Config,
-		private readonly logger: NsLogger
-	) {}
+	constructor(private readonly context: NsContext) {}
 
 	budget(funds: number): number {
 		if (!this.#gang) {
@@ -45,13 +40,15 @@ export class GangManager implements ToyBudgetProvider, ToyPurchaser {
 			return budget
 		}
 
-		const equipment = this.ns.gang
-			.getEquipmentNames()
-			.map((name) => [name, this.ns.gang.getEquipmentCost(name)] as const)
+		const { ns } = this.context
 
-		for (const memberName of this.ns.gang.getMemberNames()) {
+		const equipment = ns.gang
+			.getEquipmentNames()
+			.map((name) => [name, ns.gang.getEquipmentCost(name)] as const)
+
+		for (const memberName of ns.gang.getMemberNames()) {
 			for (const [name, cost] of equipment) {
-				if (cost < budget && this.ns.gang.purchaseEquipment(memberName, name)) {
+				if (cost < budget && ns.gang.purchaseEquipment(memberName, name)) {
 					budget -= cost
 					return budget
 				}
@@ -62,6 +59,7 @@ export class GangManager implements ToyBudgetProvider, ToyPurchaser {
 	}
 
 	summarize() {
+		const { ns, logger } = this.context
 		if (this.#gang) {
 			const tasks = toArray(
 				from(this.#memberTasks.entries()).pipe(
@@ -69,40 +67,40 @@ export class GangManager implements ToyBudgetProvider, ToyPurchaser {
 					map(([task, count]) => `${count} ${task}`)
 				)
 			).join(', ')
-			this.logger.info`managing ${
-				this.#gang.faction
-			} gang; 🤛 ${this.ns.formatNumber(this.#gang.respect)}, ${tasks}`
+			logger.info`managing ${this.#gang.faction} gang; 🤛 ${ns.formatNumber(
+				this.#gang.respect
+			)}, ${tasks}`
 		} else {
-			this.logger.info`karma ${this.ns.formatNumber(
-				(this.ns as any).heart?.break?.()
-			)}`
+			logger.info`karma ${ns.formatNumber((ns as any).heart?.break?.())}`
 		}
 	}
 
 	manage() {
+		const { ns } = this.context
+
 		this.#memberTasks.clear()
 
-		if (!this.ns.gang.inGang()) {
-			if (!this.ns.getPlayer().factions.includes(this.config.gangFaction)) {
+		if (!ns.gang.inGang()) {
+			if (!ns.getPlayer().factions.includes(this.context.gangFaction)) {
 				return
 			}
-			if (!this.ns.gang.createGang(this.config.gangFaction)) {
+			if (!ns.gang.createGang(this.context.gangFaction)) {
 				return
 			}
 		}
 
-		this.#gang = this.ns.gang.getGangInformation()
+		this.#gang = ns.gang.getGangInformation()
 
-		if (this.ns.gang.canRecruitMember()) {
+		if (ns.gang.canRecruitMember()) {
 			const name = ulid()
-			if (this.ns.gang.recruitMember(name)) {
-				this.ns.gang.setMemberTask(name, GangMemberFirstTask)
+			if (ns.gang.recruitMember(name)) {
+				ns.gang.setMemberTask(name, GangMemberFirstTask)
 			}
 		}
 
-		for (const memberName of this.ns.gang.getMemberNames()) {
-			const member = this.ns.gang.getMemberInformation(memberName)
-			const ascension = this.ns.gang.getAscensionResult(memberName)
+		for (const memberName of ns.gang.getMemberNames()) {
+			const member = ns.gang.getMemberInformation(memberName)
+			const ascension = ns.gang.getAscensionResult(memberName)
 
 			if (
 				ascension &&
@@ -111,7 +109,7 @@ export class GangManager implements ToyBudgetProvider, ToyPurchaser {
 					ascension.dex - member.dex_asc_mult > AscendThresholds.dex ||
 					ascension.str - member.str_asc_mult > AscendThresholds.str)
 			) {
-				this.ns.gang.ascendMember(memberName)
+				ns.gang.ascendMember(memberName)
 			}
 
 			const count = this.#memberTasks.get(member.task) ?? 0

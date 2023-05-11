@@ -1,8 +1,5 @@
-import { NsLogger } from '../logging/logger.js'
-import { Config } from '../models/config.js'
-import { TargetFactory } from '../models/targets'
+import { TargetContext } from '../models/context.js'
 import { ServerTarget } from '../models/targets/server-target'
-import { ServerCacheService } from './server-cache.js'
 import { ToyPurchaseService } from './toy-purchase/index.js'
 
 const PurchasedServerRamMultiplier = 0.015625
@@ -20,35 +17,32 @@ export class PurchaseService {
 	private hacknetNodesToBuy = 5
 
 	constructor(
-		private ns: NS,
-		private config: Config,
-		private logger: NsLogger,
-		private servers: ServerCacheService<ServerTarget>,
-		private targetFactory: TargetFactory<ServerTarget>,
+		private context: TargetContext<ServerTarget>,
 		private toyPurchaseService: ToyPurchaseService
 	) {
-		this.purchasedServerCount = this.ns.getPurchasedServers().length
-		this.purchasedServerLimit = this.ns.getPurchasedServerLimit()
-		this.hacknetNodesCount = this.ns.hacknet.numNodes()
-		this.hacknetNodesToBuy = this.config.hacknetNodes
-		this.nextHacknetNodePurchaseCost = this.ns.hacknet.getPurchaseNodeCost()
-		const homeRam = this.servers.getHome().getMaxRam()
+		const { ns, servers } = this.context
+		this.purchasedServerCount = ns.getPurchasedServers().length
+		this.purchasedServerLimit = ns.getPurchasedServerLimit()
+		this.hacknetNodesCount = ns.hacknet.numNodes()
+		this.hacknetNodesToBuy = this.context.hacknetNodes
+		this.nextHacknetNodePurchaseCost = ns.hacknet.getPurchaseNodeCost()
+		const homeRam = servers.getHome().getMaxRam()
 		this.ram = Math.min(
 			MaxStartingRam,
 			Math.max(8, Math.floor(homeRam * PurchasedServerRamMultiplier))
 		)
-		this.nextServerPurchaseCost = this.ns.getPurchasedServerCost(this.ram)
+		this.nextServerPurchaseCost = ns.getPurchasedServerCost(this.ram)
 	}
 
 	summarize() {
-		this.logger.log(this.toyPurchaseService.summarize())
+		const { logger } = this.context
+		logger.log(this.toyPurchaseService.summarize())
 		if (this.finishedMajorPurchases && !this.announcedFinish) {
-			this.logger.hooray`Finished purchasing`
+			logger.hooray`Finished purchasing`
 			this.announcedFinish = true
 		}
 		if (!this.finishedMajorPurchases) {
-			this.logger
-				.info`bought ${this.purchasedServerCount}/${this.purchasedServerLimit} servers; ${this.hacknetNodesCount}/${this.hacknetNodesToBuy} hacknet`
+			logger.info`bought ${this.purchasedServerCount}/${this.purchasedServerLimit} servers; ${this.hacknetNodesCount}/${this.hacknetNodesToBuy} hacknet`
 		}
 	}
 
@@ -74,27 +68,28 @@ export class PurchaseService {
 	}
 
 	private ownPurchase() {
-		const { money } = this.ns.getPlayer()
+		const { ns, servers, targetFactory } = this.context
+		const { money } = ns.getPlayer()
 		// Focus on active income over passive (purchased servers over hacknet nodes)
 		if (
-			this.purchasedServerCount < this.ns.getPurchasedServerLimit() &&
+			this.purchasedServerCount < ns.getPurchasedServerLimit() &&
 			money > this.nextServerPurchaseCost
 		) {
-			const hostname = this.ns.purchaseServer(
+			const hostname = ns.purchaseServer(
 				'pserv-' + this.purchasedServerCount,
 				this.ram
 			)
-			const host = this.targetFactory(this.ns, hostname, true)
-			this.servers.set(host)
+			const host = targetFactory(ns, hostname, true)
+			servers.set(host)
 			this.purchasedServerCount++
-			this.nextServerPurchaseCost = this.ns.getPurchasedServerCost(this.ram)
+			this.nextServerPurchaseCost = ns.getPurchasedServerCost(this.ram)
 			return true
 		} else if (
 			this.hacknetNodesCount < this.hacknetNodesToBuy &&
 			money > this.nextHacknetNodePurchaseCost
 		) {
-			this.ns.hacknet.purchaseNode()
-			this.nextHacknetNodePurchaseCost = this.ns.hacknet.getPurchaseNodeCost()
+			ns.hacknet.purchaseNode()
+			this.nextHacknetNodePurchaseCost = ns.hacknet.getPurchaseNodeCost()
 			this.hacknetNodesCount++
 			return true
 		}

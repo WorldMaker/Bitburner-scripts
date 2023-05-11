@@ -1,5 +1,4 @@
-import { NsLogger } from '../../logging/logger'
-import { Config } from '../../models/config'
+import { NsContext } from '../../models/context'
 import { AugmentPrioritizer, NFG } from './augments'
 
 const FlightPlan = [
@@ -27,34 +26,35 @@ export class FlightController {
 	#programsComplete = 0
 
 	constructor(
-		private readonly ns: NS,
-		private readonly config: Config,
-		private readonly logger: NsLogger,
+		private readonly context: NsContext,
 		private readonly augmentPrioritizer: AugmentPrioritizer
 	) {}
 
 	summarize() {
+		const { logger } = this.context
 		if (
-			this.config.flightController &&
+			this.context.flightController &&
 			(this.#factionsComplete < FlightPlan.length ||
 				this.#programsComplete < Programs.length)
 		) {
-			this.logger.info`monitoring ✈ flight plan; ${this.#factionsComplete}/${
+			logger.info`monitoring ✈ flight plan; ${this.#factionsComplete}/${
 				FlightPlan.length
 			}, ${this.#programsComplete}/${Programs.length}`
 		}
 	}
 
 	manage() {
-		if (!this.config.flightController) {
+		const { ns, logger } = this.context
+
+		if (!this.context.flightController) {
 			return
 		}
 
 		// accept all faction invites
-		const invites = this.ns.singularity.checkFactionInvitations()
+		const invites = ns.singularity.checkFactionInvitations()
 		for (const invite of invites) {
-			if (!this.ns.singularity.joinFaction(invite)) {
-				this.logger.warn`could not join ${invite}`
+			if (!ns.singularity.joinFaction(invite)) {
+				logger.warn`could not join ${invite}`
 			} else {
 				// reprioritize augments when accepting invites
 				this.augmentPrioritizer.prioritize()
@@ -63,49 +63,49 @@ export class FlightController {
 
 		// determine current flight plan faction
 		this.#factionsComplete = 0
-		const player = this.ns.getPlayer()
+		const player = ns.getPlayer()
 		const factions = new Set(player.factions)
 		let current = ''
 		let currentAugments: string[] = []
-		const owned = new Set(this.ns.singularity.getOwnedAugmentations(true))
+		const owned = new Set(ns.singularity.getOwnedAugmentations(true))
 		for (const plan of FlightPlan) {
 			if (!factions.has(plan)) {
-				this.logger.trace`not invited to ${plan} yet`
+				logger.trace`not invited to ${plan} yet`
 				continue
 			}
-			const augments = this.ns.singularity
+			const augments = ns.singularity
 				.getAugmentationsFromFaction(plan)
 				.filter((augment) => !owned.has(augment))
 			if (!augments.length) {
-				this.logger.trace`${plan} has no augments remaining`
+				logger.trace`${plan} has no augments remaining`
 				this.#factionsComplete++
 				continue
 			}
 			if (augments.length === 1 && augments[0].startsWith(NFG)) {
-				this.logger.trace`${plan} has only NFG remaining`
+				logger.trace`${plan} has only NFG remaining`
 				this.#factionsComplete++
 				continue
 			}
-			this.logger.trace`${plan} needs augments ${augments}`
+			logger.trace`${plan} needs augments ${augments}`
 			if (current === '') {
 				current = plan
 				currentAugments = augments
-				if (this.config.targetAugmentFaction !== current) {
-					this.config.targetAugmentFaction = current
+				if (this.context.targetAugmentFaction !== current) {
+					this.context.targetAugmentFaction = current
 				}
 			}
 		}
 
 		// *** Work management ***
 
-		const work = this.ns.singularity.getCurrentWork()
+		const work = ns.singularity.getCurrentWork()
 		const workType = work?.type
 
 		// create any missing programs
 		this.#programsComplete = 0
 		let startedCreation = false
 		for (const [program, level] of Programs) {
-			if (this.ns.fileExists(program)) {
+			if (ns.fileExists(program)) {
 				this.#programsComplete++
 				continue
 			}
@@ -114,7 +114,7 @@ export class FlightController {
 				!startedCreation &&
 				player.skills.hacking >= level
 			) {
-				startedCreation ||= this.ns.singularity.createProgram(program, true)
+				startedCreation ||= ns.singularity.createProgram(program, true)
 			}
 		}
 
@@ -125,15 +125,13 @@ export class FlightController {
 		// build any necessary faction rep
 		if (current.length) {
 			const maxRepNeeded = currentAugments.reduce(
-				(acc, cur) =>
-					Math.max(acc, this.ns.singularity.getAugmentationRepReq(cur)),
+				(acc, cur) => Math.max(acc, ns.singularity.getAugmentationRepReq(cur)),
 				0
 			)
-			const repNeeded =
-				maxRepNeeded - this.ns.singularity.getFactionRep(current)
+			const repNeeded = maxRepNeeded - ns.singularity.getFactionRep(current)
 			if (repNeeded > 0) {
 				if (workType !== 'FACTION' || work?.factionName !== current) {
-					this.ns.singularity.workForFaction(current, 'hacking', true)
+					ns.singularity.workForFaction(current, 'hacking', true)
 				}
 				return
 			}
@@ -144,6 +142,6 @@ export class FlightController {
 		}
 
 		// fall back to a life of crime
-		this.ns.singularity.commitCrime('Heist', true)
+		ns.singularity.commitCrime('Heist', true)
 	}
 }
