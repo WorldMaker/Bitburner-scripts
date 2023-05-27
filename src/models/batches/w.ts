@@ -79,6 +79,9 @@ export class WBatch implements Batch<'w'> {
 		expectedMoneyAvailable: number,
 		expectedSecurityLevel: number
 	): BatchPlans {
+		if (!this.server.minDifficulty) {
+			throw new Error(`unknown difficulty for server ${this.server.hostname}`)
+		}
 		const desiredWeaken = expectedSecurityLevel - this.server.minDifficulty
 		const threads = Math.max(
 			1,

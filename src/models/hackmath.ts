@@ -13,7 +13,7 @@ function calcGrowth(
 	cores?: number
 ): number {
 	const growthPercent = formulas.growPercent(server, threads, player, cores)
-	return (server.moneyAvailable + threads) * growthPercent
+	return ((server.moneyAvailable ?? 0) + threads) * growthPercent
 }
 
 function binarySearchGrowThreads(
@@ -30,6 +30,12 @@ function binarySearchGrowThreads(
 	}
 	if (minThreads >= maxThreads) {
 		return maxThreads
+	}
+	if (!server.moneyMax) {
+		if (logger) {
+			logger.warn`unable to grow money-less server ${server.hostname}`
+		}
+		return 0
 	}
 
 	const midThreads = Math.ceil(minThreads + (maxThreads - minThreads) / 2)
@@ -72,6 +78,12 @@ export function calculateGrowThreads(
 	logger?: NsLogger,
 	cores?: number
 ): number {
+	if (!server.moneyAvailable || !server.moneyMax) {
+		if (logger) {
+			logger.warn`unable to grow threads for money-less server ${server.hostname}`
+		}
+		return 0
+	}
 	if (server.moneyAvailable >= server.moneyMax) {
 		return 0
 	}

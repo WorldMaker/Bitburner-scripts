@@ -28,13 +28,17 @@ export class ProductPrice {
 	) {
 		if (this.product.developmentProgress < 100) {
 			this.state = 'Developing'
-		} else if (this.product.sCost === 'MP' || this.product.sCost === 'MP*1') {
+		} else if (
+			this.product.desiredSellPrice === 'MP' ||
+			this.product.desiredSellPrice === 'MP*1'
+		) {
 			this.state = 'Seeking'
 		} else {
 			this.state = 'Watching'
-			if (typeof this.product.sCost === 'string') {
-				// dumb way to call RegEx 'exec' because it was getting clbuttic read as ns.exec by memory checks
-				const match = MarketPriceMultiplierRegex['exec'](this.product.sCost)
+			if (typeof this.product.desiredSellPrice === 'string') {
+				const match = MarketPriceMultiplierRegex.exec(
+					this.product.desiredSellPrice
+				)
 				if (match) {
 					this.multiplier = parseInt(match.groups?.['multiplier'] ?? '1', 10)
 				}
@@ -70,8 +74,7 @@ export class ProductPrice {
 			this.multiplier = 1
 			return
 		}
-		const [_quantity, production, sell] =
-			this.product.cityData[ProductDevelopment.City]
+		const { productionAmount: production, actualSellAmount: sell } = product
 		switch (this.state) {
 			case 'Developing':
 				this.state = 'Seeking'

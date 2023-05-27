@@ -27,7 +27,7 @@ export class ProductOfficeManager {
 			let office = ns.corporation.getOffice(productDivision.name, city)
 
 			// *** Hire all available staff ***
-			while (office.employees < office.size) {
+			while (office.numEmployees < office.size) {
 				const employee = ns.corporation.hireEmployee(productDivision.name, city)
 				if (employee) {
 					office = ns.corporation.getOffice(productDivision.name, city)
@@ -40,7 +40,7 @@ export class ProductOfficeManager {
 			// *** Assign staff ***
 			if (
 				office.employeeJobs.Unassigned > 0 ||
-				office.employeeJobs.Training > 0
+				office.employeeJobs.Intern > 0
 			) {
 				if (city === ProductDevelopment.City) {
 					this.assignProductDevelopmentStaff(office, productDivision, city)
@@ -68,7 +68,7 @@ export class ProductOfficeManager {
 			!ns.corporation.setAutoJobAssignment(
 				productDivision.name,
 				city,
-				'Training',
+				'Intern',
 				0
 			)
 		) {
@@ -102,7 +102,7 @@ export class ProductOfficeManager {
 			productDivision.name,
 			city,
 			'Research & Development',
-			office.employees - 4
+			office.numEmployees - 4
 		)
 	}
 
@@ -112,7 +112,7 @@ export class ProductOfficeManager {
 		city: CityName
 	) {
 		const { ns, logger } = this.company.context
-		const perTask = office.employees / 3.5
+		const perTask = office.numEmployees / 3.5
 		const assignmentGoals = {
 			Operations: Math.floor(perTask),
 			Engineer: Math.floor(perTask),
@@ -121,7 +121,7 @@ export class ProductOfficeManager {
 		}
 		// prefer assigning extras to Engineering
 		const leftover =
-			office.employees -
+			office.numEmployees -
 			assignmentGoals.Operations -
 			assignmentGoals.Engineer -
 			assignmentGoals.Business -
@@ -134,7 +134,7 @@ export class ProductOfficeManager {
 			!ns.corporation.setAutoJobAssignment(
 				productDivision.name,
 				city,
-				'Training',
+				'Intern',
 				0
 			)
 		) {

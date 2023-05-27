@@ -47,23 +47,21 @@ export class BasePhaseManager {
 				map((city) => ns.corporation.getOffice(division.name, city))
 			),
 			(acc, cur) => ({
-				mor: acc.mor + cur.avgMor,
-				hap: acc.hap + cur.avgHap,
-				ene: acc.ene + cur.avgEne,
+				mor: acc.mor + cur.avgMorale,
+				ene: acc.ene + cur.avgEnergy,
 				total: acc.total + 1,
 			}),
-			{ mor: 0, hap: 0, ene: 0, total: 0 }
+			{ mor: 0, ene: 0, total: 0 }
 		)
 		const averages = {
 			mor: counts.mor / counts.total,
-			hap: counts.hap / counts.total,
 			ene: counts.ene / counts.total,
 		}
 
-		if (averages.mor < 97 || averages.hap < 97 || averages.ene < 97) {
+		if (averages.mor < 97 || averages.ene < 97) {
 			logger.debug`Waiting for morale; ${averages.mor.toFixed(
 				3
-			)}/97; ${averages.hap.toFixed(3)}/97; ${averages.ene.toFixed(3)}/97`
+			)}/97; ${averages.ene.toFixed(3)}/97`
 
 			return false
 		}

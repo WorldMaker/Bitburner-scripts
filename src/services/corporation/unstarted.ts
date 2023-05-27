@@ -50,7 +50,7 @@ export class UnstartedPhaseManager implements PhaseManager {
 			MyCompany.MaterialDivision.Type,
 			MyCompany.MaterialDivision.Name
 		)
-		ns.corporation.unlockUpgrade(SmartSupply)
+		ns.corporation.purchaseUnlock(SmartSupply)
 		for (const city of Object.values(ns.enums.CityName)) {
 			if (city !== StartingCity) {
 				ns.corporation.expandCity(MyCompany.MaterialDivision.Name, city)

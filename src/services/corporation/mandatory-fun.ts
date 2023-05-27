@@ -43,7 +43,7 @@ export class MandatoryFunService {
 			for (const city of Object.values(ns.enums.CityName)) {
 				this.#offices++
 				const office = ns.corporation.getOffice(divisionName, city)
-				if (!hasAutoParty && (office.avgMor < 95 || office.avgHap < 95)) {
+				if (!hasAutoParty && office.avgMorale < 95) {
 					logger.debug`throwing party for ${divisionName} ${city}`
 					try {
 						ns.corporation.throwParty(divisionName, city, PartyBudget)
@@ -52,10 +52,10 @@ export class MandatoryFunService {
 						logger.warn`unable to throw party: ${err}`
 					}
 				}
-				if (!hasAutoCoffee && office.avgEne < 95) {
+				if (!hasAutoCoffee && office.avgEnergy < 95) {
 					logger.debug`buying coffee for ${divisionName} ${city}`
 					try {
-						ns.corporation.buyCoffee(divisionName, city)
+						ns.corporation.buyTea(divisionName, city)
 						this.#coffees++
 					} catch (err) {
 						logger.warn`unable to buy coffee: ${err}`

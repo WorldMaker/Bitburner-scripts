@@ -189,6 +189,9 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 			const targetProcesses = processesByTarget.get(target.name)
 			if (!targetProcesses) {
 				const server = target.getServer()
+				if (!server.moneyAvailable || !server.hackDifficulty) {
+					continue
+				}
 				const batchPlan = createBatch(
 					this.ns,
 					getNextBatchType(
@@ -306,14 +309,14 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 							this.ns,
 							getNextBatchType(
 								target,
-								server.moneyMax,
-								server.minDifficulty,
+								server.moneyMax!,
+								server.minDifficulty!,
 								lastBatch
 							),
 							this.logger,
 							player,
 							server
-						).plan(server.moneyMax, server.minDifficulty)
+						).plan(server.moneyMax!, server.minDifficulty!)
 						const start = new Date(
 							Math.max(
 								nextBatchTick.getTime(),
@@ -340,15 +343,15 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 								this.ns,
 								getNextBatchType(
 									target,
-									server.moneyAvailable * expectedGrowth,
-									server.minDifficulty
+									server.moneyAvailable! * expectedGrowth,
+									server.minDifficulty!
 								),
 								this.logger,
 								player,
 								server
 							).plan(
-								server.moneyAvailable * expectedGrowth,
-								server.minDifficulty
+								server.moneyAvailable! * expectedGrowth,
+								server.minDifficulty!
 							),
 							start,
 							satisifiesCount: safeBatchCount === 9,

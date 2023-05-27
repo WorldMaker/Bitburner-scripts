@@ -1,5 +1,4 @@
-/* TODO: remove ns1-specific documentation for all functions, and just create a basic doc somewhere that says how to
- *       convert examples for use in .script files (e.g. no async/await, var instead of let/const, etc). */
+/** All netscript definitions */
 
 /** @public */
 interface HP {
@@ -50,10 +49,7 @@ interface Player extends Person {
 	entropy: number
 	jobs: Record<string, string>
 	factions: string[]
-	bitNodeN: number
 	totalPlaytime: number
-	playtimeSinceLastAug: number
-	playtimeSinceLastBitnode: number
 	location: string
 }
 
@@ -67,6 +63,17 @@ interface SleevePerson extends Person {
 	memory: number
 	/** Number of 200ms cycles which are stored as bonus time */
 	storedCycles: number
+}
+
+/** Various info about resets
+ * @public */
+interface ResetInfo {
+	/** Numeric timestamp (from Date.now()) of last augmentation reset */
+	lastAugReset: number
+	/** Numeric timestamp (from Date.now()) of last bitnode reset */
+	lastNodeReset: number
+	/** The current bitnode */
+	currentNode: number
 }
 
 /** @public */
@@ -193,6 +200,36 @@ interface RunningScript {
 	server: string
 	/** Number of threads that this script runs with */
 	threads: number
+	/** Whether this RunningScript is excluded from saves */
+	temporary: boolean
+}
+
+/** @public */
+interface RunOptions {
+	/** Number of threads that the script will run with, defaults to 1 */
+	threads?: number
+	/** Whether this script is excluded from saves, defaults to false */
+	temporary?: boolean
+	/**
+	 * The RAM allocation to launch each thread of the script with.
+	 *
+	 * Lowering this will <i>not</i> automatically let you get away with using less RAM:
+	 * the dynamic RAM check enforces that all {@link NS} functions actually called incur their cost.
+	 * However, if you know that certain functions that are statically present (and thus included
+	 * in the static RAM cost) will never be called in a particular circumstance, you can use
+	 * this to avoid paying for them.
+	 *
+	 * You can also use this to <i>increase</i> the RAM if the static RAM checker has missed functions
+	 * that you need to call.
+	 *
+	 * Must be greater-or-equal to the base RAM cost. Defaults to the statically calculated cost.
+	 */
+	ramOverride?: number
+	/**
+	 * Should we fail to run if another instance is running with the exact same arguments?
+	 * This used to be the default behavior, now defaults to false.
+	 */
+	preventDuplicates?: boolean
 }
 
 /** @public */
@@ -324,6 +361,8 @@ interface ProcessInfo {
 	args: (string | number | boolean)[]
 	/** Process ID */
 	pid: number
+	/** Whether this process is excluded from saves */
+	temporary: boolean
 }
 
 /**
@@ -427,93 +466,75 @@ interface HacknetServerConstants {
 }
 
 /**
- * A single server.
+ * A server. Not all servers have all of these properties - optional properties are missing on certain servers.
  * @public
  */
-interface Server {
-	/**
-	 * How many CPU cores this server has. Maximum of 8.
-	 * Affects magnitude of grow and weaken.
-	 */
-	cpuCores: number
+declare interface Server {
+	/** Hostname. Must be unique */
+	hostname: string
+	/** IP Address. Must be unique */
+	ip: string
 
-	/** Flag indicating whether the FTP port is open */
+	/** Whether or not the SSH Port is open */
+	sshPortOpen: boolean
+	/** Whether or not the FTP port is open */
 	ftpPortOpen: boolean
+	/** Whether or not the SMTP Port is open */
+	smtpPortOpen: boolean
+	/** Whether or not the HTTP Port is open */
+	httpPortOpen: boolean
+	/** Whether or not the SQL Port is open */
+	sqlPortOpen: boolean
 
 	/** Flag indicating whether player has admin/root access to this server */
 	hasAdminRights: boolean
 
-	/** Hostname. Must be unique */
-	hostname: string
-
-	/** Flag indicating whether HTTP Port is open */
-	httpPortOpen: boolean
-
-	/** IP Address. Must be unique */
-	ip: string
+	/** How many CPU cores this server has. Affects magnitude of grow and weaken ran from this server. */
+	cpuCores: number
 
 	/** Flag indicating whether player is currently connected to this server */
 	isConnectedTo: boolean
 
+	/** RAM (GB) used. i.e. unavailable RAM */
+	ramUsed: number
 	/** RAM (GB) available on this server */
 	maxRam: number
 
-	/**
-	 * Name of company/faction/etc. that this server belongs to.
-	 * Optional, not applicable to all Servers
-	 */
+	/** Name of company/faction/etc. that this server belongs to, not applicable to all Servers */
 	organizationName: string
-
-	/** RAM (GB) used. i.e. unavailable RAM */
-	ramUsed: number
-
-	/** Flag indicating whether SMTP Port is open */
-	smtpPortOpen: boolean
-
-	/** Flag indicating whether SQL Port is open */
-	sqlPortOpen: boolean
-
-	/** Flag indicating whether the SSH Port is open */
-	sshPortOpen: boolean
 
 	/** Flag indicating whether this is a purchased server */
 	purchasedByPlayer: boolean
 
 	/** Flag indicating whether this server has a backdoor installed by a player */
-	backdoorInstalled: boolean
+	backdoorInstalled?: boolean
 
-	/**
-	 * Initial server security level
-	 * (i.e. security level when the server was created)
-	 */
-	baseDifficulty: number
+	/** Server's initial server security level at creation. */
+	baseDifficulty?: number
 
 	/** Server Security Level */
-	hackDifficulty: number
+	hackDifficulty?: number
 
 	/** Minimum server security level that this server can be weakened to */
-	minDifficulty: number
+	minDifficulty?: number
 
 	/** How much money currently resides on the server and can be hacked */
-	moneyAvailable: number
+	moneyAvailable?: number
 
 	/** Maximum amount of money that this server can hold */
-	moneyMax: number
+	moneyMax?: number
 
 	/** Number of open ports required in order to gain admin/root access */
-	numOpenPortsRequired: number
+	numOpenPortsRequired?: number
 
 	/** How many ports are currently opened on the server */
-	openPortCount: number
+	openPortCount?: number
 
 	/** Hacking level required to hack this server */
-	requiredHackingSkill: number
+	requiredHackingSkill?: number
 
-	/**
-	 * Parameter that affects how effectively this server's money can
-	 * be increased using the grow() Netscript function
-	 */
-	serverGrowth: number
+	/** Growth effectiveness statistic. Higher values produce more growth with ns.grow() */
+	serverGrowth?: number
 }
 
 /**
@@ -878,6 +899,7 @@ type SleeveBladeburnerTask = {
 	actionType: 'General' | 'Contracts'
 	actionName: string
 	cyclesWorked: number
+	cyclesNeeded: number
 }
 
 /** @public */
@@ -899,6 +921,7 @@ type SleeveCrimeTask = {
 	type: 'CRIME'
 	crimeType: CrimeType | `${CrimeType}`
 	cyclesWorked: number
+	cyclesNeeded: number
 }
 
 /** @public */
@@ -909,7 +932,11 @@ type SleeveFactionTask = {
 }
 
 /** @public */
-type SleeveInfiltrateTask = { type: 'INFILTRATE'; cyclesWorked: number }
+type SleeveInfiltrateTask = {
+	type: 'INFILTRATE'
+	cyclesWorked: number
+	cyclesNeeded: number
+}
 
 /** @public */
 type SleeveRecoveryTask = { type: 'RECOVERY' }
@@ -935,7 +962,7 @@ declare type SleeveTask =
 
 /** Object representing a port. A port is a serialized queue.
  * @public */
-interface NetscriptPort {
+declare interface NetscriptPort {
 	/** Write data to a port.
 	 * @remarks
 	 * RAM cost: 0 GB
@@ -1083,19 +1110,7 @@ declare interface TIX {
 	 * 1. TIX API Access
 	 *
 	 * @example
-	 * ```ts
-	 * // NS1
-	 * stock.getOrganization("FSIG");
-	 *
-	 * // Choose the first stock symbol from the array of stock symbols. Get the
-	 * // organization associated with the corresponding stock symbol
-	 * var sym = stock.getSymbols()[0];
-	 * tprint("Stock symbol: " + sym);
-	 * tprint("Stock organization: " + stock.getOrganization(sym));
-	 * ```
-	 * @example
-	 * ```ts
-	 * // NS2
+	 * ```js
 	 * ns.stock.getOrganization("FSIG");
 	 *
 	 * // Choose the first stock symbol from the array of stock symbols. Get the
@@ -1133,7 +1148,7 @@ declare interface TIX {
 	 * RAM cost: 2 GB
 	 * Returns an array of four elements that represents the player’s position in a stock.
 	 *
-	 * The first element is the returned array is the number of shares the player owns of
+	 * The first element in the returned array is the number of shares the player owns of
 	 * the stock in the Long position. The second element in the array is the average price
 	 * of the player’s shares in the Long position.
 	 *
@@ -1144,18 +1159,8 @@ declare interface TIX {
 	 * All elements in the returned array are numeric.
 	 *
 	 * @example
-	 * ```ts
-	 * // NS1
-	 * var pos = stock.getPosition("ECP");
-	 * var shares      = pos[0];
-	 * var avgPx       = pos[1];
-	 * var sharesShort = pos[2];
-	 * var avgPxShort  = pos[3];
-	 * ```
-	 * @example
-	 * ```ts
-	 * // NS2
-	 * const [shares, avgPx, sharesShort, avgPxShort] = ns.stock.getPosition("ECP");
+	 * ```js
+	 * const [sharesLong, avgLongPrice, sharesShort, avgShortPrice] = ns.stock.getPosition("ECP");
 	 * ```
 	 * @param sym - Stock symbol.
 	 * @returns Array of four elements that represents the player’s position in a stock.
@@ -1583,14 +1588,10 @@ declare interface Singularity {
 	 * Web using the Terminal buy command.
 	 *
 	 * @example
-	 * ```ts
-	 * // NS1
-	 * purchaseProgram("brutessh.exe");
-	 * ```
-	 * @example
-	 * ```ts
-	 * // NS2
-	 * ns.purchaseProgram("brutessh.exe");
+	 * ```js
+	 * const programName = "BruteSSH.exe"
+	 * const success = ns.purchaseProgram(programName);
+	 * if (!success) ns.tprint("ERROR: Failed to purchase ${programName}")
 	 * ```
 	 * @param programName - Name of program to purchase.
 	 * @returns True if the specified program is purchased, and false otherwise.
@@ -1690,6 +1691,51 @@ declare interface Singularity {
 	getUpgradeHomeCoresCost(): number
 
 	/**
+	 * Get Requirements for Company Position.
+	 * @remarks
+	 * RAM cost: 2 GB * 16/4/1
+	 *
+	 *
+	 * This function will return an object that contains the requirements for
+	 * a specific position at a specific country.
+	 *
+	 * @example
+	 * ```js
+	 * const companyName = "ECorp";
+	 * const position = "Chief Executive Officer";
+	 *
+	 * let requirements = ns.singularity.getCompanyPositionInfo(companyName, position);
+	 * ```
+	 * @param companyName - Name of company to get the requirements for. Must be an exact match.
+	 * @param positionName - Name of position to get the requirements for. Must be an exact match.
+	 * @returns CompanyPositionInfo object.
+	 */
+	getCompanyPositionInfo(
+		companyName: string,
+		positionName: JobName
+	): CompanyPositionInfo
+
+	/**
+	 * Get List of Company Positions.
+	 * @remarks
+	 * RAM cost: 2 GB * 16/4/1
+	 *
+	 *
+	 * This function will return a list of positions at a specific company.
+	 *
+	 * This function will return the position list if the company name is valid.
+	 *
+	 * @example
+	 * ```js
+	 * const companyName = "Noodle Bar";
+	 * const jobList = ns.singularity.getCompanyPositions(companyName);
+	 * ```
+	 * @param companyName - Name of company to get the position list for. Must be an exact match.
+	 * @returns The position list if the company name is valid.
+	 */
+	getCompanyPositions(companyName: string): JobName[]
+
+	/**
 	 * Work for a company.
 	 * @remarks
 	 * RAM cost: 3 GB * 16/4/1
@@ -1703,19 +1749,9 @@ declare interface Singularity {
 	 *
 	 * @example
 	 * ```js
-	 * // NS1:
-	 * var COMPANY_NAME = "Noodle Bar";
-	 *
-	 * var success = singularity.workForCompany(COMPANY_NAME);
-	 * if (!success) tprint("ERROR: Failed to start work at " + COMPANY_NAME + ".");
-	 * ```
-	 * @example
-	 * ```js
-	 * // NS2:
-	 * const COMPANY_NAME = "Noodle Bar";
-	 *
-	 * let success = ns.singularity.workForCompany(COMPANY_NAME);
-	 * if (!success) ns.tprint(`ERROR: Failed to start work at ${COMPANY_NAME].`);
+	 * const companyName = "Noodle Bar";
+	 * const success = ns.singularity.workForCompany(companyName);
+	 * if (!success) ns.tprint(`ERROR: Failed to start work at ${companyName}.`);
 	 * ```
 	 * @param companyName - Name of company to work for. Must be an exact match. Optional. If not specified, this
 	 *   argument defaults to the last job that you worked.
@@ -1805,7 +1841,8 @@ declare interface Singularity {
 	 * RAM cost: 3 GB * 16/4/1
 	 *
 	 *
-	 * Returns an array with the name of all Factions you currently have outstanding invitations from.
+	 * Performs an immediate check for which factions you qualify for invites from, then returns an array with the name
+	 * of all Factions you have outstanding invitations from.
 	 *
 	 * @returns Array with the name of all Factions you currently have outstanding invitations from.
 	 */
@@ -1839,19 +1876,11 @@ declare interface Singularity {
 	 *
 	 * @example
 	 * ```js
-	 * // NS1
-	 * var FACTION_NAME = "CyberSec", WORK_TYPE = "hacking";
+	 * const factionName = "CyberSec";
+	 * const workType = "hacking";
 	 *
-	 * var success = singularity.workForFaction(FACTION_NAME, WORK_TYPE);
-	 * if (!success) tprint("ERROR: Failed to start work for " + FACTION_NAME + " with work type " + WORK_TYPE);
-	 * ```
-	 * @example
-	 * ```js
-	 * // NS2
-	 * const FACTION_NAME = "CyberSec", WORK_TYPE = "hacking";
-	 *
-	 * let success = ns.singularity.workForFaction(FACTION_NAME, WORK_TYPE);
-	 * if (!success) ns.tprint(`ERROR: Failed to start work for ${FACTION_NAME} with work type ${WORK_TYPE}.`)
+	 * let success = ns.singularity.workForFaction(factionName, workType);
+	 * if (!success) ns.tprint(`ERROR: Failed to start work for ${factionName} with work type ${workType}.`)
 	 * ```
 	 * @param faction - Name of faction to work for.
 	 * @param workType - Type of work to perform for the faction.
@@ -1946,14 +1975,10 @@ declare interface Singularity {
 	 * * AutoLink.exe: 25
 	 *
 	 * @example
-	 * ```ts
-	 * // NS1:
-	 * createProgram(“relaysmtp.exe”);
-	 * ```
-	 * @example
-	 * ```ts
-	 * // NS2:
-	 * ns.createProgram(“relaysmtp.exe”);
+	 * ```js
+	 * const programName = "BruteSSH.exe";
+	 * const success = ns.createProgram(programName);
+	 * if (!success) ns.tprint("ERROR: Failed to start working on ${programName}")
 	 * ```
 	 * @param program - Name of program to create.
 	 * @param focus - Acquire player focus on this program creation. Optional. Defaults to true.
@@ -2243,16 +2268,9 @@ declare interface Singularity {
 	 * empty list.
 	 *
 	 * @example
-	 * ```ts
-	 * // NS1
-	 * getDarkwebPrograms();
-	 * // returns ['BruteSSH.exe', 'FTPCrack.exe'...etc]
-	 * ```
-	 * @example
-	 * ```ts
-	 * // NS2
-	 * ns.getDarkwebPrograms();
-	 * // returns ['BruteSSH.exe', 'FTPCrack.exe'...etc]
+	 * ```js
+	 * const programs = ns.getDarkwebPrograms();
+	 * ns.tprint(`Available programs are: ${programs.split(", ")}`);
 	 * ```
 	 * @returns - a list of programs available for purchase on the dark web, or [] if Tor has not
 	 * been purchased
@@ -2276,14 +2294,10 @@ declare interface Singularity {
 	 *
 	 *
 	 * @example
-	 * ```ts
-	 * // NS1
-	 * getDarkwebProgramCost("brutessh.exe");
-	 * ```
-	 * @example
-	 * ```ts
-	 * // NS2
-	 * ns.getDarkwebProgramCost("brutessh.exe");
+	 * ```js
+	 * const programName = "BruteSSH.exe";
+	 * const cost = ns.getDarkwebProgramCost(programName);
+	 * if (cost > 0) ns.tprint(`${programName} costs ${ns.formatMoney(cost)}`);
 	 * ```
 	 * @param programName - Name of program to check the price of
 	 * @returns Price of the specified darkweb program
@@ -2324,6 +2338,19 @@ declare interface Singularity {
 	 * @returns - An object representing the current work. Fields depend on the kind of work.
 	 */
 	getCurrentWork(): any | null
+}
+
+/**
+ * Company position requirements and salary.
+ * @public
+ * @returns - An object representing the requirements and salary for a company/position combination.
+ */
+declare interface CompanyPositionInfo {
+	name: JobName
+	nextPosition: JobName | null
+	salary: number
+	requiredReputation: number
+	requiredSkills: Skills
 }
 
 /**
@@ -2409,10 +2436,10 @@ declare interface Hacknet {
 	 * Returns false otherwise.
 	 *
 	 * @param index - Index/Identifier of Hacknet Node.
-	 * @param n - Number of levels to purchase. Must be positive. Rounded to nearest integer.
+	 * @param n - Number of levels to purchase. Must be positive. Rounded to nearest integer. Defaults to 1 if not specified.
 	 * @returns True if the Hacknet Node’s level is successfully upgraded, false otherwise.
 	 */
-	upgradeLevel(index: number, n: number): boolean
+	upgradeLevel(index: number, n?: number): boolean
 
 	/**
 	 * Upgrade the RAM of a hacknet node.
@@ -2429,10 +2456,10 @@ declare interface Hacknet {
 	 * Returns false otherwise.
 	 *
 	 * @param index - Index/Identifier of Hacknet Node.
-	 * @param n - Number of times to upgrade RAM. Must be positive. Rounded to nearest integer.
+	 * @param n - Number of times to upgrade RAM. Must be positive. Rounded to nearest integer. Defaults to 1 if not specified.
 	 * @returns True if the Hacknet Node’s RAM is successfully upgraded, false otherwise.
 	 */
-	upgradeRam(index: number, n: number): boolean
+	upgradeRam(index: number, n?: number): boolean
 
 	/**
 	 * Upgrade the core of a hacknet node.
@@ -2447,10 +2474,10 @@ declare interface Hacknet {
 	 * Returns false otherwise.
 	 *
 	 * @param index - Index/Identifier of Hacknet Node.
-	 * @param n - Number of cores to purchase. Must be positive. Rounded to nearest integer.
+	 * @param n - Number of cores to purchase. Must be positive. Rounded to nearest integer. Defaults to 1 if not specified.
 	 * @returns True if the Hacknet Node’s cores are successfully purchased, false otherwise.
 	 */
-	upgradeCore(index: number, n: number): boolean
+	upgradeCore(index: number, n?: number): boolean
 
 	/**
 	 * Upgrade the cache of a hacknet node.
@@ -2467,10 +2494,10 @@ declare interface Hacknet {
 	 * Returns false otherwise.
 	 *
 	 * @param index - Index/Identifier of Hacknet Node.
-	 * @param n - Number of cache levels to purchase. Must be positive. Rounded to nearest integer.
+	 * @param n - Number of cache levels to purchase. Must be positive. Rounded to nearest integer. Defaults to 1 if not specified.
 	 * @returns True if the Hacknet Node’s cache level is successfully upgraded, false otherwise.
 	 */
-	upgradeCache(index: number, n: number): boolean
+	upgradeCache(index: number, n?: number): boolean
 
 	/**
 	 * Calculate the cost of upgrading hacknet node levels.
@@ -2483,10 +2510,10 @@ declare interface Hacknet {
 	 * If the specified Hacknet Node is already at max level, then Infinity is returned.
 	 *
 	 * @param index - Index/Identifier of Hacknet Node.
-	 * @param n - Number of levels to upgrade. Must be positive. Rounded to nearest integer.
+	 * @param n - Number of levels to upgrade. Must be positive. Rounded to nearest integer. Defaults to 1 if not specified.
 	 * @returns Cost of upgrading the specified Hacknet Node.
 	 */
-	getLevelUpgradeCost(index: number, n: number): number
+	getLevelUpgradeCost(index: number, n?: number): number
 
 	/**
 	 * Calculate the cost of upgrading hacknet node RAM.
@@ -2499,10 +2526,10 @@ declare interface Hacknet {
 	 * If the specified Hacknet Node already has max RAM, then Infinity is returned.
 	 *
 	 * @param index - Index/Identifier of Hacknet Node.
-	 * @param n - Number of times to upgrade RAM. Must be positive. Rounded to nearest integer.
+	 * @param n - Number of times to upgrade RAM. Must be positive. Rounded to nearest integer. Defaults to 1 if not specified.
 	 * @returns Cost of upgrading the specified Hacknet Node's RAM.
 	 */
-	getRamUpgradeCost(index: number, n: number): number
+	getRamUpgradeCost(index: number, n?: number): number
 
 	/**
 	 * Calculate the cost of upgrading hacknet node cores.
@@ -2515,10 +2542,10 @@ declare interface Hacknet {
 	 * If the specified Hacknet Node is already at max level, then Infinity is returned.
 	 *
 	 * @param index - Index/Identifier of Hacknet Node.
-	 * @param n - Number of times to upgrade cores. Must be positive. Rounded to nearest integer.
+	 * @param n - Number of times to upgrade cores. Must be positive. Rounded to nearest integer. Defaults to 1 if not specified.
 	 * @returns Cost of upgrading the specified Hacknet Node's number of cores.
 	 */
-	getCoreUpgradeCost(index: number, n: number): number
+	getCoreUpgradeCost(index: number, n?: number): number
 
 	/**
 	 * Calculate the cost of upgrading hacknet node cache.
@@ -2533,10 +2560,10 @@ declare interface Hacknet {
 	 * If the specified Hacknet Node is already at max level, then Infinity is returned.
 	 *
 	 * @param index - Index/Identifier of Hacknet Node.
-	 * @param n - Number of times to upgrade cache. Must be positive. Rounded to nearest integer.
+	 * @param n - Number of times to upgrade cache. Must be positive. Rounded to nearest integer. Defaults to 1 if not specified.
 	 * @returns Cost of upgrading the specified Hacknet Node's cache.
 	 */
-	getCacheUpgradeCost(index: number, n: number): number
+	getCacheUpgradeCost(index: number, n?: number): number
 
 	/**
 	 * Get the total number of hashes stored.
@@ -2574,19 +2601,10 @@ declare interface Hacknet {
 	 * Returns the number of hashes required for the specified upgrade. The name of the upgrade must be an exact match.
 	 *
 	 * @example
-	 * ```ts
-	 * // NS1:
-	 * var upgradeName = "Sell for Corporation Funds";
-	 * if (hacknet.numHashes() > hacknet.hashCost(upgradeName)) {
-	 *    hacknet.spendHashes(upgradeName);
-	 * }
-	 * ```
-	 * @example
-	 * ```ts
-	 * // NS2:
+	 * ```js
 	 * const upgradeName = "Sell for Corporation Funds";
 	 * if (ns.hacknet.numHashes() > ns.hacknet.hashCost(upgradeName)) {
-	 *    ns.hacknet.spendHashes(upgradeName);
+	 *   ns.hacknet.spendHashes(upgradeName);
 	 * }
 	 * ```
 	 * @param upgName - Name of the upgrade of Hacknet Node.
@@ -2610,15 +2628,10 @@ declare interface Hacknet {
 	 * In this case, the `upgTarget` argument must be the hostname of the server.
 	 *
 	 * @example
-	 * ```ts
-	 * // NS1:
-	 * hacknet.spendHashes("Sell for Corporation Funds");
-	 * hacknet.spendHashes("Increase Maximum Money", "foodnstuff");
-	 * ```
-	 * @example
-	 * ```ts
-	 * NS2:
+	 * ```js
+	 * // For upgrades where no target is required
 	 * ns.hacknet.spendHashes("Sell for Corporation Funds");
+	 * // For upgrades requiring a target
 	 * ns.hacknet.spendHashes("Increase Maximum Money", "foodnstuff");
 	 * ```
 	 * @param upgName - Name of the upgrade of Hacknet Node.
@@ -2638,13 +2651,7 @@ declare interface Hacknet {
 	 *
 	 * Returns the list of all available hash upgrades that can be used in the spendHashes function.
 	 * @example
-	 * ```ts
-	 * // NS1:
-	 * var upgrades = hacknet.getHashUpgrades(); // ["Sell for Money","Sell for Corporation Funds",...]
-	 * ```
-	 * @example
-	 * ```ts
-	 * // NS2:
+	 * ```js
 	 * const upgrades = ns.hacknet.getHashUpgrades(); // ["Sell for Money","Sell for Corporation Funds",...]
 	 * ```
 	 * @returns An array containing the available upgrades
@@ -3122,16 +3129,7 @@ declare interface Bladeburner {
 	 * Returns an array with two elements:
 	 * * [Current stamina, Max stamina]
 	 * @example
-	 * ```ts
-	 * // NS1:
-	 * function getStaminaPercentage() {
-	 *    var res = bladeburner.getStamina();
-	 *    return res[0] / res[1];
-	 * }
-	 * ```
-	 * @example
-	 * ```ts
-	 * // NS2:
+	 * ```js
 	 * function getStaminaPercentage() {
 	 *    const [current, max] = ns.bladeburner.getStamina();
 	 *    return current / max;
@@ -3209,15 +3207,6 @@ declare interface CodingContract {
 	 *
 	 * @example
 	 * ```js
-	 * // NS1
-	 * var reward = codingcontract.attempt(yourSolution, filename, hostname);
-	 * if (reward) {
-	 *   tprint("Contract solved successfully! Reward: " + reward)
-	 * } else tprint("Failed to solve contract.")
-	 * ```
-	 * @example
-	 * ```js
-	 * // NS2
 	 * const reward = codingcontract.attempt(yourSolution, filename, hostname);
 	 * if (reward) {
 	 *   ns.tprint(`Contract solved successfully! Reward: ${reward}`)
@@ -3591,7 +3580,7 @@ declare interface Sleeve {
 	 *
 	 * Return the number of duplicate sleeves the player has.
 	 *
-	 * @returns number of duplicate sleeves the player has.
+	 * @returns Number of duplicate sleeves the player has.
 	 */
 	getNumSleeves(): number
 
@@ -3686,12 +3675,12 @@ declare interface Sleeve {
 	 * @remarks
 	 * RAM cost: 4 GB
 	 *
-	 * Return a boolean indicating whether or not the sleeve started working or this faction.
+	 * Return a boolean indicating whether or not the sleeve started working for a faction.
 	 *
 	 * @param sleeveNumber - Index of the sleeve to work for the faction.
 	 * @param factionName - Name of the faction to work for.
 	 * @param factionWorkType - Name of the action to perform for this faction.
-	 * @returns True if the sleeve started working on this faction, false otherwise, can also throw on errors
+	 * @returns True if the sleeve started working for this faction, false otherwise. Can also throw on errors.
 	 */
 	setToFactionWork(
 		sleeveNumber: number,
@@ -3704,11 +3693,11 @@ declare interface Sleeve {
 	 * @remarks
 	 * RAM cost: 4 GB
 	 *
-	 * Return a boolean indicating whether or not the sleeve started working or this company.
+	 * Return a boolean indicating whether or not the sleeve started working for a company.
 	 *
 	 * @param sleeveNumber - Index of the sleeve to work for the company.
 	 * @param companyName - Name of the company to work for.
-	 * @returns True if the sleeve started working on this company, false otherwise.
+	 * @returns True if the sleeve started working for this company, false otherwise.
 	 */
 	setToCompanyWork(sleeveNumber: number, companyName: string): boolean
 
@@ -3817,16 +3806,16 @@ declare interface Sleeve {
 	purchaseSleeveAug(sleeveNumber: number, augName: string): boolean
 
 	/**
-	 * Set a sleeve to perform bladeburner actions.
+	 * Set a sleeve to perform Bladeburner actions.
 	 * @remarks
 	 * RAM cost: 4 GB
 	 *
-	 * Return a boolean indicating whether or not the sleeve started working out.
+	 * Return a boolean indicating whether or not the sleeve started a Bladeburner action.
 	 *
-	 * @param sleeveNumber - Index of the sleeve to workout at the gym.
+	 * @param sleeveNumber - Index of the sleeve to perform a Bladeburner action.
 	 * @param action - Name of the action to be performed.
 	 * @param contract - Name of the contract if applicable.
-	 * @returns True if the sleeve started working out, false otherwise.
+	 * @returns True if the sleeve started the given Bladeburner action, false otherwise.
 	 */
 	setToBladeburnerAction(
 		sleeveNumber: number,
@@ -4594,38 +4583,31 @@ interface UserInterface {
  * Collection of all functions passed to scripts
  * @public
  * @remarks
- * <b>Basic ns1 usage example:</b>
- * ```ts
- *  // Basic ns functions can be used directly
- *  getHostname();
- *  // Some related functions are gathered within a common namespace
- *  stock.getPrice();
- * ```
- * {@link https://bitburner-official.readthedocs.io/en/latest/netscript/netscript1.html| ns1 in-game docs}
- * <hr>
- * <b>Basic ns2 usage example:</b>
- * ```ts
+ * <b>Basic usage example:</b>
+ * ```js
  * export async function main(ns) {
  *  // Basic ns functions can be accessed on the ns object
  *  ns.getHostname();
  *  // Some related functions are gathered under a sub-property of the ns object
  *  ns.stock.getPrice();
- *  // Some functions need to be awaited
+ *  // Most functions that return a promise need to be awaited.
  *  await ns.hack('n00dles');
  * }
  * ```
  * {@link https://bitburner-official.readthedocs.io/en/latest/netscript/netscriptjs.html| ns2 in-game docs}
  * <hr>
+ * For (deprecated) .script usage, see: {@link https://bitburner-official.readthedocs.io/en/latest/netscript/netscript1.html| ns1 in-game docs}
+ * <hr>
  */
 declare interface NS {
 	/**
-	 * Namespace for hacknet functions.
-	 * @remarks RAM cost: 4 GB
+	 * Namespace for hacknet functions. Some of this API contains spoilers.
+	 * @remarks RAM cost: 4 GB.
 	 */
 	readonly hacknet: Hacknet
 
 	/**
-	 * Namespace for bladeburner functions.
+	 * Namespace for bladeburner functions. Contains spoilers.
 	 * @remarks RAM cost: 0 GB
 	 */
 	readonly bladeburner: Bladeburner
@@ -4637,13 +4619,13 @@ declare interface NS {
 	readonly codingcontract: CodingContract
 
 	/**
-	 * Namespace for gang functions.
+	 * Namespace for gang functions. Contains spoilers.
 	 * @remarks RAM cost: 0 GB
 	 */
 	readonly gang: Gang
 
 	/**
-	 * Namespace for sleeve functions.
+	 * Namespace for sleeve functions. Contains spoilers.
 	 * @remarks RAM cost: 0 GB
 	 */
 	readonly sleeve: Sleeve
@@ -4661,37 +4643,37 @@ declare interface NS {
 	readonly formulas: Formulas
 
 	/**
-	 * Namespace for stanek functions.
-	 * RAM cost: 0 GB
+	 * Namespace for stanek functions. Contains spoilers.
+	 * @remarks RAM cost: 0 GB
 	 */
 	readonly stanek: Stanek
 
 	/**
 	 * Namespace for infiltration functions.
-	 * RAM cost: 0 GB
+	 * @remarks RAM cost: 0 GB
 	 */
 	readonly infiltration: Infiltration
 
 	/**
-	 * Namespace for corporation functions.
-	 * RAM cost: 1022.4 GB
+	 * Namespace for corporation functions. Contains spoilers.
+	 * @remarks RAM cost: 0 GB
 	 */
 	readonly corporation: Corporation
 
 	/**
 	 * Namespace for user interface functions.
-	 * RAM cost: 0 GB
+	 * @remarks RAM cost: 0 GB
 	 */
 	readonly ui: UserInterface
 
 	/**
-	 * Namespace for singularity functions.
-	 * RAM cost: 0 GB
+	 * Namespace for singularity functions. Contains spoilers.
+	 * @remarks RAM cost: 0 GB
 	 */
 	readonly singularity: Singularity
 
 	/**
-	 * Namespace for grafting functions.
+	 * Namespace for grafting functions. Contains spoilers.
 	 * @remarks RAM cost: 0 GB
 	 */
 	readonly grafting: Grafting
@@ -4743,18 +4725,12 @@ declare interface NS {
 	 * A successful `hack()` on a server will raise that server’s security level by 0.002.
 	 *
 	 * @example
-	 * ```ts
-	 * // NS1:
-	 * var earnedMoney = hack("foodnstuff");
-	 * ```
-	 * @example
-	 * ```ts
-	 * // NS2:
+	 * ```js
 	 * let earnedMoney = await ns.hack("foodnstuff");
 	 * ```
 	 * @param host - Hostname of the target server to hack.
 	 * @param opts - Optional parameters for configuring function behavior.
-	 * @returns The amount of money stolen if the hack is successful, and zero otherwise.
+	 * @returns A promise that resolves to the amount of money stolen (which is zero if the hack is unsuccessful).
 	 */
 	hack(host: string, opts?: BasicHGWOptions): Promise<number>
 
@@ -4814,20 +4790,13 @@ declare interface NS {
 	 * there is no required hacking level to run the function.
 	 *
 	 * @example
-	 * ```ts
-	 * // NS1:
-	 * var currentSecurity = getServerSecurityLevel("foodnstuff");
-	 * currentSecurity = currentSecurity - weaken("foodnstuff");
-	 * ```
-	 * @example
-	 * ```ts
-	 * // NS2:
+	 * ```js
 	 * let currentSecurity = ns.getServerSecurityLevel("foodnstuff");
 	 * currentSecurity -= await ns.weaken("foodnstuff");
 	 * ```
 	 * @param host - Hostname of the target server to weaken.
 	 * @param opts - Optional parameters for configuring function behavior.
-	 * @returns The amount by which the target server’s security level was decreased. This is equivalent to 0.05 multiplied by the number of script threads.
+	 * @returns A promise that resolves to the value by which security was reduced.
 	 */
 	weaken(host: string, opts?: BasicHGWOptions): Promise<number>
 
@@ -4954,14 +4923,14 @@ declare interface NS {
 	growthAnalyze(host: string, multiplier: number, cores?: number): number
 
 	/**
-	 * Calculate the security increase for a number of threads.
+	 * Calculate the security increase for a number of grow threads.
 	 * @remarks
 	 * RAM cost: 1 GB
 	 *
 	 * Returns the security increase that would occur if a grow with this many threads happened.
 	 *
 	 * @param threads - Amount of threads that will be used.
-	 * @param hostname - Optional. Hostname of the target server. The number of threads is limited to the number needed to hack the server's maximum amount of money.
+	 * @param hostname - Optional. Hostname of the target server. If provided, security increase is limited by the number of threads needed to reach maximum money.
 	 * @param cores - Optional. The number of cores of the server that would run grow.
 	 * @returns The security increase.
 	 */
@@ -4978,35 +4947,24 @@ declare interface NS {
 	 *
 	 * @param millis - Number of milliseconds to sleep.
 	 * @example
-	 * ```ts
-	 * // NS1:
+	 * ```js
 	 * // This will count from 1 to 10 in your terminal, with one number every 5 seconds
-	 * for (var i=0; i<10; i++) {
-	 *   tprint(i + 1);
-	 *   sleep(5000);
-	 * }
-	 * ```
-	 * @example
-	 * ```ts
-	 * // NS2:
-	 * // This will count from 1 to 10 in your terminal, with one number every 5 seconds
-	 * for (var i=0; i<10; i++) {
-	 *   ns.tprint(i + 1);
+	 * for (var i = 1; i <= 10; i++) {
+	 *   ns.tprint(i);
 	 *   await ns.sleep(5000);
 	 * }
 	 * ```
-	 * @returns
+	 * @returns A promise that resolves to true when the sleep is completed.
 	 */
 	sleep(millis: number): Promise<true>
 
 	/**
 	 * Suspends the script for n milliseconds. Doesn't block with concurrent calls.
-	 * You should prefer 'sleep' over 'asleep' except when doing very complex UI work.
 	 * @remarks
 	 * RAM cost: 0 GB
 	 *
 	 * @param millis - Number of milliseconds to sleep.
-	 * @returns
+	 * @returns A promise that resolves to true when the sleep is completed.
 	 */
 	asleep(millis: number): Promise<true>
 
@@ -5038,29 +4996,7 @@ declare interface NS {
 	 * strict mode.
 	 *
 	 * @example
-	 * ```ts
-	 * // NS1
-	 * // Default color coding.
-	 * print("ERROR means something's wrong.");
-	 * print("SUCCESS means everything's OK.");
-	 * print("WARN Tread with caution!");
-	 * print("WARNING, warning, danger, danger!");
-	 * print("WARNing! Here be dragons.");
-	 * print("INFO for your I's only (FYI).");
-	 * print("INFOrmation overload!");
-	 * // Custom color coding.
-	 * var cyan = "\u001b[36m";
-	 * var green = "\u001b[32m";
-	 * var red = "\u001b[31m";
-	 * var reset = "\u001b[0m";
-	 * print(red + "Ugh! What a mess." + reset);
-	 * print(green + "Well done!" + reset);
-	 * print(cyan + "ERROR Should this be in red?" + reset);
-	 * tail();
-	 * ```
-	 * @example
-	 * ```ts
-	 * // NS2
+	 * ```js
 	 * // Default color coding.
 	 * ns.print("ERROR means something's wrong.");
 	 * ns.print("SUCCESS means everything's OK.");
@@ -5094,21 +5030,7 @@ declare interface NS {
 	 * - For more detail, see: https://github.com/alexei/sprintf.js
 	 *
 	 * @example
-	 * ```ts
-	 * // NS1
-	 * var name = "Bit";
-	 * var age = 4;
-	 * printf("My name is %s.", name);
-	 * printf("I'm %d seconds old.", age);
-	 * printf("My age in binary is %b.", age);
-	 * printf("My age in scientific notation is %e.", age);
-	 * printf("In %d seconds, I'll be %s.", 6, "Byte");
-	 * printf("Am I a nibble? %t", (4 == age));
-	 * tail();
-	 * ```
-	 * @example
-	 * ```ts
-	 * // NS2
+	 * ```js
 	 * const name = "Bit";
 	 * const age = 4;
 	 * ns.printf("My name is %s.", name);
@@ -5332,25 +5254,7 @@ declare interface NS {
 	 * array are strings.
 	 *
 	 * @example
-	 * ```ts
-	 * // NS1
-	 * // All servers that are one hop from the current server.
-	 * tprint("Neighbors of current server.");
-	 * var neighbor = scan();
-	 * for (var i = 0; i < neighbor.length; i++) {
-	 *     tprint(neighbor[i]);
-	 * }
-	 * // All neighbors of n00dles.
-	 * var target = "n00dles";
-	 * neighbor = scan(target);
-	 * tprintf("Neighbors of %s.", target);
-	 * for (var i = 0; i < neighbor.length; i++) {
-	 *     tprint(neighbor[i]);
-	 * }
-	 * ```
-	 * @example
-	 * ```ts
-	 * // NS2
+	 * ```js
 	 * // All servers that are one hop from the current server.
 	 * ns.tprint("Neighbors of current server.");
 	 * let neighbor = ns.scan();
@@ -5377,14 +5281,7 @@ declare interface NS {
 	 *
 	 * @example
 	 * ```js
-	 * // NS1:
-	 * if (hasTorRouter()) tprint("TOR router detected.");
-	 * ```
-	 *
-	 * @example
-	 * ```js
-	 * // NS2:
-	 * if (ns.hasTorRouter()) tprint("TOR router detected.");
+	 * if (ns.hasTorRouter()) ns.tprint("TOR router detected.");
 	 * ```
 	 *
 	 * @returns Whether player has access to the dark web. */
@@ -5398,13 +5295,7 @@ declare interface NS {
 	 * Running NUKE.exe on a target server gives you root access which means you can execute scripts on said server. NUKE.exe must exist on your home computer.
 	 *
 	 * @example
-	 * ```ts
-	 * // NS1:
-	 * nuke("foodnstuff");
-	 * ```
-	 * @example
-	 * ```ts
-	 * // NS2:
+	 * ```js
 	 * ns.nuke("foodnstuff");
 	 * ```
 	 * @param host - Hostname of the target server.
@@ -5419,13 +5310,7 @@ declare interface NS {
 	 * Runs the BruteSSH.exe program on the target server. BruteSSH.exe must exist on your home computer.
 	 *
 	 * @example
-	 * ```ts
-	 * // NS1:
-	 * brutessh("foodnstuff");
-	 * ```
-	 * @example
-	 * ```ts
-	 * // NS2:
+	 * ```js
 	 * ns.brutessh("foodnstuff");
 	 * ```
 	 * @param host - Hostname of the target server.
@@ -5440,13 +5325,7 @@ declare interface NS {
 	 * Runs the FTPCrack.exe program on the target server. FTPCrack.exe must exist on your home computer.
 	 *
 	 * @example
-	 * ```ts
-	 * // NS1:
-	 * ftpcrack("foodnstuff");
-	 * ```
-	 * @example
-	 * ```ts
-	 * // NS2:
+	 * ```js
 	 * ns.ftpcrack("foodnstuff");
 	 * ```
 	 * @param host - Hostname of the target server.
@@ -5461,13 +5340,7 @@ declare interface NS {
 	 * Runs the relaySMTP.exe program on the target server. relaySMTP.exe must exist on your home computer.
 	 *
 	 * @example
-	 * ```ts
-	 * // NS1:
-	 * relaysmtp("foodnstuff");
-	 * ```
-	 * @example
-	 * ```ts
-	 * // NS2:
+	 * ```js
 	 * ns.relaysmtp("foodnstuff");
 	 * ```
 	 * @param host - Hostname of the target server.
@@ -5482,13 +5355,7 @@ declare interface NS {
 	 * Runs the HTTPWorm.exe program on the target server. HTTPWorm.exe must exist on your home computer.
 	 *
 	 * @example
-	 * ```ts
-	 * // NS1:
-	 * httpworm("foodnstuff");
-	 * ```
-	 * @example
-	 * ```ts
-	 * // NS2:
+	 * ```js
 	 * ns.httpworm("foodnstuff");
 	 * ```
 	 * @param host - Hostname of the target server.
@@ -5503,13 +5370,7 @@ declare interface NS {
 	 * Runs the SQLInject.exe program on the target server. SQLInject.exe must exist on your home computer.
 	 *
 	 * @example
-	 * ```ts
-	 * // NS1:
-	 * sqlinject("foodnstuff");
-	 * ```
-	 * @example
-	 * ```ts
-	 * // NS2:
+	 * ```js
 	 * ns.sqlinject("foodnstuff");
 	 * ```
 	 * @remarks RAM cost: 0.05 GB
@@ -5526,13 +5387,16 @@ declare interface NS {
 	 * current server (the server running the script that calls this function). Requires a significant
 	 * amount of RAM to run this command.
 	 *
+	 * The second argument is either a thread count, or a {@link RunOptions} object that can also
+	 * specify the number of threads (among other things).
+	 *
 	 * If the script was successfully started, then this functions returns the PID of that script.
 	 * Otherwise, it returns 0.
 	 *
 	 * PID stands for Process ID. The PID is a unique identifier for each script.
 	 * The PID will always be a positive integer.
 	 *
-	 * Running this function with a numThreads argument of 0 or less will cause a runtime error.
+	 * Running this function with 0 or fewer threads will cause a runtime error.
 	 *
 	 * @example
 	 * ```js
@@ -5540,19 +5404,19 @@ declare interface NS {
 	 * ns.run("foo.js");
 	 *
 	 * //The following example will run ‘foo.js’ but with 5 threads instead of single-threaded:
-	 * ns.run("foo.js", 5);
+	 * ns.run("foo.js", {threads: 5});
 	 *
 	 * //This next example will run ‘foo.js’ single-threaded, and will pass the string ‘foodnstuff’ into the script as an argument:
 	 * ns.run("foo.js", 1, 'foodnstuff');
 	 * ```
 	 * @param script - Filename of script to run.
-	 * @param numThreads - Integer number of threads for new script. Defaults to 1.
-	 * @param args - Additional arguments to pass into the new script that is being run. Note that if any arguments are being passed into the new script, then the second argument numThreads must be filled in with a value.
+	 * @param threadOrOptions - Either an integer number of threads for new script, or a {@link RunOptions} object. Threads defaults to 1.
+	 * @param args - Additional arguments to pass into the new script that is being run. Note that if any arguments are being passed into the new script, then the second argument threadOrOptions must be filled in with a value.
 	 * @returns Returns the PID of a successfully started script, and 0 otherwise.
 	 */
 	run(
 		script: string,
-		numThreads?: number,
+		threadOrOptions?: number | RunOptions,
 		...args: (string | number | boolean)[]
 	): number
 
@@ -5562,7 +5426,7 @@ declare interface NS {
 	 * RAM cost: 1.3 GB
 	 *
 	 * Run a script as a separate process on a specified server. This is similar to the function {@link NS.run | run}
-	 * except that it can be used to run a script on any server, instead of just the current server.
+	 * except that it can be used to run a script that already exists on any server, instead of just the current server.
 	 *
 	 * If the script was successfully started, then this function returns the PID of that script.
 	 * Otherwise, it returns 0.
@@ -5570,7 +5434,7 @@ declare interface NS {
 	 * PID stands for Process ID. The PID is a unique identifier for each script.
 	 * The PID will always be a positive integer.
 	 *
-	 * Running this function with a numThreads argument of 0 or less will cause a runtime error.
+	 * Running this function with 0 or fewer threads will cause a runtime error.
 	 *
 	 * @example
 	 * ```js
@@ -5581,23 +5445,23 @@ declare interface NS {
 	 *
 	 * // The following example will try to run the script generic-hack.js on the
 	 * // joesguns server with 10 threads.
-	 * ns.exec("generic-hack.js", "joesguns", 10);
+	 * ns.exec("generic-hack.js", "joesguns", {threads: 10});
 	 *
 	 * // This last example will try to run the script foo.js on the foodnstuff server
 	 * // with 5 threads. It will also pass the number 1 and the string “test” in as
 	 * // arguments to the script.
 	 * ns.exec("foo.js", "foodnstuff", 5, 1, "test");
 	 * ```
-	 * @param script - Filename of script to execute.
+	 * @param script - Filename of script to execute. This file must already exist on the target server.
 	 * @param hostname - Hostname of the `target server` on which to execute the script.
-	 * @param numThreads - Integer number of threads for new script. Defaults to 1.
-	 * @param args - Additional arguments to pass into the new script that is being run. Note that if any arguments are being passed into the new script, then the third argument numThreads must be filled in with a value.
+	 * @param threadOrOptions - Either an integer number of threads for new script, or a {@link RunOptions} object. Threads defaults to 1.
+	 * @param args - Additional arguments to pass into the new script that is being run. Note that if any arguments are being passed into the new script, then the third argument threadOrOptions must be filled in with a value.
 	 * @returns Returns the PID of a successfully started script, and 0 otherwise.
 	 */
 	exec(
 		script: string,
 		hostname: string,
-		numThreads?: number,
+		threadOrOptions?: number | RunOptions,
 		...args: (string | number | boolean)[]
 	): number
 
@@ -5613,7 +5477,7 @@ declare interface NS {
 	 *
 	 * Because this function immediately terminates the script, it does not have a return value.
 	 *
-	 * Running this function with a numThreads argument of 0 or less will cause a runtime error.
+	 * Running this function with 0 or fewer threads will cause a runtime error.
 	 *
 	 * @example
 	 * ```js
@@ -5621,12 +5485,12 @@ declare interface NS {
 	 * ns.spawn('foo.js', 10, 'foodnstuff', 90);
 	 * ```
 	 * @param script - Filename of script to execute.
-	 * @param numThreads - Integer number of threads for new script. Defaults to 1.
+	 * @param threadOrOptions - Either an integer number of threads for new script, or a {@link RunOptions} object. Threads defaults to 1.
 	 * @param args - Additional arguments to pass into the new script that is being run.
 	 */
 	spawn(
 		script: string,
-		numThreads?: number,
+		threadOrOptions?: number | RunOptions,
 		...args: (string | number | boolean)[]
 	): void
 
@@ -5650,11 +5514,11 @@ declare interface NS {
 	kill(pid: number): boolean
 
 	/**
-	 * Terminate the script with the provided filename, hostname, and script arguments.
+	 * Terminate the script(s) with the provided filename, hostname, and script arguments.
 	 * @remarks
 	 * RAM cost: 0.5 GB
 	 *
-	 * Kills the script with the provided filename, running on the specified host with the specified args.
+	 * Kills the script(s) with the provided filename, running on the specified host with the specified args.
 	 * To instead kill a script using its PID, see {@link NS.(kill:1) | the other ns.kill entry}.
 	 *
 	 * @example
@@ -5671,7 +5535,7 @@ declare interface NS {
 	 * @param filename - Filename of the script to kill.
 	 * @param hostname - Hostname where the script to kill is running. Defaults to the current server.
 	 * @param args - Arguments of the script to kill.
-	 * @returns True if the script is successfully killed, and false otherwise.
+	 * @returns True if the scripts were successfully killed, and false otherwise.
 	 */
 	kill(filename: string, hostname?: string, ...args: ScriptArg[]): boolean
 
@@ -5737,10 +5601,10 @@ declare interface NS {
 	 * (as strings). The returned array is sorted in alphabetic order.
 	 *
 	 * @param host - Hostname of the target server.
-	 * @param grep - A substring to search for in the filename.
+	 * @param substring - A substring to search for in the filename.
 	 * @returns Array with the filenames of all files on the specified server.
 	 */
-	ls(host: string, grep?: string): string[]
+	ls(host: string, substring?: string): string[]
 
 	/**
 	 * List running scripts on a server.
@@ -5750,21 +5614,11 @@ declare interface NS {
 	 * Returns an array with general information about all scripts running on the specified target server.
 	 *
 	 * @example
-	 * ```ts
-	 * // NS1:
-	 * var scripts = ps("home");
-	 * for (var i = 0; i < scripts.length; ++i) {
-	 *     tprint(scripts[i].filename + ' ' + scripts[i].threads);
-	 *     tprint(scripts[i].args);
-	 * }
-	 * ```
-	 * @example
-	 * ```ts
-	 * // NS2:
+	 * ```js
 	 * const ps = ns.ps("home");
 	 * for (let script of ps) {
-	 *     ns.tprint(`${script.filename} ${script.threads}`);
-	 *     ns.tprint(script.args);
+	 *   ns.tprint(`${script.filename} ${script.threads}`);
+	 *   ns.tprint(script.args);
 	 * }
 	 * ```
 	 * @param host - Host address of the target server. If not specified, it will be the current server’s IP by default.
@@ -5780,17 +5634,9 @@ declare interface NS {
 	 * Returns a boolean indicating whether or not the player has root access to the specified target server.
 	 *
 	 * @example
-	 * ```ts
-	 * // NS1:
-	 * if (hasRootAccess("foodnstuff") == false) {
-	 *    nuke("foodnstuff");
-	 * }
-	 * ```
-	 * @example
-	 * ```ts
-	 * // NS2:
-	 * if (ns.hasRootAccess("foodnstuff") == false) {
-	 *    ns.nuke("foodnstuff");
+	 * ```js
+	 * if (!ns.hasRootAccess("foodnstuff")) {
+	 *   ns.nuke("foodnstuff");
 	 * }
 	 * ```
 	 * @param host - Hostname of the target server.
@@ -5826,20 +5672,10 @@ declare interface NS {
 	 * (e.g. 1.5 instead of 150%).
 	 *
 	 * @example
-	 * ```ts
-	 * // NS1:
-	 * // Example of how this can be used:
-	 * var mults = getHackingMultipliers();
-	 * print(mults.chance);
-	 * print(mults.growth);
-	 * ```
-	 * @example
-	 * ```ts
-	 * // NS2:
-	 * // Example of how this can be used:
-	 * const {chance, growth} = ns.getHackingMultipliers();
-	 * print(chance);
-	 * print(growth);
+	 * ```js
+	 * const mults = ns.getHackingMultipliers();
+	 * print(`chance: ${mults.chance}`);
+	 * print(`growthL ${mults.growth}`);
 	 * ```
 	 * @returns Object containing the Player’s hacking related multipliers.
 	 */
@@ -5855,20 +5691,10 @@ declare interface NS {
 	 * (e.g. 1.5 instead of 150%).
 	 *
 	 * @example
-	 * ```ts
-	 * // NS1:
-	 * // Example of how this can be used:
-	 * var mults = getHacknetMultipliers();
-	 * print(mults.production);
-	 * print(mults.purchaseCost);
-	 * ```
-	 * @example
-	 * ```ts
-	 * // NS2:
-	 * // Example of how this can be used:
-	 * const {production, purchaseCost} = ns.getHacknetMultipliers();
-	 * print(production);
-	 * print(purchaseCost);
+	 * ```js
+	 * const mults = ns.getHacknetMultipliers();
+	 * ns.tprint(`production: ${mults.production}`);
+	 * ns.tprint(`purchaseCost: ${mults.purchaseCost}`);
 	 * ```
 	 * @returns Object containing the Player’s hacknet related multipliers.
 	 */
@@ -5893,14 +5719,7 @@ declare interface NS {
 	 * Running this function on the home computer will return the player’s money.
 	 *
 	 * @example
-	 * ```ts
-	 * // NS1:
-	 * getServerMoneyAvailable("foodnstuff");
-	 * getServerMoneyAvailable("home"); //Returns player's money
-	 * ```
-	 * @example
-	 * ```ts
-	 * // NS2:
+	 * ```js
 	 * ns.getServerMoneyAvailable("foodnstuff");
 	 * ns.getServerMoneyAvailable("home"); // Returns player's money
 	 * ```
@@ -6053,7 +5872,9 @@ declare interface NS {
 	 *
 	 * Returns a boolean indicating whether the specified script is running on the target server.
 	 * If you use a PID instead of a filename, the hostname and args parameters are unnecessary.
-	 * Remember that a script is uniquely identified by both its name and its arguments.
+	 * Remember that a script is semi-uniquely identified by both its name and its arguments.
+	 * (You can run multiple copies of scripts with the same arguments, but for the purposes of
+	 * functions like this that check based on filename, the filename plus arguments forms the key.)
 	 *
 	 * @example
 	 * ```js
@@ -6104,18 +5925,10 @@ declare interface NS {
 	 * Returns the cost to purchase a server with the specified amount of ram.
 	 *
 	 * @example
-	 * ```ts
-	 * // NS1:
-	 * for (i = 1; i <= 20; i++) {
-	 *     tprint(i + " -- " + getPurchasedServerCost(Math.pow(2, i)));
-	 * }
-	 * ```
-	 * @example
-	 * ```ts
-	 * // NS2:
-	 * for (i = 1; i <= 20; i++) {
-	 *     ns.tprint(i + " -- " + ns.getPurchasedServerCost(Math.pow(2, i)));
-	 * }
+	 * ```js
+	 * const ram = 2 ** 20;
+	 * const cost = ns.getPurchasedServerCost(ram);
+	 * ns.tprint(`A purchased server with ${ns.formatRam(ram)} costs ${ns.formatMoney(cost)}`);
 	 * ```
 	 * @param ram - Amount of RAM of a potential purchased server, in GB. Must be a power of 2 (2, 4, 8, 16, etc.). Maximum value of 1048576 (2^20).
 	 * @returns The cost to purchase a server with the specified amount of ram.
@@ -6147,17 +5960,8 @@ declare interface NS {
 	 * amount of servers.
 	 *
 	 * @example
-	 * ```ts
-	 * // NS1:
-	 * var ram = 64;
-	 * var prefix = "pserv-";
-	 * for (i = 0; i < 5; ++i) {
-	 *    purchaseServer(prefix + i, ram);
-	 * }
-	 * ```
-	 * @example
-	 * ```ts
-	 * // NS2:
+	 * ```js
+	 * // Attempt to purchase 5 servers with 64GB of ram each
 	 * const ram = 64;
 	 * const prefix = "pserv-";
 	 * for (i = 0; i < 5; ++i) {
@@ -6195,11 +5999,11 @@ declare interface NS {
 	/**
 	 * Rename a purchased server.
 	 * @remarks
-	 * RAM cost: 2.00 GB
+	 * RAM cost: 0 GB
 	 *
 	 * @param hostname - Current server hostname.
 	 * @param newName - New server hostname.
-	 * @returns True if the upgrade succeeded, and false otherwise.
+	 * @returns True if successful, and false otherwise.
 	 */
 	renamePurchasedServer(hostname: string, newName: string): boolean
 
@@ -6272,11 +6076,11 @@ declare interface NS {
 	 * If the port is full, the data will not be written.
 	 * Otherwise, the data will be written normally.
 	 *
-	 * @param port - Port or text file that will be written to.
+	 * @param portNumber - Port or text file that will be written to.
 	 * @param data - Data to write.
 	 * @returns True if the data is successfully written to the port, and false otherwise.
 	 */
-	tryWritePort(port: number, data: string | number): boolean
+	tryWritePort(portNumber: number, data: string | number): boolean
 
 	/**
 	 * Read content of a file.
@@ -6302,10 +6106,10 @@ declare interface NS {
 	 * first element in the specified port without removing that element. If
 	 * the port is empty, the string “NULL PORT DATA” will be returned.
 	 *
-	 * @param port - Port to peek. Must be an integer between 1 and 20.
+	 * @param portNumber - Port to peek. Must be an integer between 1 and 20.
 	 * @returns Data in the specified port.
 	 */
-	peek(port: number): PortData
+	peek(portNumber: number): PortData
 
 	/**
 	 * Clear data from a file.
@@ -6337,7 +6141,7 @@ declare interface NS {
 	 * Write data to the given Netscript port.
 	 * @returns The data popped off the queue if it was full, or null if it was not full.
 	 */
-	writePort(port: number, data: string | number): PortData | null
+	writePort(portNumber: number, data: string | number): PortData | null
 	/**
 	 * Read data from a port.
 	 * @remarks
@@ -6348,7 +6152,7 @@ declare interface NS {
 	 * If the queue is empty, then the string “NULL PORT DATA” will be returned.
 	 * @returns The data read.
 	 */
-	readPort(port: number): PortData
+	readPort(portNumber: number): PortData
 
 	/**
 	 * Get all data on a port.
@@ -6360,9 +6164,9 @@ declare interface NS {
 	 * WARNING: Port Handles only work in NetscriptJS (Netscript 2.0). They will not work in Netscript 1.0.
 	 *
 	 * @see https://bitburner-official.readthedocs.io/en/latest/netscript/netscriptmisc.html#netscript-ports
-	 * @param port - Port number. Must be an integer between 1 and 20.
+	 * @param portNumber - Port number. Must be an integer between 1 and 20.
 	 */
-	getPortHandle(port: number): NetscriptPort
+	getPortHandle(portNumber: number): NetscriptPort
 
 	/**
 	 * Delete a file.
@@ -6641,8 +6445,8 @@ declare interface NS {
 	): string
 
 	/**
-	 * Format a number using the numeral library. This function is deprecated and will be removed in 2.3.
-	 * @deprecated Use ns.formatNumber, formatRam, or formatPercent instead. Will be removed in 2.3.
+	 * Format a number using the numeral library. This function is deprecated and will be removed in 2.4.
+	 * @deprecated Use ns.formatNumber, formatRam, or formatPercent instead. Will be removed in 2.4.
 	 * @remarks
 	 * RAM cost: 0 GB
 	 *
@@ -6698,33 +6502,7 @@ declare interface NS {
 	 *   chooses one of the provided options and presses the "Confirm" button.
 	 *
 	 * @example
-	 * ```ts
-	 * // NS1
-	 * // A Yes/No question. The default is to create a boolean dialog box.
-	 * var queryA = "Do you enjoy Bitburner?";
-	 * var resultA = prompt(queryA);
-	 * tprint(queryA + " " + resultA);
-	 *
-	 * // Another Yes/No question. Can also create a boolean dialog box by explicitly
-	 * // passing the option {"type": "boolean"}.
-	 * var queryB = "Is programming fun?";
-	 * var resultB = prompt(queryB, { type: "boolean" });
-	 * tprint(queryB + " " + resultB);
-	 *
-	 * // Free-form text box.
-	 * var resultC = prompt("Please enter your name.", { type: "text" });
-	 * tprint("Hello, " + resultC + ".");
-	 *
-	 * // A drop-down list.
-	 * var resultD = prompt("Please select your favorite fruit.", {
-	 *     type: "select",
-	 *     choices: ["Apple", "Banana", "Orange", "Pear", "Strawberry"]
-	 * });
-	 * tprint("Your favorite fruit is " + resultD.toLowerCase() + ".");
-	 * ```
-	 * @example
-	 * ```ts
-	 * // NS2
+	 * ```js
 	 * // A Yes/No question. The default is to create a boolean dialog box.
 	 * const queryA = "Do you enjoy Bitburner?";
 	 * const resultA = await ns.prompt(queryA);
@@ -6742,8 +6520,8 @@ declare interface NS {
 	 *
 	 * // A drop-down list.
 	 * const resultD = await ns.prompt("Please select your favorite fruit.", {
-	 *     type: "select",
-	 *     choices: ["Apple", "Banana", "Orange", "Pear", "Strawberry"]
+	 *   type: "select",
+	 *   choices: ["Apple", "Banana", "Orange", "Pear", "Strawberry"]
 	 * });
 	 * ns.tprint(`Your favorite fruit is ${resultD.toLowerCase()}.`);
 	 * ```
@@ -6832,18 +6610,10 @@ declare interface NS {
 	 * you would have received in BitNode-1.
 	 *
 	 * @example
-	 * ```ts
-	 * // NS1:
-	 * var mults = getBitNodeMultipliers();
-	 * print(mults.ServerMaxMoney);
-	 * print(mults.HackExpGain);
-	 * ```
-	 * @example
-	 * ```ts
-	 * // NS2:
-	 * const {ServerMaxMoney, HackExpGain} = ns.getBitNodeMultipliers();
-	 * print(ServerMaxMoney);
-	 * print(HackExpGain);
+	 * ```js
+	 * const mults = ns.getBitNodeMultipliers();
+	 * ns.tprint(`ServerMaxMoney: ${mults.ServerMaxMoney}`);
+	 * ns.tprint(`HackExpGain: ${mults.HackExpGain}`);
 	 * ```
 	 * @returns Object containing the current BitNode multipliers.
 	 */
@@ -6887,8 +6657,6 @@ declare interface NS {
 	 * @remarks
 	 * RAM cost: 0 GB
 	 *
-	 * NS2 exclusive.
-	 *
 	 * Move the source file to the specified destination on the target server.
 	 *
 	 * This command only works for scripts and text files (.txt). It cannot, however,  be used
@@ -6901,6 +6669,20 @@ declare interface NS {
 	 * @param destination - Filename of the destination file.
 	 */
 	mv(host: string, source: string, destination: string): void
+
+	/** Get information about resets.
+	 * @remarks
+	 * RAM cost: 1 GB
+	 *
+	 * @example
+	 * ```js
+	 * const resetInfo = ns.getResetInfo();
+	 * const lastAugReset = resetInfo.lastAugReset;
+	 * ns.tprint(`The last augmentation reset was: ${new Date(lastAugReset)}`);
+	 * ns.tprint(`It has been ${Date.now() - lastAugReset}ms since the last augmentation reset.`);
+	 * ```
+	 * */
+	getResetInfo(): ResetInfo
 
 	/**
 	 * Parse command line flags.
@@ -6939,7 +6721,7 @@ declare interface NS {
 	}
 
 	/**
-	 * Share your computer with your factions.
+	 * Share the server's ram with your factions.
 	 * @remarks
 	 * RAM cost: 2.4 GB
 	 *
@@ -7058,17 +6840,18 @@ type CorpEmployeePosition =
 	| 'Business'
 	| 'Management'
 	| 'Research & Development'
-	| 'Training'
+	| 'Intern'
 	| 'Unassigned'
 
 /** @public */
 type CorpIndustryName =
-	| 'Energy'
+	| 'Spring Water'
 	| 'Water Utilities'
 	| 'Agriculture'
 	| 'Fishing'
 	| 'Mining'
-	| 'Food'
+	| 'Refinery'
+	| 'Restaurant'
 	| 'Tobacco'
 	| 'Chemical'
 	| 'Pharmaceutical'
@@ -7205,7 +6988,7 @@ declare interface OfficeAPI {
 	 * @param divisionName - Name of the division
 	 * @param city - Name of the city
 	 * @param costPerEmployee - Amount to spend per employee.
-	 * @returns Multiplier for happiness and morale, or zero on failure
+	 * @returns Multiplier for morale, or zero on failure
 	 */
 	throwParty(
 		divisionName: string,
@@ -7213,12 +6996,12 @@ declare interface OfficeAPI {
 		costPerEmployee: number
 	): number
 	/**
-	 * Buy coffee for your employees
+	 * Buy tea for your employees
 	 * @param divisionName - Name of the division
 	 * @param city - Name of the city
-	 * @returns true if buying coffee was successful, false otherwise
+	 * @returns true if buying tea was successful, false otherwise
 	 */
-	buyCoffee(divisionName: string, city: CityName | `${CityName}`): boolean
+	buyTea(divisionName: string, city: CityName | `${CityName}`): boolean
 	/**
 	 * Hire AdVert.
 	 * @param divisionName - Name of the division
@@ -7352,13 +7135,13 @@ declare interface WarehouseAPI {
 	 * @param divisionName - Name of the division
 	 * @param city - Name of the city
 	 * @param materialName - Name of the material
-	 * @param enabled - smart supply use leftovers enabled
+	 * @param option - smart supply option, "leftovers" to use leftovers, "imports" to use only imported materials, "none" to not use materials from store
 	 */
-	setSmartSupplyUseLeftovers(
+	setSmartSupplyOption(
 		divisionName: string,
 		city: CityName | `${CityName}`,
 		materialName: string,
-		enabled: boolean
+		option: string
 	): void
 	/**
 	 * Set material buy data
@@ -7386,20 +7169,23 @@ declare interface WarehouseAPI {
 		materialName: string,
 		amt: number
 	): void
-	/**
-	 * Get warehouse data
+
+	/** Get warehouse data
 	 * @param divisionName - Name of the division
 	 * @param city - Name of the city
-	 * @returns warehouse data
-	 */
+	 * @returns warehouse data */
 	getWarehouse(divisionName: string, city: CityName | `${CityName}`): Warehouse
-	/**
-	 * Get product data
+
+	/** Get product data
 	 * @param divisionName - Name of the division
+	 * @param city - Name of the city
 	 * @param productName - Name of the product
-	 * @returns product data
-	 */
-	getProduct(divisionName: string, productName: string): Product
+	 * @returns product data */
+	getProduct(
+		divisionName: string,
+		cityName: CityName | `${CityName}`,
+		productName: string
+	): Product
 	/**
 	 * Get material data
 	 * @param divisionName - Name of the division
@@ -7438,23 +7224,21 @@ declare interface WarehouseAPI {
 		materialName: string,
 		on: boolean
 	): void
-	/**
-	 * Set market TA 1 for a product.
+
+	/** * Set market TA 1 for a product.
 	 * @param divisionName - Name of the division
 	 * @param productName - Name of the product
-	 * @param on - market ta enabled
-	 */
+	 * @param on - market ta enabled */
 	setProductMarketTA1(
 		divisionName: string,
 		productName: string,
 		on: boolean
 	): void
-	/**
-	 * Set market TA 2 for a product.
+
+	/** Set market TA 2 for a product.
 	 * @param divisionName - Name of the division
 	 * @param productName - Name of the product
-	 * @param on - market ta enabled
-	 */
+	 * @param on - market ta enabled */
 	setProductMarketTA2(
 		divisionName: string,
 		productName: string,
@@ -7589,12 +7373,12 @@ declare interface Corporation extends WarehouseAPI, OfficeAPI {
 	/** Check if you have a one time unlockable upgrade
 	 * @param upgradeName - Name of the upgrade
 	 * @returns true if unlocked and false if not */
-	hasUnlockUpgrade(upgradeName: string): boolean
+	hasUnlock(upgradeName: string): boolean
 
 	/** Gets the cost to unlock a one time unlockable upgrade
 	 * @param upgradeName - Name of the upgrade
 	 * @returns cost of the upgrade */
-	getUnlockUpgradeCost(upgradeName: string): number
+	getUnlockCost(upgradeName: string): number
 
 	/** Get the level of a levelable upgrade
 	 * @param upgradeName - Name of the upgrade
@@ -7658,7 +7442,7 @@ declare interface Corporation extends WarehouseAPI, OfficeAPI {
 
 	/** Unlock an upgrade
 	 * @param upgradeName - Name of the upgrade */
-	unlockUpgrade(upgradeName: string): void
+	purchaseUnlock(upgradeName: string): void
 
 	/** Level an upgrade.
 	 * @param upgradeName - Name of the upgrade */
@@ -7674,11 +7458,11 @@ declare interface Corporation extends WarehouseAPI, OfficeAPI {
 	issueNewShares(amount?: number): number
 
 	/** Buyback Shares
-	 * @param amount - Amount of shares to buy back. */
+	 * @param amount - Amount of shares to buy back, must be integer and larger than 0 */
 	buyBackShares(amount: number): void
 
 	/** Sell Shares
-	 * @param amount -  Amount of shares to sell. */
+	 * @param amount -  Amount of shares to sell, must be integer between 1 and 100t */
 	sellShares(amount: number): void
 
 	/** Get bonus time.
@@ -7796,7 +7580,7 @@ interface CorpConstants {
 	issueNewSharesCooldown: number
 	/** Cooldown for selling shares in game cycles (1 game cycle = 200ms) */
 	sellSharesCooldown: number
-	coffeeCostPerEmployee: number
+	teaCostPerEmployee: number
 	gameCyclesPerMarketCycle: number
 	gameCyclesPerCorpStateCycle: number
 	secondsPerMarketCycle: number
@@ -7816,7 +7600,7 @@ interface CorpConstants {
 	employeeRaiseAmount: number
 	/** Max products for a division without upgrades */
 	maxProductsBase: number
-	/** The minimum decay value for happiness/morale/energy */
+	/** The minimum decay value for morale/energy */
 	minEmployeeDecay: number
 }
 /** @public */
@@ -7824,8 +7608,9 @@ type CorpStateName = 'START' | 'PURCHASE' | 'PRODUCTION' | 'EXPORT' | 'SALE'
 
 /** @public */
 type CorpMaterialName =
+	| 'Minerals'
+	| 'Ore'
 	| 'Water'
-	| 'Energy'
 	| 'Food'
 	| 'Plants'
 	| 'Metal'
@@ -7867,7 +7652,6 @@ type CorpResearchName =
 	| 'AutoBrew'
 	| 'AutoPartyManager'
 	| 'Automatic Drug Administration'
-	| 'Bulk Purchasing'
 	| 'CPH4 Injections'
 	| 'Drones'
 	| 'Drones - Assembly'
@@ -7875,7 +7659,6 @@ type CorpResearchName =
 	| 'Go-Juice'
 	| 'HRBuddy-Recruitment'
 	| 'HRBuddy-Training'
-	| 'JoyWire'
 	| 'Market-TA.I'
 	| 'Market-TA.II'
 	| 'Overclock'
@@ -7913,7 +7696,7 @@ interface CorpMaterialConstantData {
 interface IndustryData {
 	/** Industry type */
 	type: CorpIndustryName
-	/** Cost to expand to the division */
+	/** Cost to make a new division of this industry type */
 	cost: number
 	/** Materials required for production and their amounts */
 	requiredMaterials: Record<string, number>
@@ -7935,22 +7718,35 @@ interface Product {
 	/** Name of the product */
 	name: string
 	/** Demand for the product, only present if "Market Research - Demand" unlocked */
-	dmd: number | undefined
+	demand: number | undefined
 	/** Competition for the product, only present if "Market Research - Competition" unlocked */
-	cmp: number | undefined
-	/** Product Rating */
-	rat: number
-	/** Product Properties. The data is \{qlt, per, dur, rel, aes, fea\} */
-	properties: { [key: string]: number }
+	competition: number | undefined
+	/** Rating based on stats */
+	rating: number
+	/** Effective rating in the specific city */
+	effectiveRating: number
+	/** Product stats */
+	stats: {
+		quality: number
+		performance: number
+		durability: number
+		reliability: number
+		aesthetics: number
+		features: number
+	}
 	/** Production cost */
-	pCost: number
-	/** Sell cost, can be "MP+5" */
-	sCost: string | number
-	/** Data refers to the production, sale, and quantity of the products
-	 * These values are specific to a city
-	 * For each city, the data is [qty, prod, sell] */
-	cityData: Record<CityName | `${CityName}`, number[]>
-	/** Creation progress - A number between 0-100 representing percentage */
+	productionCost: number
+	/** Desired sell price, can be "MP+5" */
+	desiredSellPrice: string | number
+	/** Desired sell amount, e.g. "PROD/2" */
+	desiredSellAmount: string | number
+	/** Amount of product stored in warehouse*/
+	stored: number
+	/** Amount of product produced last cycle */
+	productionAmount: number
+	/** Amount of product sold last cycle */
+	actualSellAmount: number
+	/** A number between 0-100 representing percentage completion */
 	developmentProgress: number
 }
 
@@ -7962,23 +7758,25 @@ interface Material {
 	/** Name of the material */
 	name: CorpMaterialName
 	/** Amount of material  */
-	qty: number
+	stored: number
 	/** Quality of the material */
-	qlt: number
+	quality: number
 	/** Demand for the material, only present if "Market Research - Demand" unlocked */
-	dmd: number | undefined
+	demand: number | undefined
 	/** Competition for the material, only present if "Market Research - Competition" unlocked */
-	cmp: number | undefined
-	/** Amount of material produced  */
-	prod: number
-	/** Amount of material sold */
-	sell: number
+	competition: number | undefined
+	/** Amount of material produced last cycle */
+	productionAmount: number
+	/** Amount of material sold last cycle */
+	actualSellAmount: number
 	/** Cost to buy material */
-	cost: number
+	marketPrice: number
 	/** Sell cost, can be "MP+5" */
-	sCost: string | number
+	desiredSellPrice: string | number
+	/** Sell amount, can be "PROD/2" */
+	desiredSellAmount: string | number
 	/** Export orders */
-	exp: Export[]
+	exports: Export[]
 }
 
 /**
@@ -7987,11 +7785,11 @@ interface Material {
  */
 interface Export {
 	/** Division the material is being exported to */
-	div: string
+	division: string
 	/** City the material is being exported to */
-	loc: CityName
+	city: CityName
 	/** Amount of material exported */
-	amt: string
+	amount: string
 }
 
 /**
@@ -8002,7 +7800,7 @@ interface Warehouse {
 	/** Amount of size upgrade bought */
 	level: number
 	/** City in which the warehouse is located */
-	loc: CityName
+	city: CityName
 	/** Total space in the warehouse */
 	size: number
 	/** Used space in the warehouse */
@@ -8017,27 +7815,23 @@ interface Warehouse {
  */
 declare interface Office {
 	/** City of the office */
-	loc: CityName
+	city: CityName
 	/** Maximum number of employee */
 	size: number
 	/** Maximum amount of energy of the employees */
-	maxEne: number
-	/** Maximum happiness of the employees */
-	maxHap: number
+	maxEnergy: number
 	/** Maximum morale of the employees */
-	maxMor: number
+	maxMorale: number
 	/** Amount of employees */
-	employees: number
+	numEmployees: number
 	/** Average energy of the employees */
-	avgEne: number
-	/** Average happiness of the employees */
-	avgHap: number
+	avgEnergy: number
 	/** Average morale of the employees */
-	avgMor: number
+	avgMorale: number
 	/** Total experience of all employees */
 	totalExperience: number
 	/** Production of the employees */
-	employeeProd: Record<CorpEmployeePosition, number>
+	employeeProductionByJob: Record<CorpEmployeePosition, number>
 	/** Positions of the employees */
 	employeeJobs: Record<CorpEmployeePosition, number>
 }
@@ -8056,9 +7850,9 @@ interface Division {
 	/** Popularity of the division */
 	popularity: number
 	/** Production multiplier */
-	prodMult: number
+	productionMult: number
 	/** Amount of research in that division */
-	research: number
+	researchPoints: number
 	/** Revenue last cycle */
 	lastCycleRevenue: number
 	/** Expenses last cycle */
@@ -8067,11 +7861,11 @@ interface Division {
 	thisCycleRevenue: number
 	/** Expenses this cycle */
 	thisCycleExpenses: number
-	/** All research bought */
-	upgrades: number[]
+	/** Number of times AdVert has been bought */
+	numAdVerts: number
 	/** Cities in which this division has expanded */
 	cities: CityName[]
-	/** Products developed by this division */
+	/** Names of Products developed by this division */
 	products: string[]
 	/** Whether the industry this division is in is capable of making products */
 	makesProducts: boolean

@@ -72,9 +72,9 @@ export class MaterialPhaseManager extends BasePhaseManager {
 					city,
 					materialName
 				)
-				if (material.qty < amountDesired) {
-					const toBuy = amountDesired - material.qty
-					const cost = toBuy * material.cost
+				if (material.stored < amountDesired) {
+					const toBuy = amountDesired - material.stored
+					const cost = toBuy * material.marketPrice
 					if (cost <= this.funds) {
 						// we want to buy as much as possible (ideally the entire amount) in a single tick
 						const toBuyPerSecond = toBuy /* per tick */ / 10 /* seconds/tick */
@@ -99,11 +99,11 @@ export class MaterialPhaseManager extends BasePhaseManager {
 				materialDivision.name,
 				buyCity,
 				buyMaterial
-			).qty
+			).stored
 			while (
 				benchmark ===
 				ns.corporation.getMaterial(materialDivision.name, buyCity, buyMaterial)
-					.qty
+					.stored
 			) {
 				await ns.sleep(20 /* ms */)
 			}
@@ -121,7 +121,7 @@ export class MaterialPhaseManager extends BasePhaseManager {
 					materialDivision.name,
 					city,
 					materialName
-				).qty
+				).stored
 				this.materialsMet += Math.min(materialAmount, amountDesired)
 			}
 		}

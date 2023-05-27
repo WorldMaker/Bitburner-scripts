@@ -37,7 +37,7 @@ export class ProductRound3Manager
 			this.company.context.hacknetHashStrategy = 'corpresearch'
 		}
 
-		const availableResearch = productDivision.research
+		const availableResearch = productDivision.researchPoints
 		for (const research of DesiredResearch) {
 			this.researchDesired++
 			if (ns.corporation.hasResearched(productDivision.name, research)) {
