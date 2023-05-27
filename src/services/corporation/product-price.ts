@@ -1,4 +1,3 @@
-import { NsLogger } from '../../logging/logger'
 import { Company, ProductDevelopment } from '../../models/corporation'
 import { ProductPrice } from '../../models/product'
 import { ProductPriceCache } from './product-price-cache'
@@ -7,34 +6,33 @@ export class ProductPriceService {
 	private priceCache: ProductPriceCache | null = null
 	private readonly prices: ProductPrice[] = []
 
-	constructor(
-		private ns: NS,
-		private logger: NsLogger,
-		private company: Company
-	) {
+	constructor(private readonly company: Company) {
+		const { ns } = this.company.context
 		const productDivision = this.company.getProductDivision()
 		if (productDivision) {
 			if (
-				!this.ns.corporation.hasResearched(
+				!ns.corporation.hasResearched(
 					productDivision.name,
 					ProductDevelopment.KeyResearch
 				)
 			) {
-				this.priceCache = new ProductPriceCache(this.ns, productDivision)
+				this.priceCache = new ProductPriceCache(ns, productDivision)
 			}
 		}
 	}
 
 	summarize() {
+		const { logger } = this.company.context
 		if (this.priceCache) {
 			const prices = this.prices
 				.map((price) => `${price.getStateEmoji()} ${price.getMultiplier()}`)
 				.join(', ')
-			this.logger.info`managing product prices; ${prices}`
+			logger.info`managing product prices; ${prices}`
 		}
 	}
 
 	manage() {
+		const { ns, logger } = this.company.context
 		this.company.updateState()
 		const productDivision = this.company.getProductDivision()
 
@@ -46,7 +44,7 @@ export class ProductPriceService {
 		}
 
 		if (
-			this.ns.corporation.hasResearched(
+			ns.corporation.hasResearched(
 				productDivision.name,
 				ProductDevelopment.KeyResearch
 			)
@@ -56,19 +54,17 @@ export class ProductPriceService {
 		}
 
 		if (!this.priceCache) {
-			this.priceCache = new ProductPriceCache(this.ns, productDivision)
+			this.priceCache = new ProductPriceCache(ns, productDivision)
 		}
 
 		for (const productName of productDivision.products) {
-			const product = this.ns.corporation.getProduct(
+			const product = ns.corporation.getProduct(
 				productDivision.name,
 				productName
 			)
 			const price = this.priceCache.getProductPrice(product)
 			this.prices.push(price)
-			this.ns.print(
-				`${price.getState()} ${productName} price at MP*${price.getMultiplier()}`
-			)
+			logger.trace`${price.getState()} ${productName} price at MP*${price.getMultiplier()}`
 		}
 	}
 }

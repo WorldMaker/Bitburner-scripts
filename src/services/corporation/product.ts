@@ -8,7 +8,6 @@ import {
 	MyCompany,
 	ProductDevelopment,
 } from '../../models/corporation'
-import { NsLogger } from '../../logging/logger'
 
 const { from } = IterableX
 
@@ -19,13 +18,10 @@ export class ProductManager {
 	private hasResearchedUpgradeCapacity2 = false
 	#developmentProducts: Product[] = []
 
-	constructor(
-		private ns: NS,
-		private logger: NsLogger,
-		private company: Company
-	) {}
+	constructor(private readonly company: Company) {}
 
 	summarize() {
+		const { logger } = this.company.context
 		if (this.company.hasProductDivision()) {
 			const development = this.#developmentProducts
 				.map(
@@ -35,7 +31,7 @@ export class ProductManager {
 						})}`
 				)
 				.join(', ')
-			this.logger.info`managing products; ${development}`
+			logger.info`managing products; ${development}`
 		}
 	}
 
@@ -43,22 +39,21 @@ export class ProductManager {
 		if (!this.company.hasProductDivision()) {
 			return
 		}
+		const { ns, logger } = this.company.context
 		const productDivision = this.company.getProductDivision()!
 
-		this.hasResearchedUpgradeCapacity1 ||= this.ns.corporation.hasResearched(
+		this.hasResearchedUpgradeCapacity1 ||= ns.corporation.hasResearched(
 			productDivision.name,
 			'uPgrade: Capacity.I'
 		)
 
-		this.hasResearchedUpgradeCapacity2 ||= this.ns.corporation.hasResearched(
+		this.hasResearchedUpgradeCapacity2 ||= ns.corporation.hasResearched(
 			productDivision.name,
 			'uPgrade: Capacity.II'
 		)
 
 		const products = from(productDivision.products).pipe(
-			map((product) =>
-				this.ns.corporation.getProduct(productDivision.name, product)
-			)
+			map((product) => ns.corporation.getProduct(productDivision.name, product))
 		)
 
 		this.#developmentProducts = [
@@ -87,13 +82,13 @@ export class ProductManager {
 		if (this.#developmentProducts.length < 1) {
 			if (productionProducts.length >= totalProducts) {
 				const discontinuedProduct = productionProducts.shift()!
-				this.ns.corporation.discontinueProduct(
+				ns.corporation.discontinueProduct(
 					productDivision.name,
 					discontinuedProduct.name
 				)
 			}
 			try {
-				this.ns.corporation.makeProduct(
+				ns.corporation.makeProduct(
 					productDivision.name,
 					ProductDevelopment.City,
 					`${MyCompany.ProductDivision.ProductBaseName}-${ulid()}`,
@@ -101,7 +96,7 @@ export class ProductManager {
 					MyCompany.ProductDivision.MarketingInvestment
 				)
 			} catch (err) {
-				this.logger.warn`unable to make product: ${err}`
+				logger.warn`unable to make product: ${err}`
 			}
 		}
 
@@ -109,7 +104,7 @@ export class ProductManager {
 
 		for (const product of productionProducts) {
 			if (product.sCost === 0 || product.sCost === '') {
-				this.ns.corporation.sellProduct(
+				ns.corporation.sellProduct(
 					productDivision.name,
 					ProductDevelopment.City,
 					product.name,
@@ -118,13 +113,13 @@ export class ProductManager {
 					true
 				)
 				try {
-					this.ns.corporation.setProductMarketTA2(
+					ns.corporation.setProductMarketTA2(
 						productDivision.name,
 						product.name,
 						true
 					)
 				} catch (error) {
-					this.logger.warn`error setting Material TA-2: ${error}`
+					logger.warn`error setting Material TA-2: ${error}`
 				}
 			}
 		}

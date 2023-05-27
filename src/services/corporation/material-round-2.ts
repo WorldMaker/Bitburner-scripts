@@ -6,7 +6,6 @@ import {
 	ProductDevelopment,
 	StartingCity,
 } from '../../models/corporation'
-import { NsLogger } from '../../logging/logger'
 import { MaterialPhaseManager } from './material-phase'
 import { PhaseManager } from './phase'
 
@@ -22,8 +21,8 @@ export class MaterialRound2Manager
 	extends MaterialPhaseManager
 	implements PhaseManager
 {
-	constructor(ns: NS, logger: NsLogger, company: Company) {
-		super(ns, logger, company)
+	constructor(company: Company) {
+		super(company)
 	}
 
 	summarize() {
@@ -31,9 +30,10 @@ export class MaterialRound2Manager
 	}
 
 	async manage(): Promise<void> {
+		const { ns, logger } = this.company.context
 		const materialDivision = this.company.getMaterialDivision()
 		if (!materialDivision) {
-			this.logger.error`no material division`
+			logger.error`no material division`
 			return
 		}
 
@@ -46,42 +46,35 @@ export class MaterialRound2Manager
 			this.warehouseLevelsMet < this.warehouseLevelsDesired ||
 			this.materialsMet < this.materialsDesired
 		) {
-			this.logger.log('Waiting for current needs to be met')
+			logger.log('Waiting for current needs to be met')
 			return
 		}
 
 		if (this.funds < 0) {
-			this.logger.log('Waiting for profitability')
+			logger.log('Waiting for profitability')
 			return
 		}
 
 		// *** Kick off the Product Division ***
 
-		this.ns.corporation.expandIndustry(
+		ns.corporation.expandIndustry(
 			MyCompany.ProductDivision.Type,
 			MyCompany.ProductDivision.Name
 		)
-		for (const city of Object.values(this.ns.enums.CityName)) {
+		for (const city of Object.values(ns.enums.CityName)) {
 			if (city !== StartingCity) {
-				this.ns.corporation.expandCity(MyCompany.ProductDivision.Name, city)
+				ns.corporation.expandCity(MyCompany.ProductDivision.Name, city)
 			}
-			this.ns.corporation.purchaseWarehouse(
-				MyCompany.ProductDivision.Name,
-				city
-			)
-			this.ns.corporation.setSmartSupply(
-				MyCompany.ProductDivision.Name,
-				city,
-				true
-			)
+			ns.corporation.purchaseWarehouse(MyCompany.ProductDivision.Name, city)
+			ns.corporation.setSmartSupply(MyCompany.ProductDivision.Name, city, true)
 			if (city === ProductDevelopment.City) {
-				this.ns.corporation.upgradeOfficeSize(
+				ns.corporation.upgradeOfficeSize(
 					MyCompany.ProductDivision.Name,
 					city,
 					27
 				)
 			} else {
-				this.ns.corporation.upgradeOfficeSize(
+				ns.corporation.upgradeOfficeSize(
 					MyCompany.ProductDivision.Name,
 					city,
 					6

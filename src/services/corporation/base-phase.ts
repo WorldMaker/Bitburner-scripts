@@ -2,7 +2,6 @@ import { IterableX } from '@reactivex/ix-esnext-esm/iterable/iterablex'
 import { map } from '@reactivex/ix-esnext-esm/iterable/operators/map'
 import { reduce } from '@reactivex/ix-esnext-esm/iterable/reduce'
 import { Company, LevelUpgrade } from '../../models/corporation'
-import { NsLogger } from '../../logging/logger'
 
 const { from } = IterableX
 
@@ -13,30 +12,27 @@ export class BasePhaseManager {
 	protected levelsDesired = 0
 	protected levelsMet = 0
 
-	constructor(
-		protected ns: NS,
-		protected logger: NsLogger,
-		protected company: Company
-	) {
+	constructor(protected readonly company: Company) {
 		this.funds = company.funds
 	}
 
 	manageLevelUpgrades(desiredLevelUpgrades: DesiredLevelUpgrades) {
+		const { ns, logger } = this.company.context
 		for (const [upgrade, desiredLevel] of Object.entries(
 			desiredLevelUpgrades
 		)) {
 			this.levelsDesired += desiredLevel
-			const currentLevel = this.ns.corporation.getUpgradeLevel(upgrade)
+			const currentLevel = ns.corporation.getUpgradeLevel(upgrade)
 			this.levelsMet += Math.min(desiredLevel, currentLevel)
 			if (currentLevel < desiredLevel) {
-				const cost = this.ns.corporation.getUpgradeLevelCost(upgrade)
+				const cost = ns.corporation.getUpgradeLevelCost(upgrade)
 				if (cost <= this.funds) {
 					this.funds -= cost
 					try {
-						this.ns.corporation.levelUpgrade(upgrade)
+						ns.corporation.levelUpgrade(upgrade)
 						this.levelsMet++
 					} catch (error) {
-						this.logger.warn`unable to upgrade ${upgrade}: ${error}`
+						logger.warn`unable to upgrade ${upgrade}: ${error}`
 					}
 				}
 			}
@@ -44,10 +40,11 @@ export class BasePhaseManager {
 	}
 
 	checkMorale(division: Division) {
-		const cities = Object.values(this.ns.enums.CityName)
+		const { ns, logger } = this.company.context
+		const cities = Object.values(ns.enums.CityName)
 		const counts = reduce(
 			from(cities).pipe(
-				map((city) => this.ns.corporation.getOffice(division.name, city))
+				map((city) => ns.corporation.getOffice(division.name, city))
 			),
 			(acc, cur) => ({
 				mor: acc.mor + cur.avgMor,
@@ -64,7 +61,7 @@ export class BasePhaseManager {
 		}
 
 		if (averages.mor < 97 || averages.hap < 97 || averages.ene < 97) {
-			this.logger.debug`Waiting for morale; ${averages.mor.toFixed(
+			logger.debug`Waiting for morale; ${averages.mor.toFixed(
 				3
 			)}/97; ${averages.hap.toFixed(3)}/97; ${averages.ene.toFixed(3)}/97`
 
@@ -74,15 +71,14 @@ export class BasePhaseManager {
 	}
 
 	invest(desiredOffer: number) {
-		const offer = this.ns.corporation.getInvestmentOffer()
+		const { ns, logger } = this.company.context
+		const offer = ns.corporation.getInvestmentOffer()
 		if (offer.funds + this.company.funds < desiredOffer) {
-			this.logger.log(
-				`rejecting offer for ${this.ns.formatNumber(offer.funds)}`
-			)
+			logger.log(`rejecting offer for ${ns.formatNumber(offer.funds)}`)
 			return false
 		}
-		if (!this.ns.corporation.acceptInvestmentOffer()) {
-			this.logger.warn`unable to accept offer`
+		if (!ns.corporation.acceptInvestmentOffer()) {
+			logger.warn`unable to accept offer`
 			return false
 		}
 		return true

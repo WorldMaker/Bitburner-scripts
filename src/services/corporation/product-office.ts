@@ -1,19 +1,15 @@
 import { Company, ProductDevelopment } from '../../models/corporation'
-import { NsLogger } from '../../logging/logger'
 
 export class ProductOfficeManager {
 	#devStaff = 0
 	#researchStaff = 0
 
-	constructor(
-		private ns: NS,
-		private logger: NsLogger,
-		private company: Company
-	) {}
+	constructor(private readonly company: Company) {}
 
 	summarize() {
+		const { logger } = this.company.context
 		if (this.company.hasProductDivision()) {
-			this.logger.info`managing product offices; 👩‍🏭 ${this.#devStaff}, 👩‍🎓 ${
+			logger.info`managing product offices; 👩‍🏭 ${this.#devStaff}, 👩‍🎓 ${
 				this.#researchStaff
 			}`
 		}
@@ -23,23 +19,20 @@ export class ProductOfficeManager {
 		if (!this.company.hasProductDivision()) {
 			return
 		}
+		const { ns, logger } = this.company.context
 		this.#devStaff = 0
 		this.#researchStaff = 0
 		const productDivision = this.company.getProductDivision()!
-		for (const city of Object.values(this.ns.enums.CityName)) {
-			let office = this.ns.corporation.getOffice(productDivision.name, city)
+		for (const city of Object.values(ns.enums.CityName)) {
+			let office = ns.corporation.getOffice(productDivision.name, city)
 
 			// *** Hire all available staff ***
 			while (office.employees < office.size) {
-				const employee = this.ns.corporation.hireEmployee(
-					productDivision.name,
-					city
-				)
+				const employee = ns.corporation.hireEmployee(productDivision.name, city)
 				if (employee) {
-					office = this.ns.corporation.getOffice(productDivision.name, city)
+					office = ns.corporation.getOffice(productDivision.name, city)
 				} else {
-					this.logger
-						.warn`unable to hire new employee for ${productDivision.name} in ${city}`
+					logger.warn`unable to hire new employee for ${productDivision.name} in ${city}`
 					break
 				}
 			}
@@ -69,9 +62,10 @@ export class ProductOfficeManager {
 		productDivision: Division,
 		city: CityName
 	) {
+		const { ns } = this.company.context
 		// One each in Operations, Engineer, Business, Management; the rest in R&D
 		if (
-			!this.ns.corporation.setAutoJobAssignment(
+			!ns.corporation.setAutoJobAssignment(
 				productDivision.name,
 				city,
 				'Training',
@@ -80,31 +74,31 @@ export class ProductOfficeManager {
 		) {
 			return
 		}
-		this.ns.corporation.setAutoJobAssignment(
+		ns.corporation.setAutoJobAssignment(
 			productDivision.name,
 			city,
 			'Business',
 			1
 		)
-		this.ns.corporation.setAutoJobAssignment(
+		ns.corporation.setAutoJobAssignment(
 			productDivision.name,
 			city,
 			'Engineer',
 			1
 		)
-		this.ns.corporation.setAutoJobAssignment(
+		ns.corporation.setAutoJobAssignment(
 			productDivision.name,
 			city,
 			'Management',
 			1
 		)
-		this.ns.corporation.setAutoJobAssignment(
+		ns.corporation.setAutoJobAssignment(
 			productDivision.name,
 			city,
 			'Operations',
 			1
 		)
-		this.ns.corporation.setAutoJobAssignment(
+		ns.corporation.setAutoJobAssignment(
 			productDivision.name,
 			city,
 			'Research & Development',
@@ -117,6 +111,7 @@ export class ProductOfficeManager {
 		productDivision: Division,
 		city: CityName
 	) {
+		const { ns, logger } = this.company.context
 		const perTask = office.employees / 3.5
 		const assignmentGoals = {
 			Operations: Math.floor(perTask),
@@ -132,11 +127,11 @@ export class ProductOfficeManager {
 			assignmentGoals.Business -
 			assignmentGoals.Management
 		assignmentGoals.Engineer += leftover
-		this.logger.log(
+		logger.log(
 			`Want to assign: [Ops: ${assignmentGoals.Operations}, Eng: ${assignmentGoals.Engineer}, Bus: ${assignmentGoals.Business}, Man: ${assignmentGoals.Management}]`
 		)
 		if (
-			!this.ns.corporation.setAutoJobAssignment(
+			!ns.corporation.setAutoJobAssignment(
 				productDivision.name,
 				city,
 				'Training',
@@ -145,25 +140,25 @@ export class ProductOfficeManager {
 		) {
 			return
 		}
-		this.ns.corporation.setAutoJobAssignment(
+		ns.corporation.setAutoJobAssignment(
 			productDivision.name,
 			city,
 			'Operations',
 			assignmentGoals.Operations
 		)
-		this.ns.corporation.setAutoJobAssignment(
+		ns.corporation.setAutoJobAssignment(
 			productDivision.name,
 			city,
 			'Engineer',
 			assignmentGoals.Engineer
 		)
-		this.ns.corporation.setAutoJobAssignment(
+		ns.corporation.setAutoJobAssignment(
 			productDivision.name,
 			city,
 			'Business',
 			assignmentGoals.Business
 		)
-		this.ns.corporation.setAutoJobAssignment(
+		ns.corporation.setAutoJobAssignment(
 			productDivision.name,
 			city,
 			'Management',

@@ -4,10 +4,8 @@ import {
 	LevelUpgrades,
 	MyCompany,
 } from '../../models/corporation'
-import { NsLogger } from '../../logging/logger'
 import { BasePhaseManager } from './base-phase'
 import { PhaseManager } from './phase'
-import { Config } from '../../models/config'
 
 const DesiredLevelUpgrades: Partial<Record<LevelUpgrade, number>> = {
 	[LevelUpgrades.DreamSense]: 30,
@@ -24,23 +22,20 @@ export class ProductRound2Manager
 	extends BasePhaseManager
 	implements PhaseManager
 {
-	constructor(
-		ns: NS,
-		private readonly config: Config,
-		logger: NsLogger,
-		company: Company
-	) {
-		super(ns, logger, company)
+	constructor(company: Company) {
+		super(company)
 	}
 
 	summarize() {
-		return `INFO preparing ${MyCompany.ProductDivision.Name} for third investment round; ${this.levelsMet}/${this.levelsDesired}`
+		const { logger } = this.company.context
+		logger.info`preparing ${MyCompany.ProductDivision.Name} for third investment round; ${this.levelsMet}/${this.levelsDesired}`
 	}
 
 	async manage(): Promise<void> {
+		const { logger } = this.company.context
 		const productDivision = this.company.getProductDivision()
 		if (!productDivision) {
-			this.logger.error`no product division`
+			logger.error`no product division`
 			return
 		}
 
@@ -56,12 +51,12 @@ export class ProductRound2Manager
 		// *** Make sure needs above are met ***
 
 		if (this.levelsMet < this.levelsDesired) {
-			this.logger.log('Waiting for current needs to be met')
+			logger.log('Waiting for current needs to be met')
 			return
 		}
 
-		if (this.config.hacknetHashStrategy === 'corpfunds') {
-			this.config.hacknetHashStrategy = 'corpresearch'
+		if (this.company.context.hacknetHashStrategy === 'corpfunds') {
+			this.company.context.hacknetHashStrategy = 'corpresearch'
 		}
 
 		if (!this.checkMorale(productDivision)) {

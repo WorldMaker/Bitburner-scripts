@@ -3,7 +3,6 @@ import {
 	LevelUpgrades,
 	ProductDevelopment,
 } from '../../models/corporation'
-import { NsLogger } from '../../logging/logger'
 
 const ToyPurchaseBudget = 1 / 10_000 /* per tick */
 const ToyPurchaseProfitBudget = 5 /* per tick => * 10 seconds per tick so 1/2 of profit per second */
@@ -17,17 +16,14 @@ export class ProductPurchaseService {
 	private hasEnoughBaselineResearch = false
 	private canUseRevenueBudget = false
 
-	constructor(
-		private ns: NS,
-		private logger: NsLogger,
-		private company: Company
-	) {}
+	constructor(private readonly company: Company) {}
 
 	summarize() {
+		const { ns, logger } = this.company.context
 		if (this.company.hasProductDivision()) {
-			this.logger.info`purchasing upgrades; ${this.ns.formatNumber(
+			logger.info`purchasing upgrades; ${ns.formatNumber(
 				this.startingFunds - this.funds
-			)} / ${this.ns.formatNumber(this.toyBudget)}`
+			)} / ${ns.formatNumber(this.toyBudget)}`
 		}
 	}
 
@@ -39,17 +35,18 @@ export class ProductPurchaseService {
 		if (!this.company.hasProductDivision()) {
 			return
 		}
+		const { ns, logger } = this.company.context
 		// recheck funds and other things
 		this.company.updateState()
 		this.startingFunds = this.funds = this.company.funds
 		this.hasEnoughAnalytics ||=
-			this.ns.corporation.getUpgradeLevel(LevelUpgrades.WilsonAnalytics) >= 10
+			ns.corporation.getUpgradeLevel(LevelUpgrades.WilsonAnalytics) >= 10
 		const productDivision = this.company.getProductDivision()!
-		const wilsonAnalyticsCost = this.ns.corporation.getUpgradeLevelCost(
+		const wilsonAnalyticsCost = ns.corporation.getUpgradeLevelCost(
 			LevelUpgrades.WilsonAnalytics
 		)
 		const developmentOfficeUpgradeCost =
-			this.ns.corporation.getOfficeSizeUpgradeCost(
+			ns.corporation.getOfficeSizeUpgradeCost(
 				productDivision.name,
 				ProductDevelopment.City,
 				ProductDevelopment.OfficeSizeUpgrade
@@ -58,12 +55,12 @@ export class ProductPurchaseService {
 			this.company.hasDevelopedProduct() &&
 			wilsonAnalyticsCost < this.funds
 		) {
-			this.ns.corporation.levelUpgrade(LevelUpgrades.WilsonAnalytics)
+			ns.corporation.levelUpgrade(LevelUpgrades.WilsonAnalytics)
 			this.funds -= wilsonAnalyticsCost
 		}
 
 		if (this.hasEnoughAnalytics && developmentOfficeUpgradeCost < this.funds) {
-			this.ns.corporation.upgradeOfficeSize(
+			ns.corporation.upgradeOfficeSize(
 				productDivision.name,
 				ProductDevelopment.City,
 				ProductDevelopment.OfficeSizeUpgrade
@@ -71,17 +68,13 @@ export class ProductPurchaseService {
 			this.funds -= developmentOfficeUpgradeCost
 		}
 
-		let upgradeCost = this.ns.corporation.getHireAdVertCost(
-			productDivision.name
-		)
+		let upgradeCost = ns.corporation.getHireAdVertCost(productDivision.name)
 
 		if (this.hasEnoughAnalytics && upgradeCost < this.funds) {
 			while (upgradeCost < this.funds) {
-				this.ns.corporation.hireAdVert(productDivision.name)
+				ns.corporation.hireAdVert(productDivision.name)
 				this.funds -= upgradeCost
-				upgradeCost = this.ns.corporation.getHireAdVertCost(
-					productDivision.name
-				)
+				upgradeCost = ns.corporation.getHireAdVertCost(productDivision.name)
 			}
 		}
 
@@ -115,34 +108,33 @@ export class ProductPurchaseService {
 		this.funds -= this.toyBudget
 
 		for (const upgrade of Object.values(LevelUpgrades)) {
-			const upgradeCost = this.ns.corporation.getUpgradeLevelCost(upgrade)
+			const upgradeCost = ns.corporation.getUpgradeLevelCost(upgrade)
 			if (upgradeCost < toyBudget) {
-				this.ns.corporation.levelUpgrade(upgrade)
+				ns.corporation.levelUpgrade(upgrade)
 				toyBudget -= upgradeCost
 			}
 		}
-		for (const unlock of this.ns.corporation.getConstants().unlockNames) {
-			if (this.ns.corporation.hasUnlockUpgrade(unlock)) {
+		for (const unlock of ns.corporation.getConstants().unlockNames) {
+			if (ns.corporation.hasUnlockUpgrade(unlock)) {
 				continue
 			}
-			const unlockCost = this.ns.corporation.getUnlockUpgradeCost(unlock)
+			const unlockCost = ns.corporation.getUnlockUpgradeCost(unlock)
 			if (unlockCost < toyBudget) {
 				try {
-					this.ns.corporation.unlockUpgrade(unlock)
+					ns.corporation.unlockUpgrade(unlock)
 					toyBudget -= unlockCost
 				} catch (err) {
-					this.logger
-						.warn`unable to unlock ${this.company.name} feature ${unlock}; ${err}`
+					logger.warn`unable to unlock ${this.company.name} feature ${unlock}; ${err}`
 				}
 			}
 		}
-		const productDevelopmentOffice = this.ns.corporation.getOffice(
+		const productDevelopmentOffice = ns.corporation.getOffice(
 			productDivision.name,
 			ProductDevelopment.City
 		)
-		for (const city of Object.values(this.ns.enums.CityName)) {
+		for (const city of Object.values(ns.enums.CityName)) {
 			if (city !== ProductDevelopment.City) {
-				const office = this.ns.corporation.getOffice(productDivision.name, city)
+				const office = ns.corporation.getOffice(productDivision.name, city)
 				const researchSize =
 					productDevelopmentOffice.size -
 					ProductDevelopment.ResearchOfficeSizeOffset
@@ -150,13 +142,13 @@ export class ProductPurchaseService {
 					office.size < researchSize &&
 					researchSize > ProductDevelopment.OfficeSizeUpgrade
 				) {
-					const upgradeCost = this.ns.corporation.getOfficeSizeUpgradeCost(
+					const upgradeCost = ns.corporation.getOfficeSizeUpgradeCost(
 						productDivision.name,
 						city,
 						ProductDevelopment.OfficeSizeUpgrade
 					)
 					if (upgradeCost < toyBudget) {
-						this.ns.corporation.upgradeOfficeSize(
+						ns.corporation.upgradeOfficeSize(
 							productDivision.name,
 							city,
 							ProductDevelopment.OfficeSizeUpgrade
@@ -171,33 +163,31 @@ export class ProductPurchaseService {
 		this.funds += toyBudget
 
 		// *** Research ***
-		this.hasEnoughBaselineResearch ||= this.ns.corporation.hasResearched(
+		this.hasEnoughBaselineResearch ||= ns.corporation.hasResearched(
 			productDivision.name,
 			ProductDevelopment.KeyResearch
 		)
 		if (this.hasEnoughBaselineResearch) {
 			let researchBudget = productDivision.research * AdditionalResearchBudget
-			for (const research of this.ns.corporation.getConstants().researchNames) {
-				if (
-					!this.ns.corporation.hasResearched(productDivision.name, research)
-				) {
+			for (const research of ns.corporation.getConstants().researchNames) {
+				if (!ns.corporation.hasResearched(productDivision.name, research)) {
 					let cost = Infinity
 
 					try {
-						cost = this.ns.corporation.getResearchCost(
+						cost = ns.corporation.getResearchCost(
 							productDivision.name,
 							research
 						)
 					} catch (err) {
-						this.logger.warn`unable to get research cost ${research}: ${err}`
+						logger.warn`unable to get research cost ${research}: ${err}`
 					}
 
 					if (cost < researchBudget) {
 						try {
-							this.ns.corporation.research(productDivision.name, research)
+							ns.corporation.research(productDivision.name, research)
 							researchBudget -= cost
 						} catch (err) {
-							this.logger.warn`unable to research ${research}: ${err}`
+							logger.warn`unable to research ${research}: ${err}`
 						}
 					}
 				}

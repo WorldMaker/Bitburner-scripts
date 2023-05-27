@@ -1,7 +1,6 @@
 import { IterableX } from '@reactivex/ix-esnext-esm/iterable/iterablex'
 import { filter } from '@reactivex/ix-esnext-esm/iterable/operators/filter'
-import { NsLogger } from '../../logging/logger'
-import { Config } from '../../models/config'
+import { NsContext } from '../../models/context'
 import { ToyPurchaser } from '../../models/toys'
 import { AugmentPrioritizer, NFG } from './augments'
 
@@ -16,9 +15,7 @@ export class TargetFactionAugmentsService {
 	private ticks = 0
 
 	constructor(
-		private readonly ns: NS,
-		private readonly config: Config,
-		private readonly logger: NsLogger,
+		private readonly context: NsContext,
 		private readonly priorities: AugmentPrioritizer,
 		private readonly finalToys: ToyPurchaser[]
 	) {
@@ -26,24 +23,24 @@ export class TargetFactionAugmentsService {
 	}
 
 	summarize() {
-		if (this.config.targetAugmentFaction) {
+		const { logger } = this.context
+		if (this.context.targetAugmentFaction) {
 			switch (this.state) {
 				case '🎯':
-					this.logger
-						.info`acquiring ${this.state} ${this.config.targetAugmentFaction} augments`
+					logger.info`acquiring ${this.state} ${this.context.targetAugmentFaction} augments`
 					break
 				case '🎊':
-					this.logger.info`acquiring ${this.state} bonus augments`
+					logger.info`acquiring ${this.state} bonus augments`
 					break
 				case '💻':
-					this.logger.info`acquiring ${this.state} home improvements`
+					logger.info`acquiring ${this.state} home improvements`
 					break
 			}
 		}
 	}
 
 	async manage() {
-		const faction = this.config.targetAugmentFaction
+		const faction = this.context.targetAugmentFaction
 
 		if (!faction) {
 			this.state = '🎯'
@@ -67,6 +64,7 @@ export class TargetFactionAugmentsService {
 	}
 
 	private async acquireTargetAugments(faction: string) {
+		const { ns, logger } = this.context
 		const factionAugments = from(this.priorities.getPriorities()).pipe(
 			filter((augment) => faction === 'all' || augment.faction === faction)
 		)
@@ -77,35 +75,29 @@ export class TargetFactionAugmentsService {
 				continue
 			}
 
-			const { money } = this.ns.getPlayer()
+			const { money } = ns.getPlayer()
 			if (augment.cost > money) {
-				this.logger.debug`Need more money for ${
-					augment.name
-				}: ${this.ns.formatNumber(money)} / ${this.ns.formatNumber(
-					augment.cost
-				)}`
+				logger.debug`Need more money for ${augment.name}: ${ns.formatNumber(
+					money
+				)} / ${ns.formatNumber(augment.cost)}`
 				return
 			}
-			const factionRep = this.ns.singularity.getFactionRep(augment.faction)
+			const factionRep = ns.singularity.getFactionRep(augment.faction)
 			if (augment.rep > factionRep) {
-				this.logger.debug`Need more rep for ${
-					augment.name
-				}: ${this.ns.formatNumber(factionRep)} / ${this.ns.formatNumber(
-					augment.rep
-				)}`
+				logger.debug`Need more rep for ${augment.name}: ${ns.formatNumber(
+					factionRep
+				)} / ${ns.formatNumber(augment.rep)}`
 				return
 			}
-			this.logger.trace`buying ${augment.name}`
-			if (
-				!this.ns.singularity.purchaseAugmentation(augment.faction, augment.name)
-			) {
+			logger.trace`buying ${augment.name}`
+			if (!ns.singularity.purchaseAugmentation(augment.faction, augment.name)) {
 				if (augment.prereq.size > 0) {
 					for (const prereq of augment.prereq) {
 						const augments = this.priorities.getAugment(prereq)
 						if (augments) {
 							for (const preregAugment of augments.values()) {
 								if (
-									this.ns.singularity.purchaseAugmentation(
+									ns.singularity.purchaseAugmentation(
 										preregAugment.faction,
 										preregAugment.name
 									)
@@ -116,7 +108,7 @@ export class TargetFactionAugmentsService {
 						}
 					}
 				}
-				this.logger.warn`Unable to purchase ${augment.name}`
+				logger.warn`Unable to purchase ${augment.name}`
 				return
 			}
 		}
@@ -126,18 +118,16 @@ export class TargetFactionAugmentsService {
 	}
 
 	private async acquireBonusAugments() {
+		const { ns, logger } = this.context
 		let purchased = false
 
 		for (const augment of this.priorities.getPriorities()) {
-			const { money } = this.ns.getPlayer()
-			const factionRep = this.ns.singularity.getFactionRep(augment.faction)
+			const { money } = ns.getPlayer()
+			const factionRep = ns.singularity.getFactionRep(augment.faction)
 			if (augment.cost < money && augment.rep <= factionRep) {
-				this.logger.trace`buying ${augment.name}`
+				logger.trace`buying ${augment.name}`
 				if (
-					this.ns.singularity.purchaseAugmentation(
-						augment.faction,
-						augment.name
-					)
+					ns.singularity.purchaseAugmentation(augment.faction, augment.name)
 				) {
 					purchased = true
 					this.ticks = 0
@@ -153,23 +143,24 @@ export class TargetFactionAugmentsService {
 	}
 
 	private async purchaseHomeImprovements() {
+		const { ns, logger } = this.context
 		let purchased = false
 
-		const { money } = this.ns.getPlayer()
-		const ramUpgradeCost = this.ns.singularity.getUpgradeHomeRamCost()
+		const { money } = ns.getPlayer()
+		const ramUpgradeCost = ns.singularity.getUpgradeHomeRamCost()
 		if (ramUpgradeCost < money) {
-			this.logger.trace`buying home RAM upgrade`
-			if (this.ns.singularity.upgradeHomeRam()) {
+			logger.trace`buying home RAM upgrade`
+			if (ns.singularity.upgradeHomeRam()) {
 				purchased = true
 				this.ticks = 0
 				return
 			}
 		}
 
-		const coresUpgradeCost = this.ns.singularity.getUpgradeHomeCoresCost()
+		const coresUpgradeCost = ns.singularity.getUpgradeHomeCoresCost()
 		if (coresUpgradeCost < money) {
-			this.logger.trace`buying home cores upgrade`
-			if (this.ns.singularity.upgradeHomeCores()) {
+			logger.trace`buying home cores upgrade`
+			if (ns.singularity.upgradeHomeCores()) {
 				purchased = true
 				this.ticks = 0
 				return
@@ -187,11 +178,11 @@ export class TargetFactionAugmentsService {
 
 		if (!purchased && this.ticks > BonusTicks) {
 			// clear target
-			this.config.reset()
-			this.config.save()
+			this.context.reset()
+			this.context.save()
 
-			this.logger.trace`installing`
-			this.ns.singularity.installAugmentations(this.ns.getScriptName())
+			logger.trace`installing`
+			ns.singularity.installAugmentations(ns.getScriptName())
 		}
 	}
 }

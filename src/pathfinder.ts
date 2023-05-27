@@ -1,29 +1,22 @@
 import { NsLogger } from './logging/logger'
-import { Config } from './models/config'
+import { TargetContext } from './models/context'
 import { simpleTargetFactory } from './models/targets/simple-target'
 import { PathfinderService } from './services/pathfinder'
 import { ScannerService } from './services/scanner'
-import { ServerCacheService } from './services/server-cache'
 
 export async function main(ns: NS) {
 	const targetName = ns.args[0].toString()
 	const depth = Number(ns.args[1]) ?? 10
 
-	const config = new Config(ns)
-	config.load()
-
 	const logger = new NsLogger(ns)
-	const servers = new ServerCacheService(ns, simpleTargetFactory)
-	const scannerService = new ScannerService(
-		ns,
-		config,
-		servers,
-		simpleTargetFactory
-	)
+	const context = new TargetContext(ns, logger, simpleTargetFactory)
+	context.load()
+
+	const scannerService = new ScannerService(context)
 
 	scannerService.scan()
 
-	const target = servers.get(targetName)
+	const target = context.servers.get(targetName)
 	if (!target) {
 		logger.ohno`Unable to find '${targetName}' below depth ${depth}`
 		return
@@ -39,7 +32,7 @@ export async function main(ns: NS) {
 		logger.useful`hack at ${hackingLevel} with ${ports} ports`
 	}
 
-	const pathfinder = new PathfinderService(logger, servers)
+	const pathfinder = new PathfinderService(context)
 
 	for (const path of pathfinder.followPaths(target)) {
 		logger.hooray`${path.join(' -> ')}`

@@ -1,3 +1,5 @@
+import { NsContext } from './context'
+
 export const MyCompany = Object.freeze({
 	Name: '0corp',
 	MaterialDivision: Object.freeze({
@@ -82,9 +84,10 @@ export class Company {
 		return this.corp
 	}
 
-	constructor(private ns: NS) {
+	constructor(public readonly context: NsContext) {
+		const { ns } = this.context
 		try {
-			this.corp = this.ns.corporation.getCorporation()
+			this.corp = ns.corporation.getCorporation()
 			this.updateState()
 			this.hasDevelopedProduct()
 		} catch {
@@ -94,26 +97,29 @@ export class Company {
 	}
 
 	updateState() {
-		if (!this.ns.corporation.hasCorporation()) {
+		const { ns } = this.context
+		this.context.hasPublicCompany = false
+		if (!ns.corporation.hasCorporation()) {
 			this.corp = null
 			this.state = 'Unstarted'
 			return
 		}
 		try {
-			this.corp = this.ns.corporation.getCorporation()
+			this.corp = ns.corporation.getCorporation()
 		} catch {
 			this.corp = null
 			this.state = 'Unstarted'
 			return
 		}
 		for (const divisionName of this.corp.divisions) {
-			const division = this.ns.corporation.getDivision(divisionName)
+			const division = ns.corporation.getDivision(divisionName)
 			this.divisionsByType.set(division.type, division)
 		}
 		if (this.corp.public) {
 			this.state = 'Public'
+			this.context.hasPublicCompany = true
 		} else if (this.divisionsByType.has(MyCompany.ProductDivision.Type)) {
-			const nextOffer = this.ns.corporation.getInvestmentOffer()
+			const nextOffer = ns.corporation.getInvestmentOffer()
 			switch (nextOffer.round) {
 				case 4:
 					this.state = 'Product3Round'
@@ -126,7 +132,7 @@ export class Company {
 					break
 			}
 		} else if (this.divisionsByType.has(MyCompany.MaterialDivision.Type)) {
-			const nextOffer = this.ns.corporation.getInvestmentOffer()
+			const nextOffer = ns.corporation.getInvestmentOffer()
 			switch (nextOffer.round) {
 				case 3:
 					this.state = 'Material2Round'
@@ -169,6 +175,7 @@ export class Company {
 	}
 
 	hasDevelopedProduct() {
+		const { ns } = this.context
 		const productDivision = this.getProductDivision()
 		if (!productDivision) {
 			return false
@@ -177,7 +184,7 @@ export class Company {
 			Boolean(productDivision.products.length) &&
 			productDivision.products.some(
 				(p) =>
-					this.ns.corporation.getProduct(productDivision.name, p)
+					ns.corporation.getProduct(productDivision.name, p)
 						.developmentProgress >= 100
 			)
 		return this.developedProduct

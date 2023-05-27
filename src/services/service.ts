@@ -1,7 +1,5 @@
-import { NsLogger } from '../logging/logger'
-import { Config } from '../models/config'
+import { NsContext } from '../models/context'
 import { RootedService, Service } from '../models/service'
-import { PlayerStats } from '../models/stats'
 import { DeploymentService } from './deployment'
 
 export class ServiceService implements Service {
@@ -12,13 +10,8 @@ export class ServiceService implements Service {
 	> = []
 	private readonly transient: Service[] = []
 	private deploymentService?: DeploymentService
-	private stats?: PlayerStats
 
-	constructor(
-		private readonly ns: NS,
-		private readonly logger: NsLogger,
-		private readonly config: Config
-	) {}
+	constructor(private readonly context: NsContext) {}
 
 	useDeploymentService(deploymentService: DeploymentService) {
 		this.deploymentService = deploymentService
@@ -43,6 +36,7 @@ export class ServiceService implements Service {
 	}
 
 	summarize(): string | void {
+		const { logger } = this.context
 		const services = [...this.services]
 		services.reverse()
 
@@ -52,21 +46,18 @@ export class ServiceService implements Service {
 			this.factories.length +
 			(this.deploymentService ? 1 : 0)
 		if (count) {
-			this.logger.info`managing ${count} total services`
-		}
-
-		if (this.stats && this.deploymentService) {
-			this.deploymentService.summarize(this.stats)
+			logger.info`managing ${count} total services`
 		}
 
 		for (const service of [
+			...(this.deploymentService ? [this.deploymentService] : []),
 			...this.rootedServices,
 			...services,
 			...this.transient,
 		]) {
 			const result = service.summarize()
 			if (result) {
-				this.logger.log(result)
+				logger.log(result)
 			}
 		}
 
@@ -74,7 +65,7 @@ export class ServiceService implements Service {
 	}
 
 	async manage(): Promise<void> {
-		this.config.load()
+		this.context.load()
 
 		this.transient.splice(0, this.transient.length)
 
@@ -99,15 +90,13 @@ export class ServiceService implements Service {
 			}
 		}
 
-		this.stats = new PlayerStats(this.ns)
-
 		if (this.deploymentService) {
-			const rooted = this.deploymentService.deploy(this.stats)
+			const rooted = this.deploymentService.deploy()
 			for (const service of this.rootedServices) {
 				await service.manage(rooted)
 			}
 		}
 
-		this.config.save()
+		this.context.save()
 	}
 }

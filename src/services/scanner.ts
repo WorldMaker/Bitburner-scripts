@@ -1,33 +1,28 @@
-import { Config } from '../models/config'
-import { Target, TargetFactory } from '../models/targets'
-import { ServerCacheService } from './server-cache.js'
+import { TargetContext } from '../models/context'
+import { Target } from '../models/targets'
 
 const ignorelist = new Set(['home'])
 
 export class ScannerService<T extends Target> {
-	constructor(
-		private ns: NS,
-		private config: Config,
-		private servers: ServerCacheService<T>,
-		private targetFactory: TargetFactory<T>
-	) {}
+	constructor(private context: TargetContext<T>) {}
 
 	private scanServer(
 		currentServer: string,
 		visited: Set<string>,
 		depth: number
 	) {
-		const servers = this.ns.scan(currentServer)
-		for (const server of servers) {
+		const { ns, servers, targetFactory } = this.context
+		const targets = ns.scan(currentServer)
+		for (const server of targets) {
 			if (ignorelist.has(server)) {
 				continue
 			}
-			if (!this.servers.has(server)) {
-				this.servers.set(this.targetFactory(this.ns, server, false))
+			if (!servers.has(server)) {
+				servers.set(targetFactory(ns, server, false))
 			}
-			const target = this.servers.get(server)!
+			const target = servers.get(server)!
 			target.addParent(currentServer)
-			if (!visited.has(server) && depth < this.config.scanMaxDepth) {
+			if (!visited.has(server) && depth < this.context.scanMaxDepth) {
 				visited.add(server)
 				this.scanServer(server, visited, depth + 1)
 			}
@@ -35,7 +30,8 @@ export class ScannerService<T extends Target> {
 	}
 
 	scan(server = 'home') {
+		const { servers } = this.context
 		this.scanServer(server, new Set(), 0)
-		return [...this.servers.values()]
+		return [...servers.values()]
 	}
 }

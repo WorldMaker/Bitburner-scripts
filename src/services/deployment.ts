@@ -1,12 +1,9 @@
-import { NsLogger } from '../logging/logger.js'
-import { Config } from '../models/config.js'
+import { DeploymentContext } from '../models/context.js'
 import { PayloadPlanner } from '../models/payload-plan.js'
-import { PlayerStats } from '../models/stats'
 import { ServerTarget } from '../models/targets/server-target'
 import { HackerService } from './hacker.js'
 import { PayloadService } from './payload.js'
 import { ScannerService } from './scanner.js'
-import { ServerCacheService } from './server-cache.js'
 import { TargetService } from './target.js'
 
 export class DeploymentService {
@@ -21,21 +18,19 @@ export class DeploymentService {
 	private payloads = 0
 
 	constructor(
-		private config: Config,
+		private context: DeploymentContext,
 		private hackerService: HackerService,
-		private logger: NsLogger,
 		private payloadPlanner: PayloadPlanner,
 		private payloadService: PayloadService,
-		private serverCache: ServerCacheService<ServerTarget>,
 		private scannerService: ScannerService<ServerTarget>,
 		private targetService: TargetService
 	) {}
 
-	summarize(stats: PlayerStats) {
-		this.logger.log(this.payloadPlanner.summarize())
+	summarize() {
+		const { logger, stats } = this.context
+		logger.log(this.payloadPlanner.summarize())
 		if (this.plans) {
-			this.logger
-				.info`${this.plans} deployment plans; ${this.existingPlans} existing, ${this.changedPlans} changed`
+			logger.info`${this.plans} deployment plans; ${this.existingPlans} existing, ${this.changedPlans} changed`
 			const statusMessage = `INFO ${this.servers} servers scanned; ${this.rooted} rooted, ${this.payloads} payloads`
 			// terminal notifications when changes occur otherwise regular logs
 			if (
@@ -43,34 +38,35 @@ export class DeploymentService {
 				this.rooted !== this.lastRootedCount ||
 				this.payloads !== this.lastPayloadsCount
 			) {
-				this.logger.display(statusMessage)
+				logger.display(statusMessage)
 				this.lastServersCount = this.servers
 				this.lastRootedCount = this.rooted
 				this.lastPayloadsCount = this.payloads
 			} else {
-				this.logger.log(statusMessage)
+				logger.log(statusMessage)
 			}
 		} else {
-			this.logger
-				.info`no deployments; no targets equal or below ${stats.getTargetHackingLevel()}`
+			logger.info`no deployments; no targets equal or below ${stats.getTargetHackingLevel()}`
 		}
 	}
 
-	deploy(stats: PlayerStats) {
+	deploy() {
+		const { logger, servers: serverCache, stats } = this.context
+
 		// scan the planet
 		const servers = this.scannerService.scan()
 
 		// hack the planet
 		const rooted = new Set<ServerTarget>()
-		rooted.add(this.serverCache.getHome())
+		rooted.add(serverCache.getHome())
 
 		for (const server of servers) {
-			if (this.hackerService.rootServer(server, stats)) {
+			if (this.hackerService.rootServer(server)) {
 				if (server.name.startsWith('hacknet-')) {
-					switch (this.config.hacknetHashStrategy) {
+					switch (this.context.hacknetHashStrategy) {
 						case 'money':
 							if (
-								stats.getPlayer().money > this.config.hacknetDeployThreshold
+								stats.getPlayer().money > this.context.hacknetDeployThreshold
 							) {
 								rooted.add(server)
 							}
@@ -89,7 +85,7 @@ export class DeploymentService {
 
 		// pick a target
 		if (this.targetService.findTarget(stats, rooted)) {
-			this.logger.useful`Target changed to ${
+			logger.useful`Target changed to ${
 				this.targetService.getTopTarget()?.name
 			}`
 		}
@@ -98,12 +94,12 @@ export class DeploymentService {
 		const target = this.targetService.getTopTarget()
 
 		if (!target) {
-			this.logger.bigwarn`no targets`
+			logger.bigwarn`no targets`
 			return rooted
 		}
 
 		if (target.updateTargetDirection()) {
-			this.logger.info`Direction changed to ${target.getTargetDirection()}`
+			logger.info`Direction changed to ${target.getTargetDirection()}`
 		}
 
 		// plan the payloads

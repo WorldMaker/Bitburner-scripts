@@ -1,8 +1,6 @@
 import { Company, MyCompany } from '../../models/corporation'
-import { NsLogger } from '../../logging/logger'
 import { BasePhaseManager } from './base-phase'
 import { PhaseManager } from './phase'
-import { Config } from '../../models/config'
 
 const DesiredResearch = [
 	'Hi-Tech R&D Laboratory',
@@ -18,57 +16,53 @@ export class ProductRound3Manager
 	private researchDesired = 0
 	private researchMet = 0
 
-	constructor(
-		ns: NS,
-		private readonly config: Config,
-		logger: NsLogger,
-		company: Company
-	) {
-		super(ns, logger, company)
+	constructor(company: Company) {
+		super(company)
 	}
 
 	summarize() {
-		return `INFO preparing ${MyCompany.ProductDivision.Name} for fourth investment round; ${this.researchMet}/${this.researchDesired}`
+		const { logger } = this.company.context
+		logger.info`preparing ${MyCompany.ProductDivision.Name} for fourth investment round; ${this.researchMet}/${this.researchDesired}`
 	}
 
 	async manage(): Promise<void> {
+		const { ns, logger } = this.company.context
 		const productDivision = this.company.getProductDivision()
 		if (!productDivision) {
-			this.logger.error`no product division`
+			logger.error`no product division`
 			return
 		}
 
-		if (this.config.hacknetHashStrategy === 'corpfunds') {
-			this.config.hacknetHashStrategy = 'corpresearch'
+		if (this.company.context.hacknetHashStrategy === 'corpfunds') {
+			this.company.context.hacknetHashStrategy = 'corpresearch'
 		}
 
 		const availableResearch = productDivision.research
 		for (const research of DesiredResearch) {
 			this.researchDesired++
-			if (this.ns.corporation.hasResearched(productDivision.name, research)) {
+			if (ns.corporation.hasResearched(productDivision.name, research)) {
 				this.researchMet++
 			} else {
-				const cost = this.ns.corporation.getResearchCost(
+				const cost = ns.corporation.getResearchCost(
 					productDivision.name,
 					research
 				)
 				// we want to leave some research, so see that we can pay for at least twice the cost
 				if (availableResearch > cost * 2) {
-					this.ns.corporation.research(productDivision.name, research)
+					ns.corporation.research(productDivision.name, research)
 					this.researchMet++
 
 					// turn Market-TA.II on all our products as soon as acquired
 					if (research === 'Market-TA.II') {
 						for (const product of productDivision.products) {
 							try {
-								this.ns.corporation.setProductMarketTA2(
+								ns.corporation.setProductMarketTA2(
 									productDivision.name,
 									product,
 									true
 								)
 							} catch (error) {
-								this.logger
-									.warn`unable to set Market TA2 on ${productDivision.name} ${product}: ${error}`
+								logger.warn`unable to set Market TA2 on ${productDivision.name} ${product}: ${error}`
 							}
 						}
 					}
@@ -77,7 +71,7 @@ export class ProductRound3Manager
 		}
 
 		if (this.researchMet < this.researchDesired) {
-			this.logger.log('Waiting for research to complete')
+			logger.log('Waiting for research to complete')
 			return
 		}
 
