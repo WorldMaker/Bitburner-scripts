@@ -60,6 +60,7 @@ export class ProductPriceService {
 		for (const productName of productDivision.products) {
 			const product = ns.corporation.getProduct(
 				productDivision.name,
+				ProductDevelopment.City,
 				productName
 			)
 			const price = this.priceCache.getProductPrice(product)

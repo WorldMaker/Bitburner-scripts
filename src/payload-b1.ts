@@ -29,11 +29,11 @@ export async function main(ns: NS) {
 
 	const nextBatch = getNextBatchType(
 		target,
-		server.moneyAvailable,
-		server.hackDifficulty
+		server.moneyAvailable!,
+		server.hackDifficulty!
 	)
 	const batch = createBatch(ns, nextBatch, logger, player, server)
-	const plan = batch.plan(server.moneyAvailable, server.hackDifficulty)
+	const plan = batch.plan(server.moneyAvailable!, server.hackDifficulty!)
 
 	const planOverview = plan.plans
 		.map((p) => `${p.direction} ${p.threads} @ ${p.start}`)

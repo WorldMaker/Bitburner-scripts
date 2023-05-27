@@ -184,8 +184,11 @@ export class Company {
 			Boolean(productDivision.products.length) &&
 			productDivision.products.some(
 				(p) =>
-					ns.corporation.getProduct(productDivision.name, p)
-						.developmentProgress >= 100
+					ns.corporation.getProduct(
+						productDivision.name,
+						ProductDevelopment.City,
+						p
+					).developmentProgress >= 100
 			)
 		return this.developedProduct
 	}

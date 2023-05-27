@@ -115,13 +115,13 @@ export class ProductPurchaseService {
 			}
 		}
 		for (const unlock of ns.corporation.getConstants().unlockNames) {
-			if (ns.corporation.hasUnlockUpgrade(unlock)) {
+			if (ns.corporation.hasUnlock(unlock)) {
 				continue
 			}
-			const unlockCost = ns.corporation.getUnlockUpgradeCost(unlock)
+			const unlockCost = ns.corporation.getUnlockCost(unlock)
 			if (unlockCost < toyBudget) {
 				try {
-					ns.corporation.unlockUpgrade(unlock)
+					ns.corporation.purchaseUnlock(unlock)
 					toyBudget -= unlockCost
 				} catch (err) {
 					logger.warn`unable to unlock ${this.company.name} feature ${unlock}; ${err}`
@@ -168,7 +168,8 @@ export class ProductPurchaseService {
 			ProductDevelopment.KeyResearch
 		)
 		if (this.hasEnoughBaselineResearch) {
-			let researchBudget = productDivision.research * AdditionalResearchBudget
+			let researchBudget =
+				productDivision.researchPoints * AdditionalResearchBudget
 			for (const research of ns.corporation.getConstants().researchNames) {
 				if (!ns.corporation.hasResearched(productDivision.name, research)) {
 					let cost = Infinity

@@ -13,7 +13,7 @@ export class SleeveUpgrader implements ToyBudgetProvider, ToyPurchaser {
 		if (funds > SleeveBudgetThreshold) {
 			return (
 				(this.ns.getMoneySources().sinceInstall.sleeves /
-					this.ns.getPlayer().playtimeSinceLastAug) *
+					this.ns.getResetInfo().lastAugReset) *
 				60 /* s */ *
 				SleeveBudgetMultiplier
 			)

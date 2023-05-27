@@ -217,8 +217,8 @@ export class HwgwBatch implements Batch<'hwgw'> {
 		)
 		const hackSecurity = hackThreads * HackSecurityRaisePerThread
 		const postHackMoney =
-			expectedServer.moneyAvailable -
-			expectedServer.moneyAvailable * hackThreads * hackPercent
+			expectedServer.moneyAvailable! -
+			expectedServer.moneyAvailable! * hackThreads * hackPercent
 		const weakenTime = this.ns.formulas.hacking.weakenTime(
 			expectedServer,
 			this.player

@@ -10,19 +10,19 @@ export class CorpToyBudget implements ToyBudgetProvider {
 	constructor(private ns: NS) {}
 
 	budget(funds: number): number {
+		const playtimeSinceLastAug = this.ns.getResetInfo().lastAugReset
 		// after a corporation has started alot most of hacking, CCT, and crime revenue for toy purchasing
 		if (this.ns.corporation.hasCorporation()) {
 			const hackingRevenue =
 				(this.ns.getMoneySources().sinceInstall.hacking /
-					this.ns.getPlayer().playtimeSinceLastAug) *
+					playtimeSinceLastAug) *
 				60 /* s */
 			const cctRevenue =
 				(this.ns.getMoneySources().sinceInstall.codingcontract /
-					this.ns.getPlayer().playtimeSinceLastAug) *
+					playtimeSinceLastAug) *
 				60 /* s */
 			const crimeRevenue =
-				(this.ns.getMoneySources().sinceInstall.crime /
-					this.ns.getPlayer().playtimeSinceLastAug) *
+				(this.ns.getMoneySources().sinceInstall.crime / playtimeSinceLastAug) *
 				60 /* s */
 			const budget = Math.min(
 				funds * MaximumFundsMultiplier,

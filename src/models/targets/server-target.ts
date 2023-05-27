@@ -22,7 +22,7 @@ export class ServerTarget extends Target {
 		super(ns, name, purchased)
 
 		this.server = server
-		this.hackingLevel = server.requiredHackingSkill
+		this.hackingLevel = server.requiredHackingSkill ?? Infinity
 	}
 
 	getServer() {
@@ -64,21 +64,21 @@ export class ServerTarget extends Target {
 	// *** Simple Target overrides ***
 
 	getMinSecurityLevel(): number {
-		return this.server.minDifficulty
+		return this.server.minDifficulty ?? 1
 	}
 
 	getWorth(): number {
-		return this.server.moneyMax
+		return this.server.moneyMax ?? 0
 	}
 
 	checkMoneyAvailable(): number {
 		this.server = this.ns.getServer(this.name)
-		return this.server.moneyAvailable
+		return this.server.moneyAvailable ?? 0
 	}
 
 	checkSecurityLevel(): number {
 		this.server = this.ns.getServer(this.name)
-		return this.server.hackDifficulty
+		return this.server.hackDifficulty ?? Infinity
 	}
 
 	checkRunning(

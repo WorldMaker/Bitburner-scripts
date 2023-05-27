@@ -53,7 +53,13 @@ export class ProductManager {
 		)
 
 		const products = from(productDivision.products).pipe(
-			map((product) => ns.corporation.getProduct(productDivision.name, product))
+			map((product) =>
+				ns.corporation.getProduct(
+					productDivision.name,
+					ProductDevelopment.City,
+					product
+				)
+			)
 		)
 
 		this.#developmentProducts = [
@@ -63,7 +69,7 @@ export class ProductManager {
 		const productionProducts = [
 			...products.pipe(
 				filter((product) => product.developmentProgress >= 100),
-				orderBy((product) => product.rat)
+				orderBy((product) => product.rating)
 			),
 		]
 
@@ -103,7 +109,7 @@ export class ProductManager {
 		// *** Make sure all current production products are for sale ***
 
 		for (const product of productionProducts) {
-			if (product.sCost === 0 || product.sCost === '') {
+			if (product.desiredSellPrice === 0 || product.desiredSellPrice === '') {
 				ns.corporation.sellProduct(
 					productDivision.name,
 					ProductDevelopment.City,

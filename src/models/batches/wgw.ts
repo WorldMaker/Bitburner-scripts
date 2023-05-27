@@ -159,6 +159,9 @@ export class WgwBatch implements Batch<'wgw'> {
 		expectedMoneyAvailable: number,
 		expectedSecurityLevel: number
 	): BatchPlans {
+		if (!this.server.minDifficulty) {
+			throw new Error(`unknown difficulty for server ${this.server.hostname}`)
+		}
 		const desiredWeaken = expectedSecurityLevel - this.server.minDifficulty
 		const w1Threads = Math.max(
 			1,
