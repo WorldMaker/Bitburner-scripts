@@ -24,13 +24,6 @@ export class NsContext {
 	constructor(public readonly ns: NS, public readonly logger: NsLogger) {}
 
 	reset() {
-		this.hacknetNodes = 5
-		this.hacknetHashStrategy = 'money'
-		this.hackStrategy = 'formulated'
-		this.flightController = true
-		this.scanMaxDepth = 100
-		this.shirtStrategy = 'heist'
-		this.tail = true
 		this.targetAugmentFaction = null
 		this.toyBudget = 0
 	}
