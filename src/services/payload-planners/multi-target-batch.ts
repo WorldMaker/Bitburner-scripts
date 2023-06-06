@@ -435,16 +435,27 @@ export class MultiTargetBatchPlanner implements PayloadPlanner {
 				deployServers.length === batchDeployments.deploys.length
 			) {
 				attackedTargets.add(target.name)
+				const length = batch.end - batch.start
+				const lengthSeconds = length / 1000 /* ms */
+				const lengthMinutes = lengthSeconds / 60 /* s */
+				let status = '⚒'
 				if (
 					satisifiesCount ||
 					start.getTime() + batch.end >= now + TotalTimeWindowToPlan
 				) {
-					this.logger
-						.debug`${target.name}\t✔ batching ${batch.type} from ${batch.start} to ${batch.end}`
+					status = '✔'
 					satisfied.add(target.name)
-				} else {
-					this.logger
-						.debug`${target.name}\t⚒ batching ${batch.type} from ${batch.start} to ${batch.end}`
+				}
+				this.logger.debug`${
+					target.name
+				}\t${status} batching ${getBatchTypeEmoji(
+					batch.type
+				)} for ${this.ns.formatNumber(lengthMinutes)} minutes`
+				if (batch.start !== 0) {
+					const delaySeconds = batch.start / 1000 /* ms */
+					this.logger.debug`\t⌛ batch delay ${this.ns.formatNumber(
+						delaySeconds
+					)}s`
 				}
 				for (const deployServer of deployServers.flat()) {
 					const deploylist = deployments.get(deployServer.server.name) ?? []
