@@ -11,11 +11,7 @@ import {
 
 const { from } = IterableX
 
-const BaseTotalProducts = 3
-
 export class ProductManager {
-	private hasResearchedUpgradeCapacity1 = false
-	private hasResearchedUpgradeCapacity2 = false
 	#developmentProducts: Product[] = []
 
 	constructor(private readonly company: Company) {}
@@ -42,16 +38,6 @@ export class ProductManager {
 		const { ns, logger } = this.company.context
 		const productDivision = this.company.getProductDivision()!
 
-		this.hasResearchedUpgradeCapacity1 ||= ns.corporation.hasResearched(
-			productDivision.name,
-			'uPgrade: Capacity.I'
-		)
-
-		this.hasResearchedUpgradeCapacity2 ||= ns.corporation.hasResearched(
-			productDivision.name,
-			'uPgrade: Capacity.II'
-		)
-
 		const products = from(productDivision.products).pipe(
 			map((product) =>
 				ns.corporation.getProduct(
@@ -76,17 +62,8 @@ export class ProductManager {
 		// *** Start Development of new Products ***
 		// If there is no product in development, make one; discontinue the lowest rated existing product if necessary
 
-		let totalProducts = BaseTotalProducts
-
-		if (this.hasResearchedUpgradeCapacity1) {
-			totalProducts++
-		}
-		if (this.hasResearchedUpgradeCapacity2) {
-			totalProducts++
-		}
-
 		if (this.#developmentProducts.length < 1) {
-			if (productionProducts.length >= totalProducts) {
+			if (productionProducts.length >= productDivision.maxProducts) {
 				const discontinuedProduct = productionProducts.shift()!
 				ns.corporation.discontinueProduct(
 					productDivision.name,
