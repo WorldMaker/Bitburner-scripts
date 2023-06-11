@@ -170,6 +170,32 @@ interface Multipliers {
 }
 
 /** @public */
+interface TailProperties {
+	/** X-coordinate of the log window */
+	x: number
+	/** Y-coordinate of the log window */
+	y: number
+	/** Width of the log window content area */
+	width: number
+	/** Height of the log window content area */
+	height: number
+}
+
+/**
+ * @public
+ * A stand-in for the real React.ReactElement, which API-extractor doesn't know about.
+ * Don't try to create one of these by hand; use React.createElement().
+ */
+interface ReactElement {
+	type:
+		| string
+		| ((props: any) => ReactElement | null)
+		| (new (props: any) => object)
+	props: any
+	key: string | number | null
+}
+
+/** @public */
 interface RunningScript {
 	/** Arguments the script was called with */
 	args: (string | number | boolean)[]
@@ -198,6 +224,15 @@ interface RunningScript {
 	ramUsage: number
 	/** Hostname of the server on which this script runs */
 	server: string
+	/** Properties of the tail window, or null if it is not shown */
+	tailProperties: TailProperties | null
+	/**
+	 * The title, as shown in the script's log box. Defaults to the name + args,
+	 * but can be changed by the user. If it is set to a React element (only by
+	 * the user), that will not be persisted, and will be restored to default on
+	 * load.
+	 */
+	title: string | ReactElement
 	/** Number of threads that this script runs with */
 	threads: number
 	/** Whether this RunningScript is excluded from saves */
@@ -294,7 +329,7 @@ interface BasicHGWOptions {
 	/** Set to true this action will affect the stock market. */
 	stock?: boolean
 	/** Number of additional milliseconds that will be spent waiting between the start of the function and when it
-	 * completes. Experimental in 2.2.2, may be removed in 2.3. */
+	 * completes. */
 	additionalMsec?: number
 }
 
@@ -5245,6 +5280,29 @@ declare interface NS {
 	closeTail(pid?: number): void
 
 	/**
+	 * Set the title of the tail window of a script.
+	 * @remarks
+	 * RAM cost: 0 GB
+	 *
+	 * This sets the title to the given string, and also forces an update of the
+	 * tail window's contents.
+	 *
+	 * The title is saved across restarts, but only if it is a simple string.
+	 *
+	 * If the pid is unspecified, it will modify the current script’s logs.
+	 *
+	 * Otherwise, the pid argument can be used to change the logs from another script.
+	 *
+	 * It is possible to pass a React Element instead of a string. Get these by calling
+	 * React.createElement() with appropriate parameters. You should either know
+	 * or be willing to learn about the React UI library if you go down this
+	 * route, and there will likely be rough edges.
+	 *
+	 * @param pid - Optional. PID of the script having its tail closed. If omitted, the current script is used.
+	 */
+	setTitle(title: string | ReactElement, pid?: number): void
+
+	/**
 	 * Get the list of servers connected to a server.
 	 * @remarks
 	 * RAM cost: 0.2 GB
@@ -5844,12 +5902,9 @@ declare interface NS {
 	 * RAM cost: 0.1 GB
 	 *
 	 * Returns a boolean indicating whether the specified file exists on the target server.
-	 * The filename for scripts is case-sensitive, but for other types of files it is not.
+	 * The filename for programs is case insensitive, other file types are case sensitive.
 	 * For example, fileExists(“brutessh.exe”) will work fine, even though the actual program
 	 * is named 'BruteSSH.exe'.
-	 *
-	 * If the hostname/ip argument is omitted, then the function will search through the current
-	 * server (the server running the script that calls this function) for the file.
 	 *
 	 * * @example
 	 * ```js
@@ -5860,7 +5915,7 @@ declare interface NS {
 	 * ns.fileExists("ftpcrack.exe");
 	 * ```
 	 * @param filename - Filename of file to check.
-	 * @param host - Host of target server. This is optional. If it is not specified then the function will use the current server as the target server.
+	 * @param host - Host of target server. Optional, defaults to the server the script is running on.
 	 * @returns True if specified file exists, and false otherwise.
 	 */
 	fileExists(filename: string, host?: string): boolean
@@ -6685,6 +6740,16 @@ declare interface NS {
 	getResetInfo(): ResetInfo
 
 	/**
+	 * Get the ram cost of a netscript function.
+	 *
+	 * @remarks
+	 * RAM cost: 0 GB
+	 *
+	 * @param name - The fully-qualified function name, without the leading `ns`. Example inputs: `hack`, `tprint`, `stock.getPosition`.
+	 */
+	getFunctionRamCost(name: string): number
+
+	/**
 	 * Parse command line flags.
 	 * @remarks
 	 * RAM cost: 0 GB
@@ -7259,7 +7324,7 @@ declare interface WarehouseAPI {
 		targetDivision: string,
 		targetCity: CityName | `${CityName}`,
 		materialName: string,
-		amt: number
+		amt: number | string
 	): void
 	/**
 	 * Cancel material export
@@ -7268,15 +7333,13 @@ declare interface WarehouseAPI {
 	 * @param targetDivision - Target division
 	 * @param targetCity - Target city
 	 * @param materialName - Name of the material
-	 * @param amt - Amount of material to export.
 	 */
 	cancelExportMaterial(
 		sourceDivision: string,
 		sourceCity: CityName | `${CityName}`,
 		targetDivision: string,
 		targetCity: CityName | `${CityName}`,
-		materialName: string,
-		amt: number
+		materialName: string
 	): void
 	/**
 	 * Purchase warehouse for a new city
@@ -7869,6 +7932,8 @@ interface Division {
 	products: string[]
 	/** Whether the industry this division is in is capable of making products */
 	makesProducts: boolean
+	/** How many products this division can support */
+	maxProducts: number
 }
 
 /**
