@@ -5,6 +5,9 @@ import { Company, LevelUpgrade } from '../../models/corporation'
 
 const { from } = IterableX
 
+const DesiredMorale = 95
+const DesiredEnergy = 95
+
 export type DesiredLevelUpgrades = Partial<Record<LevelUpgrade, number>>
 
 export class BasePhaseManager {
@@ -47,21 +50,21 @@ export class BasePhaseManager {
 				map((city) => ns.corporation.getOffice(division.name, city))
 			),
 			(acc, cur) => ({
-				mor: acc.mor + cur.avgMorale,
-				ene: acc.ene + cur.avgEnergy,
+				morale: acc.morale + cur.avgMorale,
+				energy: acc.energy + cur.avgEnergy,
 				total: acc.total + 1,
 			}),
-			{ mor: 0, ene: 0, total: 0 }
+			{ morale: 0, energy: 0, total: 0 }
 		)
 		const averages = {
-			mor: counts.mor / counts.total,
-			ene: counts.ene / counts.total,
+			morale: counts.morale / counts.total,
+			energy: counts.energy / counts.total,
 		}
 
-		if (averages.mor < 97 || averages.ene < 97) {
-			logger.debug`Waiting for morale; ${averages.mor.toFixed(
+		if (averages.morale < DesiredMorale || averages.energy < DesiredEnergy) {
+			logger.debug`Waiting for morale; ${averages.morale.toFixed(
 				3
-			)}/97; ${averages.ene.toFixed(3)}/97`
+			)}/${DesiredMorale}; ${averages.energy.toFixed(3)}/${DesiredEnergy}`
 
 			return false
 		}
